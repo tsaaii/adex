@@ -47,16 +47,60 @@ class SettingsStorage:
             with open(self.users_file, 'w') as f:
                 json.dump(default_users, f, indent=4)
         
-        # Create sites file with default site
-        if not os.path.exists(self.sites_file):
-            default_sites = {
-                "sites": ["Guntur"],
-                "incharges": ["Site Manager"]
+        # Create sites file with default site, incharge, and transfer party
+            if not os.path.exists(self.sites_file):
+                default_sites = {
+                    "sites": ["Guntur"],
+                    "incharges": ["Site Manager"],
+                    "transfer_parties": ["Advitia Labs"],
+                    "agencies": ["Default Agency"]  # Added default agency
+                }
+                os.makedirs(os.path.dirname(self.sites_file), exist_ok=True)
+                with open(self.sites_file, 'w') as f:
+                    json.dump(default_sites, f, indent=4)
+            else:
+                # Update existing sites file to include agencies if missing
+                try:
+                    with open(self.sites_file, 'r') as f:
+                        sites_data = json.load(f)
+                        
+                    # Add missing fields
+                    if 'transfer_parties' not in sites_data:
+                        sites_data['transfer_parties'] = ["Advitia Labs"]
+                    if 'agencies' not in sites_data:
+                        sites_data['agencies'] = ["Default Agency"]
+                        
+                    with open(self.sites_file, 'w') as f:
+                        json.dump(sites_data, f, indent=4)
+                except Exception as e:
+                    print(f"Error updating sites file: {e}")
+
+    def get_sites(self):
+        """Get sites, incharges, transfer parties and agencies
+        
+        Returns:
+            dict: Sites data with 'sites', 'incharges', 'transfer_parties', and 'agencies' keys
+        """
+        try:
+            with open(self.sites_file, 'r') as f:
+                sites_data = json.load(f)
+                
+                # Ensure all fields exist
+                if 'transfer_parties' not in sites_data:
+                    sites_data['transfer_parties'] = ["Advitia Labs"]
+                if 'agencies' not in sites_data:
+                    sites_data['agencies'] = ["Default Agency"]
+                
+                return sites_data
+        except Exception as e:
+            print(f"Error reading sites: {e}")
+            return {
+                "sites": ["Guntur"], 
+                "incharges": ["Site Manager"],
+                "transfer_parties": ["Advitia Labs"],
+                "agencies": ["Default Agency"]
             }
-            os.makedirs(os.path.dirname(self.sites_file), exist_ok=True)
-            with open(self.sites_file, 'w') as f:
-                json.dump(default_sites, f, indent=4)
-    
+
     def get_weighbridge_settings(self):
         """Get weighbridge settings from file
         
@@ -162,28 +206,42 @@ class SettingsStorage:
             return False
     
     def get_sites(self):
-        """Get sites and incharges
+        """Get sites, incharges and transfer parties
         
         Returns:
-            dict: Sites data with 'sites' and 'incharges' keys
+            dict: Sites data with 'sites', 'incharges', and 'transfer_parties' keys
         """
         try:
             with open(self.sites_file, 'r') as f:
-                return json.load(f)
+                sites_data = json.load(f)
+                
+                # Ensure transfer_parties exists
+                if 'transfer_parties' not in sites_data:
+                    sites_data['transfer_parties'] = ["Advitia Labs"]
+                
+                return sites_data
         except Exception as e:
             print(f"Error reading sites: {e}")
-            return {"sites": ["Guntur"], "incharges": ["Site Manager"]}
+            return {
+                "sites": ["Guntur"], 
+                "incharges": ["Site Manager"],
+                "transfer_parties": ["Advitia Labs"]
+            }
     
     def save_sites(self, sites_data):
-        """Save sites and incharges to file
+        """Save sites, incharges and transfer parties to file
         
         Args:
-            sites_data: Dict with 'sites' and 'incharges' keys
+            sites_data: Dict with 'sites', 'incharges', and 'transfer_parties' keys
             
         Returns:
             bool: True if successful, False otherwise
         """
         try:
+            # Ensure transfer_parties exists
+            if 'transfer_parties' not in sites_data:
+                sites_data['transfer_parties'] = ["Advitia Labs"]
+                
             with open(self.sites_file, 'w') as f:
                 json.dump(sites_data, f, indent=4)
             return True

@@ -74,6 +74,78 @@ class TharuniApp:
             # Exit application if login failed or canceled
             self.root.quit()
     
+    def create_main_panel(self, parent):
+        """Create main panel with form and pending vehicles list"""
+        # Main panel to hold everything with scrollable frame for small screens
+        main_panel = ttk.Frame(parent, style="TFrame")
+        main_panel.pack(fill=tk.BOTH, expand=True)
+        
+        # Configure main_panel for proper resizing
+        main_panel.columnconfigure(0, weight=3)  # Left panel gets 3x the weight
+        main_panel.columnconfigure(1, weight=1)  # Right panel gets 1x the weight
+        main_panel.rowconfigure(0, weight=1)     # Single row gets all the weight
+        
+        # Split the main panel into two parts: form and pending vehicles
+        # Use grid instead of pack for better resize control
+        left_panel = ttk.Frame(main_panel, style="TFrame")
+        left_panel.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
+        
+        right_panel = ttk.Frame(main_panel, style="TFrame")
+        right_panel.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
+        
+        # Add a canvas with scrollbar for small screens on the left panel
+        canvas = tk.Canvas(left_panel, bg=config.COLORS["background"], highlightthickness=0)
+        scrollbar = ttk.Scrollbar(left_panel, orient="vertical", command=canvas.yview)
+        
+        # Configure left_panel for proper resizing
+        left_panel.columnconfigure(0, weight=1)
+        left_panel.rowconfigure(0, weight=1)
+        
+        # Create a frame that will contain the form and cameras
+        scrollable_frame = ttk.Frame(canvas, style="TFrame")
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        # Add the frame to the canvas
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Pack the canvas and scrollbar
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Create the main form - pass data manager for ticket lookup
+        self.main_form = MainForm(
+            scrollable_frame, 
+            notebook=self.notebook,
+            summary_update_callback=self.update_summary,
+            data_manager=self.data_manager
+        )
+
+        # Load sites and agencies for dropdowns in the main form
+        self.main_form.load_sites_and_agencies(self.settings_storage)
+
+        # Set the site name based on login selection if available
+        if self.selected_site:
+            self.main_form.set_site(self.selected_site)
+
+        # Set the agency name based on login selection if available
+        if self.selected_incharge and hasattr(self.main_form, 'set_agency'):
+            self.main_form.set_agency(self.selected_incharge)
+
+        # Create the pending vehicles panel on the right
+        self.pending_vehicles = PendingVehiclesPanel(
+            right_panel,
+            data_manager=self.data_manager,
+            on_vehicle_select=self.load_pending_vehicle
+        )
+        
+        # Configure scroll region after adding content
+        scrollable_frame.update_idletasks()
+        canvas.configure(scrollregion=canvas.bbox("all"))
+    
     def create_widgets(self):
         """Create all widgets and layout for the application"""
         # Create main container frame
@@ -247,72 +319,6 @@ class TharuniApp:
                             bg=config.COLORS["header_bg"])
         time_label.grid(row=0, column=3, sticky="w")
     
-    def create_main_panel(self, parent):
-        """Create main panel with form and pending vehicles list"""
-        # Main panel to hold everything with scrollable frame for small screens
-        main_panel = ttk.Frame(parent, style="TFrame")
-        main_panel.pack(fill=tk.BOTH, expand=True)
-        
-        # Configure main_panel for proper resizing
-        main_panel.columnconfigure(0, weight=3)  # Left panel gets 3x the weight
-        main_panel.columnconfigure(1, weight=1)  # Right panel gets 1x the weight
-        main_panel.rowconfigure(0, weight=1)     # Single row gets all the weight
-        
-        # Split the main panel into two parts: form and pending vehicles
-        # Use grid instead of pack for better resize control
-        left_panel = ttk.Frame(main_panel, style="TFrame")
-        left_panel.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
-        
-        right_panel = ttk.Frame(main_panel, style="TFrame")
-        right_panel.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
-        
-        # Add a canvas with scrollbar for small screens on the left panel
-        canvas = tk.Canvas(left_panel, bg=config.COLORS["background"], highlightthickness=0)
-        scrollbar = ttk.Scrollbar(left_panel, orient="vertical", command=canvas.yview)
-        
-        # Configure left_panel for proper resizing
-        left_panel.columnconfigure(0, weight=1)
-        left_panel.rowconfigure(0, weight=1)
-        
-        # Create a frame that will contain the form and cameras
-        scrollable_frame = ttk.Frame(canvas, style="TFrame")
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-        
-        # Add the frame to the canvas
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-        
-        # Pack the canvas and scrollbar
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-        
-        # Create the main form - pass data manager for ticket lookup
-        self.main_form = MainForm(
-            scrollable_frame, 
-            notebook=self.notebook,
-            summary_update_callback=self.update_summary,
-            data_manager=self.data_manager
-        )
-
-        if self.selected_site:
-            self.main_form.set_site(self.selected_site)
-
-        if hasattr(self.main_form, 'set_agency') and self.selected_incharge:
-            self.main_form.set_agency(self.selected_incharge)
-
-        # Create the pending vehicles panel on the right
-        self.pending_vehicles = PendingVehiclesPanel(
-            right_panel,
-            data_manager=self.data_manager,
-            on_vehicle_select=self.load_pending_vehicle
-        )
-        
-        # Configure scroll region after adding content
-        scrollable_frame.update_idletasks()
-        canvas.configure(scrollregion=canvas.bbox("all"))
     
     def load_pending_vehicle(self, ticket_no):
         """Load a pending vehicle when selected from the pending vehicles panel

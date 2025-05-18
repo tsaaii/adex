@@ -39,16 +39,16 @@ class MainForm:
         
         # Bind space key to the parent window
         self.parent.bind("<space>", self.handle_space_key)
+        self.refresh_vehicle_numbers_cache()
         
     def init_variables(self):
         """Initialize form variables"""
         # Create variables for form fields
         self.site_var = tk.StringVar(value="Guntur")
         self.agency_var = tk.StringVar()
-        self.material_var = tk.StringVar(value="MSW")
         self.rst_var = tk.StringVar()
         self.vehicle_var = tk.StringVar()
-        self.tpt_var = tk.StringVar(value="Advitia Labs")
+        self.tpt_var = tk.StringVar()
         
         # New variables for first and second weighment
         self.first_weight_var = tk.StringVar()
@@ -67,10 +67,214 @@ class MainForm:
         # Weighment state
         self.current_weighment = "first"  # Can be "first" or "second"
         
+        # Vehicle number autocomplete cache
+        self.vehicle_numbers_cache = []
+        
         # If data manager is available, generate the next ticket number
         if hasattr(self, 'data_manager') and self.data_manager:
             self.generate_next_ticket_number()
-    
+
+    def refresh_vehicle_numbers_cache(self):
+        """Refresh the cache of vehicle numbers for autocomplete"""
+        self.vehicle_numbers_cache = self.get_vehicle_numbers()
+        if hasattr(self, 'vehicle_entry'):
+            self.vehicle_entry['values'] = self.vehicle_numbers_cache
+
+    def check_ticket_exists(self, event=None):
+        """Check if the ticket number already exists in the database"""
+        ticket_no = self.rst_var.get().strip()
+        if not ticket_no:
+            return
+            
+        if hasattr(self, 'data_manager') and self.data_manager:
+            # Check if this ticket exists in the database
+            records = self.data_manager.get_filtered_records(ticket_no)
+            for record in records:
+                if record.get('ticket_no') == ticket_no:
+                    # Record exists, determine weighment state
+                    if record.get('second_weight') and record.get('second_timestamp'):
+                        # Both weighments already done
+                        messagebox.showinfo("Completed Record", 
+                                        "This ticket already has both weighments completed.")
+                        self.load_record_data(record)
+                        return
+                    elif record.get('first_weight') and record.get('first_timestamp'):
+                        # First weighment done, set up for second
+                        self.current_weighment = "second"
+                        self.load_record_data(record)
+                        
+                        # Enable second weighment button, disable first
+                        self.first_weighment_btn.config(state=tk.DISABLED)
+                        self.second_weighment_btn.config(state=tk.NORMAL)
+                        
+                        messagebox.showinfo("Existing Ticket", 
+                                        "This ticket already has a first weighment. Proceed with second weighment.")
+                        return
+                    
+        # If we get here, this is a new ticket - set for first weighment
+        self.current_weighment = "first"
+        self.first_weighment_btn.config(state=tk.NORMAL)
+        self.second_weighment_btn.config(state=tk.DISABLED)
+        
+        # Clear weight fields for new entry
+        self.first_weight_var.set("")
+        self.first_timestamp_var.set("")
+        self.second_weight_var.set("")
+        self.second_timestamp_var.set("")
+        self.net_weight_var.set("")
+
+    def capture_first_weighment(self):
+        """Capture the first weighment"""
+        # Validate required fields
+        if not self.validate_basic_fields():
+            return
+            
+        # Get current weight from weighbridge
+        current_weight = self.get_current_weighbridge_value()
+        if current_weight is None:
+            return
+            
+        # Set first weighment
+        self.first_weight_var.set(str(current_weight))
+        
+        # Set timestamp
+        now = datetime.datetime.now()
+        timestamp = now.strftime("%d-%m-%Y %H:%M:%S")
+        self.first_timestamp_var.set(timestamp)
+        
+        # Disable first weighment button, enable second
+        self.first_weighment_btn.config(state=tk.DISABLED)
+        self.second_weighment_btn.config(state=tk.NORMAL)
+        
+        # Update current weighment state
+        self.current_weighment = "second"
+        
+        # Automatically save the record to add to the pending queue
+        if hasattr(self, 'summary_update_callback'):
+            # Try to find the main app to trigger save
+            app = self.find_main_app()
+            if app and hasattr(app, 'save_record'):
+                app.save_record()
+            else:
+                # Show confirmation if auto-save not available
+                messagebox.showinfo("First Weighment", 
+                                f"First weighment recorded: {current_weight} kg\n"
+                                f"Please save the record to add to the pending queue.")
+                
+
+    def capture_second_weighment(self):
+        """Capture the second weighment"""
+        # Validate first weighment exists
+        if not self.first_weight_var.get():
+            messagebox.showerror("Error", "Please record the first weighment first.")
+            return
+            
+        # Get current weight from weighbridge
+        current_weight = self.get_current_weighbridge_value()
+        if current_weight is None:
+            return
+            
+        # Set second weighment
+        self.second_weight_var.set(str(current_weight))
+        
+        # Set timestamp
+        now = datetime.datetime.now()
+        timestamp = now.strftime("%d-%m-%Y %H:%M:%S")
+        self.second_timestamp_var.set(timestamp)
+        
+        # Calculate net weight
+        self.calculate_net_weight()
+        
+        # Automatically save the record to complete the process
+        app = self.find_main_app()
+        if app and hasattr(app, 'save_record'):
+            app.save_record()
+        else:
+            # Show confirmation if auto-save not available
+            messagebox.showinfo("Second Weighment", 
+                        f"Second weighment recorded: {current_weight} kg\n"
+                        f"Net weight: {self.net_weight_var.get()} kg\n"
+                        f"Please save the record to complete the process.")                
+
+    def get_current_weighbridge_value(self):
+        """Get the current value from the weighbridge"""
+        try:
+            # Try to find the main app instance to access weighbridge data
+            app = self.find_main_app()
+            if app and hasattr(app, 'settings_panel'):
+                # Get weight from the weighbridge display
+                weight_str = app.settings_panel.current_weight_var.get()
+                
+                # Check if weighbridge is connected
+                is_connected = app.settings_panel.weighbridge and app.settings_panel.wb_status_var.get() == "Status: Connected"
+                
+                if not is_connected:
+                    messagebox.showerror("Weighbridge Error", 
+                                    "Weighbridge is not connected. Please connect the weighbridge in Settings tab.")
+                    return None
+                
+                # Extract number from string like "123.45 kg"
+                import re
+                match = re.search(r'(\d+\.?\d*)', weight_str)
+                if match:
+                    return float(match.group(1))
+                else:
+                    messagebox.showerror("Error", "Could not read weight from weighbridge. Please check connection.")
+                    return None
+            else:
+                messagebox.showerror("Application Error", 
+                                "Cannot access weighbridge settings. Please restart the application.")
+                return None
+                
+        except Exception as e:
+            messagebox.showerror("Weighbridge Error", f"Error reading weighbridge: {str(e)}")
+            return None
+
+    def find_main_app(self):
+        """Find the main app instance to access weighbridge data"""
+        # Try to traverse up widget hierarchy to find main app instance
+        widget = self.parent
+        while widget:
+            if hasattr(widget, 'settings_panel'):
+                return widget
+            if hasattr(widget, 'master'):
+                widget = widget.master
+            else:
+                break
+        return None
+
+    def calculate_net_weight(self):
+        """Calculate net weight as the difference between weighments"""
+        try:
+            first_weight = float(self.first_weight_var.get() or 0)
+            second_weight = float(self.second_weight_var.get() or 0)
+            
+            # Calculate the absolute difference for net weight
+            net_weight = abs(first_weight - second_weight)
+            
+            self.net_weight_var.set(str(net_weight))
+        except ValueError:
+            # Handle non-numeric input
+            self.net_weight_var.set("")
+
+    def validate_basic_fields(self):
+        """Validate that basic required fields are filled"""
+        required_fields = {
+            "Ticket No": self.rst_var.get(),
+            "Vehicle No": self.vehicle_var.get(),
+            "Agency Name": self.agency_var.get(),
+            "Transfer Party Name": self.tpt_var.get()
+        }
+        
+        missing_fields = [field for field, value in required_fields.items() if not value.strip()]
+        
+        if missing_fields:
+            messagebox.showerror("Validation Error", 
+                            f"Please fill in the following required fields: {', '.join(missing_fields)}")
+            return False
+            
+        return True
+
     def generate_next_ticket_number(self):
         """Generate the next ticket number based on existing records"""
         if not hasattr(self, 'data_manager') or not self.data_manager:
@@ -100,7 +304,7 @@ class MainForm:
         self.rst_var.set(next_ticket)
         
     def create_form(self, parent):
-        """Create the main data entry form with 3x3 layout"""
+        """Create the main data entry form with modified layout"""
         # Vehicle Information Frame
         form_frame = ttk.LabelFrame(parent, text="Vehicle Information")
         form_frame.pack(fill=tk.X, padx=5, pady=5)
@@ -109,49 +313,24 @@ class MainForm:
         form_inner = ttk.Frame(form_frame, style="TFrame")
         form_inner.pack(fill=tk.BOTH, padx=5, pady=5)
         
-        # Create 3x3 grid layout
         # Configure grid columns for better distribution
         for i in range(3):  # 3 columns
             form_inner.columnconfigure(i, weight=1)  # Equal weight
         
-        # Row 0: First row of labels
-        # Site Name - Column 0
-        ttk.Label(form_inner, text="Site Name:").grid(row=0, column=0, sticky=tk.W, padx=3, pady=3)
-        
-        # Agency Name - Column 1
-        ttk.Label(form_inner, text="Agency Name:").grid(row=0, column=1, sticky=tk.W, padx=3, pady=3)
-        
-        # Material - Column 2
-        ttk.Label(form_inner, text="Input Material").grid(row=0, column=2, sticky=tk.W, padx=3, pady=3)
-        
-        # Row 1: First row of entries
-        # Site Name Entry - Column 0
-        self.site_combo = ttk.Combobox(form_inner, textvariable=self.site_var, state="readonly", width=config.STD_WIDTH)
-        self.site_combo['values'] = ('Guntur',)
-        self.site_combo.grid(row=1, column=0, sticky=tk.W, padx=3, pady=3)
-        
-        # Agency Name Entry - Column 1
-        ttk.Entry(form_inner, textvariable=self.agency_var, width=config.STD_WIDTH).grid(row=1, column=1, sticky=tk.W, padx=3, pady=3)
-        
-        # Material Combo Box - Column 2
-        material_combo = ttk.Combobox(form_inner, textvariable=self.material_var, state="readonly", width=config.STD_WIDTH)
-        material_combo['values'] = ('MSW')
-        material_combo.grid(row=1, column=2, sticky=tk.W, padx=3, pady=3)
-        
-        # Row 2: Second row of labels
+        # =================== ROW 0: First row of labels ===================
         # Ticket No - Column 0
-        ttk.Label(form_inner, text="Ticket No:").grid(row=2, column=0, sticky=tk.W, padx=3, pady=3)
+        ttk.Label(form_inner, text="Ticket No:").grid(row=0, column=0, sticky=tk.W, padx=3, pady=3)
         
-        # Vehicle No - Column 1
-        ttk.Label(form_inner, text="Vehicle No:").grid(row=2, column=1, sticky=tk.W, padx=3, pady=3)
+        # Site Name - Column 1
+        ttk.Label(form_inner, text="Site Name:").grid(row=0, column=1, sticky=tk.W, padx=3, pady=3)
         
-        # Transfer Party Name - Column 2
-        ttk.Label(form_inner, text="Transfer Party Name:").grid(row=2, column=2, sticky=tk.W, padx=3, pady=3)
+        # Agency Name - Column 2
+        ttk.Label(form_inner, text="Agency Name:").grid(row=0, column=2, sticky=tk.W, padx=3, pady=3)
         
-        # Row 3: Second row of entries
+        # =================== ROW 1: First row of entries ===================
         # Ticket No Entry - Column 0
         ticket_entry = ttk.Entry(form_inner, textvariable=self.rst_var, width=config.STD_WIDTH)
-        ticket_entry.grid(row=3, column=0, sticky=tk.W, padx=3, pady=3)
+        ticket_entry.grid(row=1, column=0, sticky=tk.W, padx=3, pady=3)
         ticket_entry.bind("<FocusOut>", self.check_ticket_exists)
         
         # Auto-generate next ticket button
@@ -160,35 +339,54 @@ class MainForm:
                                     fg=config.COLORS["text"],
                                     padx=2, pady=1,
                                     command=self.generate_next_ticket_number)
-        auto_ticket_btn.grid(row=3, column=0, sticky=tk.E, padx=(0, 5), pady=3)
+        auto_ticket_btn.grid(row=1, column=0, sticky=tk.E, padx=(0, 5), pady=3)
         
-        # Vehicle No Entry - Column 1
-        vehicle_entry = ttk.Entry(form_inner, textvariable=self.vehicle_var, width=config.STD_WIDTH)
-        vehicle_entry.grid(row=3, column=1, sticky=tk.W, padx=3, pady=3)
+        # Site Name Entry - Column 1
+        self.site_combo = ttk.Combobox(form_inner, textvariable=self.site_var, state="readonly", width=config.STD_WIDTH)
+        self.site_combo['values'] = ('Guntur',)
+        self.site_combo.grid(row=1, column=1, sticky=tk.W, padx=3, pady=3)
         
-        # Transfer Party Name Entry - Column 2
-        tpt_entry = ttk.Entry(form_inner, textvariable=self.tpt_var, width=config.STD_WIDTH)
-        tpt_entry.grid(row=3, column=2, sticky=tk.W, padx=3, pady=3)
-        tpt_entry.configure(state="readonly")
+        # Agency Name Combobox - Column 2 (now a dropdown)
+        self.agency_combo = ttk.Combobox(form_inner, textvariable=self.agency_var, state="readonly", width=config.STD_WIDTH)
+        self.agency_combo['values'] = ('Default Agency',)  # Default value, will be updated from settings
+        self.agency_combo.grid(row=1, column=2, sticky=tk.W, padx=3, pady=3)
         
-        # Row 4: Third row of labels
-        # Material Type - Column 0
-        ttk.Label(form_inner, text="Material Type:").grid(row=4, column=0, sticky=tk.W, padx=3, pady=3)
+        # =================== ROW 2: Second row of labels ===================
+        # Vehicle No - Column 0
+        ttk.Label(form_inner, text="Vehicle No:").grid(row=2, column=0, sticky=tk.W, padx=3, pady=3)
         
-        # Row 5: Third row of entries
-        # Material Type Combo - Column 0
+        # Transfer Party Name - Column 1
+        ttk.Label(form_inner, text="Transfer Party Name:").grid(row=2, column=1, sticky=tk.W, padx=3, pady=3)
+        
+        # Material Type - Column 2 
+        ttk.Label(form_inner, text="Material Type:").grid(row=2, column=2, sticky=tk.W, padx=3, pady=3)
+        
+        # =================== ROW 3: Second row of entries ===================
+        # Vehicle No Entry - Column 0
+        self.vehicle_entry = ttk.Combobox(form_inner, textvariable=self.vehicle_var, width=config.STD_WIDTH)
+        self.vehicle_entry.grid(row=3, column=0, sticky=tk.W, padx=3, pady=3)
+        # Load initial vehicle numbers
+        self.vehicle_entry['values'] = self.get_vehicle_numbers()
+        # Bind events for autocomplete
+        self.vehicle_entry.bind('<KeyRelease>', self.update_vehicle_autocomplete)
+        
+        # Transfer Party Name Combobox - Column 1 (now a dropdown)
+        self.tpt_combo = ttk.Combobox(form_inner, textvariable=self.tpt_var, state="readonly", width=config.STD_WIDTH)
+        self.tpt_combo['values'] = ('Advitia Labs',)  # Default value, will be updated from settings
+        self.tpt_combo.grid(row=3, column=1, sticky=tk.W, padx=3, pady=3)
+        
+        # Material Type Combo - Column 2
         material_type_combo = ttk.Combobox(form_inner, 
-                                         textvariable=self.material_type_var, 
-                                         state="readonly", 
-                                         width=config.STD_WIDTH)
-        # Material type options
+                                        textvariable=self.material_type_var, 
+                                        state="readonly", 
+                                        width=config.STD_WIDTH)
         material_type_combo['values'] = ('Inert', 'Soil', 'Construction and Demolition', 
-                                       'RDF(REFUSE DERIVED FUEL)')
-        material_type_combo.grid(row=5, column=0, sticky=tk.W, padx=3, pady=3)
+                                    'RDF(REFUSE DERIVED FUEL)')
+        material_type_combo.grid(row=3, column=2, sticky=tk.W, padx=3, pady=3)
         
         # Create weighment frame
         weighment_frame = ttk.LabelFrame(form_inner, text="Weighment Information")
-        weighment_frame.grid(row=6, column=0, columnspan=3, sticky="ew", padx=3, pady=10)
+        weighment_frame.grid(row=4, column=0, columnspan=3, sticky="ew", padx=3, pady=10)
         
         # First row - labels
         ttk.Label(weighment_frame, text="First Weighment:").grid(row=0, column=0, sticky=tk.W, padx=3, pady=3)
@@ -202,8 +400,8 @@ class MainForm:
         
         # First weighment button
         self.first_weighment_btn = HoverButton(weighment_frame, text="Capture First Weight", 
-                                             bg=config.COLORS["primary"], fg=config.COLORS["button_text"],
-                                             padx=5, pady=2, command=self.capture_first_weighment)
+                                            bg=config.COLORS["primary"], fg=config.COLORS["button_text"],
+                                            padx=5, pady=2, command=self.capture_first_weighment)
         self.first_weighment_btn.grid(row=0, column=4, padx=3, pady=3, sticky=tk.E)
         
         # Second row - labels
@@ -218,8 +416,8 @@ class MainForm:
         
         # Second weighment button
         self.second_weighment_btn = HoverButton(weighment_frame, text="Capture Second Weight", 
-                                              bg=config.COLORS["primary"], fg=config.COLORS["button_text"],
-                                              padx=5, pady=2, command=self.capture_second_weighment)
+                                            bg=config.COLORS["primary"], fg=config.COLORS["button_text"],
+                                            padx=5, pady=2, command=self.capture_second_weighment)
         self.second_weighment_btn.grid(row=1, column=4, padx=3, pady=3, sticky=tk.E)
         self.second_weighment_btn.config(state=tk.DISABLED)  # Initially disabled
         
@@ -227,17 +425,17 @@ class MainForm:
         ttk.Label(weighment_frame, text="Net Weight:").grid(row=2, column=0, sticky=tk.W, padx=3, pady=3)
         
         net_weight_display = ttk.Entry(weighment_frame, textvariable=self.net_weight_var, 
-                                     state="readonly", width=10)
+                                    state="readonly", width=10)
         net_weight_display.grid(row=2, column=2, sticky=tk.W, padx=3, pady=3)
         
         # Spacebar help text
         spacebar_label = ttk.Label(weighment_frame, text="Press SPACEBAR to capture current weight", 
-                                  font=("Segoe UI", 8, "italic"))
+                                font=("Segoe UI", 8, "italic"))
         spacebar_label.grid(row=3, column=0, columnspan=5, pady=(5, 0), sticky=tk.E)
         
         # Image status indicators
         image_status_frame = ttk.Frame(form_inner)
-        image_status_frame.grid(row=7, column=0, columnspan=3, sticky=tk.W, padx=3, pady=3)
+        image_status_frame.grid(row=5, column=0, columnspan=3, sticky=tk.W, padx=3, pady=3)
         
         ttk.Label(image_status_frame, text="Images:").pack(side=tk.LEFT, padx=(0, 5))
         
@@ -249,12 +447,46 @@ class MainForm:
         self.back_image_status = ttk.Label(image_status_frame, textvariable=self.back_image_status_var, foreground="red")
         self.back_image_status.pack(side=tk.LEFT)
     
+    def update_vehicle_autocomplete(self, event=None):
+        """Update vehicle number autocomplete options based on current input"""
+        current_text = self.vehicle_var.get().strip().upper()
+        if not current_text:
+            return
+            
+        # Get all vehicle numbers
+        all_vehicles = self.get_vehicle_numbers()
+        
+        # Filter based on matching - checking for partial matches
+        matches = []
+        for vehicle in all_vehicles:
+            # Convert to uppercase for case-insensitive comparison
+            vehicle_upper = vehicle.upper()
+            
+            # Check if the current text appears anywhere in the vehicle number
+            if current_text in vehicle_upper:
+                matches.append(vehicle)
+            
+            # Special focus on the last 4 characters - if the vehicle number has at least 4 characters
+            if len(vehicle_upper) >= 4:
+                last_four = vehicle_upper[-4:]
+                # If the current text appears in the last 4 characters, add it with higher priority
+                if current_text in last_four and vehicle not in matches:
+                    matches.append(vehicle)
+        
+        # Update the dropdown values
+        if matches:
+            self.vehicle_entry['values'] = matches
+            
+            # Only drop down the list if we have a decent match and the user has typed at least 2 characters
+            if len(current_text) >= 2 and len(matches) > 0:
+                self.vehicle_entry.event_generate('<Down>')
+
     def load_sites_and_agencies(self, settings_storage):
-        """Load sites and agencies from settings storage"""
+        """Load sites, agencies and transfer parties from settings storage"""
         if not settings_storage:
             return
             
-        # Get sites and incharges data
+        # Get sites and data
         sites_data = settings_storage.get_sites()
         
         # Update site combo
@@ -266,79 +498,26 @@ class MainForm:
             if self.site_var.get() not in sites and sites:
                 self.site_var.set(sites[0])
         
-        # Update agency combo if it exists
-        agencies = sites_data.get('incharges', [])
-        if agencies and hasattr(self, 'agency_var'):
-            # Find the agency entry widget
-            for child in self.parent.winfo_children():
-                if isinstance(child, ttk.LabelFrame) and "Vehicle Information" in child.cget("text"):
-                    form_frame = child
-                    for sub_child in form_frame.winfo_children():
-                        if isinstance(sub_child, ttk.Frame):
-                            form_inner = sub_child
-                            
-                            # Look for agency entry in row 1, column 1
-                            for widget in form_inner.grid_slaves(row=1, column=1):
-                                if isinstance(widget, ttk.Entry):
-                                    # Convert to combobox
-                                    agency_combo = ttk.Combobox(
-                                        form_inner, 
-                                        textvariable=self.agency_var,
-                                        values=tuple(agencies),
-                                        width=config.STD_WIDTH
-                                    )
-                                    agency_combo.grid(row=1, column=1, sticky=tk.W, padx=3, pady=3)
-                                    widget.destroy()
-                                    self.agency_combo = agency_combo
-                                    return
-                                elif isinstance(widget, ttk.Combobox):
-                                    # Update values
-                                    widget['values'] = tuple(agencies)
-                                    self.agency_combo = widget
-                                    return
-    
-    def check_ticket_exists(self, event=None):
-        """Check if the ticket number already exists in the database"""
-        ticket_no = self.rst_var.get().strip()
-        if not ticket_no:
-            return
-            
-        if hasattr(self, 'data_manager') and self.data_manager:
-            # Check if this ticket exists in the database
-            records = self.data_manager.get_filtered_records(ticket_no)
-            for record in records:
-                if record.get('ticket_no') == ticket_no:
-                    # Record exists, determine weighment state
-                    if record.get('second_weight') and record.get('second_timestamp'):
-                        # Both weighments already done
-                        messagebox.showinfo("Completed Record", 
-                                         "This ticket already has both weighments completed.")
-                        self.load_record_data(record)
-                        return
-                    elif record.get('first_weight') and record.get('first_timestamp'):
-                        # First weighment done, set up for second
-                        self.current_weighment = "second"
-                        self.load_record_data(record)
-                        
-                        # Enable second weighment button, disable first
-                        self.first_weighment_btn.config(state=tk.DISABLED)
-                        self.second_weighment_btn.config(state=tk.NORMAL)
-                        
-                        messagebox.showinfo("Existing Ticket", 
-                                         "This ticket already has a first weighment. Proceed with second weighment.")
-                        return
-                    
-        # If we get here, this is a new ticket - set for first weighment
-        self.current_weighment = "first"
-        self.first_weighment_btn.config(state=tk.NORMAL)
-        self.second_weighment_btn.config(state=tk.DISABLED)
-        
-        # Clear weight fields for new entry
-        self.first_weight_var.set("")
-        self.first_timestamp_var.set("")
-        self.second_weight_var.set("")
-        self.second_timestamp_var.set("")
-        self.net_weight_var.set("")
+        # Update agency combo - now using 'agencies' field
+        agencies = sites_data.get('agencies', ['Default Agency'])
+        if hasattr(self, 'agency_combo') and self.agency_combo:
+            self.agency_combo['values'] = tuple(agencies)
+            if not self.agency_var.get() and agencies:
+                self.agency_var.set(agencies[0])
+                
+        # Update transfer party combo
+        transfer_parties = sites_data.get('transfer_parties', ['Advitia Labs'])
+        if hasattr(self, 'tpt_combo') and self.tpt_combo:
+            self.tpt_combo['values'] = tuple(transfer_parties)
+            if not self.tpt_var.get() and transfer_parties:
+                self.tpt_var.set(transfer_parties[0])
+
+
+    def set_agency(self, agency_name):
+        """Set the agency name (used when agency is selected from login)"""
+        if agency_name and hasattr(self, 'agency_var'):
+            self.agency_var.set(agency_name)
+
         
     def load_record_data(self, record):
         """Load record data into the form"""
@@ -369,6 +548,18 @@ class MainForm:
         elif self.current_weighment == "second" and self.second_weighment_btn["state"] != "disabled":
             self.capture_second_weighment()
     
+    def get_vehicle_numbers(self):
+        """Get a list of unique vehicle numbers from the database"""
+        vehicle_numbers = []
+        if hasattr(self, 'data_manager') and self.data_manager:
+            records = self.data_manager.get_all_records()
+            # Extract unique vehicle numbers from records
+            for record in records:
+                vehicle_no = record.get('vehicle_no', '')
+                if vehicle_no and vehicle_no not in vehicle_numbers:
+                    vehicle_numbers.append(vehicle_no)
+        return vehicle_numbers
+
     def capture_first_weighment(self):
         """Capture the first weighment"""
         # Validate required fields
@@ -559,7 +750,7 @@ class MainForm:
             messagebox.showerror("Error", "Please enter a vehicle number before capturing images.")
             return False
         return True
-    
+
     def save_front_image(self, captured_image=None):
         """Save the front view camera image with watermark"""
         if not self.validate_vehicle_number():
@@ -596,7 +787,7 @@ class MainForm:
             return True
             
         return False
-    
+
     def save_back_image(self, captured_image=None):
         """Save the back view camera image with watermark"""
         if not self.validate_vehicle_number():
@@ -645,14 +836,13 @@ class MainForm:
             'time': now.strftime("%H:%M:%S"),
             'site_name': self.site_var.get(),
             'agency_name': self.agency_var.get(),
-            'material': self.material_var.get(),
             'ticket_no': self.rst_var.get(),
             'vehicle_no': self.vehicle_var.get(),
             'transfer_party_name': self.tpt_var.get(),
             'first_weight': self.first_weight_var.get(),
             'first_timestamp': self.first_timestamp_var.get(),
             'second_weight': self.second_weight_var.get(),
-            'second_timestamp': self.second_timestamp_var.get(),
+            'second_timestamp': self.second_timestamp_var.set(),
             'net_weight': self.net_weight_var.get(),
             'material_type': self.material_type_var.get(),
             'front_image': os.path.basename(self.front_image_path) if self.front_image_path else "",

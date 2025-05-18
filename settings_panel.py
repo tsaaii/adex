@@ -133,6 +133,8 @@ class SettingsPanel:
         # Site management variables
         self.site_name_var = tk.StringVar()
         self.incharge_name_var = tk.StringVar()
+        self.transfer_party_var = tk.StringVar()
+        self.agency_name_var = tk.StringVar()
     
     def load_saved_settings(self):
         """Load settings from storage"""
@@ -431,13 +433,20 @@ class SettingsPanel:
         self.edit_mode = False
     
     def create_site_management(self, parent):
-        """Create site management tab"""
+        """Create site management tab with 2x2 grid layout"""
+        # Create main frame to hold all sections
         main_frame = ttk.Frame(parent, style="TFrame")
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        # Site Names Section
+        # Configure main_frame as a 2x2 grid
+        main_frame.columnconfigure(0, weight=1)
+        main_frame.columnconfigure(1, weight=1)
+        main_frame.rowconfigure(0, weight=1)
+        main_frame.rowconfigure(1, weight=1)
+        
+        # ========== TOP LEFT: Site Names Section ==========
         site_frame = ttk.LabelFrame(main_frame, text="Site Names")
-        site_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 10))
+        site_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
         
         # Site list and entry
         site_list_frame = ttk.Frame(site_frame)
@@ -447,7 +456,7 @@ class SettingsPanel:
         columns = ("site",)
         self.site_tree = ttk.Treeview(site_list_frame, columns=columns, show="headings", height=5)
         self.site_tree.heading("site", text="Site Name")
-        self.site_tree.column("site", width=250)
+        self.site_tree.column("site", width=150)  # Reduced width
         
         # Add scrollbar
         site_scrollbar = ttk.Scrollbar(site_list_frame, orient=tk.VERTICAL, command=self.site_tree.yview)
@@ -462,29 +471,29 @@ class SettingsPanel:
         site_controls.pack(fill=tk.X, padx=5, pady=5)
         
         # New site entry
-        ttk.Label(site_controls, text="New Site Name:").pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Entry(site_controls, textvariable=self.site_name_var, width=25).pack(side=tk.LEFT, padx=5)
+        ttk.Label(site_controls, text="New Site:").pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Entry(site_controls, textvariable=self.site_name_var, width=15).pack(side=tk.LEFT, padx=5)
         
         # Add and Delete buttons
         add_site_btn = HoverButton(site_controls,
-                                 text="Add Site",
-                                 bg=config.COLORS["primary"],
-                                 fg=config.COLORS["button_text"],
-                                 padx=5, pady=2,
-                                 command=self.add_site)
-        add_site_btn.pack(side=tk.LEFT, padx=5)
+                                text="Add",
+                                bg=config.COLORS["primary"],
+                                fg=config.COLORS["button_text"],
+                                padx=5, pady=2,
+                                command=self.add_site)
+        add_site_btn.pack(side=tk.LEFT, padx=2)
         
         delete_site_btn = HoverButton(site_controls,
-                                    text="Delete Site",
+                                    text="Delete",
                                     bg=config.COLORS["error"],
                                     fg=config.COLORS["button_text"],
                                     padx=5, pady=2,
                                     command=self.delete_site)
-        delete_site_btn.pack(side=tk.LEFT, padx=5)
+        delete_site_btn.pack(side=tk.LEFT, padx=2)
         
-        # Site Incharges Section
+        # ========== TOP RIGHT: Site Incharges Section ==========
         incharge_frame = ttk.LabelFrame(main_frame, text="Site Incharges")
-        incharge_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 10))
+        incharge_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
         
         # Incharge list and entry
         incharge_list_frame = ttk.Frame(incharge_frame)
@@ -494,7 +503,7 @@ class SettingsPanel:
         columns = ("incharge",)
         self.incharge_tree = ttk.Treeview(incharge_list_frame, columns=columns, show="headings", height=5)
         self.incharge_tree.heading("incharge", text="Incharge Name")
-        self.incharge_tree.column("incharge", width=250)
+        self.incharge_tree.column("incharge", width=150)  # Reduced width
         
         # Add scrollbar
         incharge_scrollbar = ttk.Scrollbar(incharge_list_frame, orient=tk.VERTICAL, command=self.incharge_tree.yview)
@@ -509,39 +518,133 @@ class SettingsPanel:
         incharge_controls.pack(fill=tk.X, padx=5, pady=5)
         
         # New incharge entry
-        ttk.Label(incharge_controls, text="New Incharge Name:").pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Entry(incharge_controls, textvariable=self.incharge_name_var, width=25).pack(side=tk.LEFT, padx=5)
+        ttk.Label(incharge_controls, text="New Incharge:").pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Entry(incharge_controls, textvariable=self.incharge_name_var, width=15).pack(side=tk.LEFT, padx=5)
         
         # Add and Delete buttons
         add_incharge_btn = HoverButton(incharge_controls,
-                                     text="Add Incharge",
-                                     bg=config.COLORS["primary"],
-                                     fg=config.COLORS["button_text"],
-                                     padx=5, pady=2,
-                                     command=self.add_incharge)
-        add_incharge_btn.pack(side=tk.LEFT, padx=5)
+                                    text="Add",
+                                    bg=config.COLORS["primary"],
+                                    fg=config.COLORS["button_text"],
+                                    padx=5, pady=2,
+                                    command=self.add_incharge)
+        add_incharge_btn.pack(side=tk.LEFT, padx=2)
         
         delete_incharge_btn = HoverButton(incharge_controls,
-                                        text="Delete Incharge",
+                                        text="Delete",
                                         bg=config.COLORS["error"],
                                         fg=config.COLORS["button_text"],
                                         padx=5, pady=2,
                                         command=self.delete_incharge)
-        delete_incharge_btn.pack(side=tk.LEFT, padx=5)
+        delete_incharge_btn.pack(side=tk.LEFT, padx=2)
         
-        # Save Settings button
+        # ========== BOTTOM LEFT: Transfer Parties Section ==========
+        tp_frame = ttk.LabelFrame(main_frame, text="Transfer Parties")
+        tp_frame.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+        
+        # Transfer Party list and entry
+        tp_list_frame = ttk.Frame(tp_frame)
+        tp_list_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # Transfer Party listbox
+        columns = ("transfer_party",)
+        self.tp_tree = ttk.Treeview(tp_list_frame, columns=columns, show="headings", height=5)
+        self.tp_tree.heading("transfer_party", text="Transfer Party Name")
+        self.tp_tree.column("transfer_party", width=150)
+        
+        # Add scrollbar
+        tp_scrollbar = ttk.Scrollbar(tp_list_frame, orient=tk.VERTICAL, command=self.tp_tree.yview)
+        self.tp_tree.configure(yscroll=tp_scrollbar.set)
+        
+        # Pack widgets
+        tp_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.tp_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        # Transfer Party controls
+        tp_controls = ttk.Frame(tp_frame)
+        tp_controls.pack(fill=tk.X, padx=5, pady=5)
+        
+        # New Transfer Party entry
+        ttk.Label(tp_controls, text="New Transfer Party:").pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Entry(tp_controls, textvariable=self.transfer_party_var, width=15).pack(side=tk.LEFT, padx=5)
+        
+        # Add and Delete buttons
+        add_tp_btn = HoverButton(tp_controls,
+                            text="Add",
+                            bg=config.COLORS["primary"],
+                            fg=config.COLORS["button_text"],
+                            padx=5, pady=2,
+                            command=self.add_transfer_party)
+        add_tp_btn.pack(side=tk.LEFT, padx=2)
+        
+        delete_tp_btn = HoverButton(tp_controls,
+                                text="Delete",
+                                bg=config.COLORS["error"],
+                                fg=config.COLORS["button_text"],
+                                padx=5, pady=2,
+                                command=self.delete_transfer_party)
+        delete_tp_btn.pack(side=tk.LEFT, padx=2)
+        
+        # ========== BOTTOM RIGHT: Agency Names Section ==========
+        agency_frame = ttk.LabelFrame(main_frame, text="Agency Names")
+        agency_frame.grid(row=1, column=1, sticky="nsew", padx=5, pady=5)
+        
+        # Agency list and entry
+        agency_list_frame = ttk.Frame(agency_frame)
+        agency_list_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # Agency listbox
+        columns = ("agency",)
+        self.agency_tree = ttk.Treeview(agency_list_frame, columns=columns, show="headings", height=5)
+        self.agency_tree.heading("agency", text="Agency Name")
+        self.agency_tree.column("agency", width=150)
+        
+        # Add scrollbar
+        agency_scrollbar = ttk.Scrollbar(agency_list_frame, orient=tk.VERTICAL, command=self.agency_tree.yview)
+        self.agency_tree.configure(yscroll=agency_scrollbar.set)
+        
+        # Pack widgets
+        agency_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.agency_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        # Agency controls
+        agency_controls = ttk.Frame(agency_frame)
+        agency_controls.pack(fill=tk.X, padx=5, pady=5)
+        
+        # New Agency entry
+        ttk.Label(agency_controls, text="New Agency:").pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Entry(agency_controls, textvariable=self.agency_name_var, width=15).pack(side=tk.LEFT, padx=5)
+        
+        # Add and Delete buttons
+        add_agency_btn = HoverButton(agency_controls,
+                                text="Add",
+                                bg=config.COLORS["primary"],
+                                fg=config.COLORS["button_text"],
+                                padx=5, pady=2,
+                                command=self.add_agency)
+        add_agency_btn.pack(side=tk.LEFT, padx=2)
+        
+        delete_agency_btn = HoverButton(agency_controls,
+                                    text="Delete",
+                                    bg=config.COLORS["error"],
+                                    fg=config.COLORS["button_text"],
+                                    padx=5, pady=2,
+                                    command=self.delete_agency)
+        delete_agency_btn.pack(side=tk.LEFT, padx=2)
+        
+        # Save Settings button at the bottom
         save_sites_frame = ttk.Frame(main_frame)
-        save_sites_frame.pack(fill=tk.X, padx=5, pady=10)
+        save_sites_frame.grid(row=2, column=0, columnspan=2, sticky="e", padx=5, pady=10)
         
         save_sites_btn = HoverButton(save_sites_frame,
-                                   text="Save Settings",
-                                   bg=config.COLORS["secondary"],
-                                   fg=config.COLORS["button_text"],
-                                   padx=8, pady=3,
-                                   command=self.save_sites_settings)
+                                text="Save Settings",
+                                bg=config.COLORS["secondary"],
+                                fg=config.COLORS["button_text"],
+                                padx=8, pady=3,
+                                command=self.save_sites_settings)
         save_sites_btn.pack(side=tk.RIGHT, padx=5)
         
-        # Load sites and incharges
+        # Load sites, incharges, transfer parties and agencies
         self.load_sites()
     
     def refresh_com_ports(self):
@@ -555,7 +658,79 @@ class SettingsPanel:
                 self.com_port_var.set(current_port)
             else:
                 self.com_port_combo.current(0)
+
+    def add_agency(self):
+        """Add a new agency"""
+        agency_name = self.agency_name_var.get().strip()
+        if not agency_name:
+            messagebox.showerror("Error", "Agency name cannot be empty")
+            return
+            
+        # Check if agency already exists
+        for item in self.agency_tree.get_children():
+            if self.agency_tree.item(item, 'values')[0] == agency_name:
+                messagebox.showerror("Error", "Agency name already exists")
+                return
+                
+        # Add to treeview
+        self.agency_tree.insert("", tk.END, values=(agency_name,))
+        
+        # Apply alternating row colors
+        self._apply_row_colors(self.agency_tree)
+        
+        # Clear entry
+        self.agency_name_var.set("")
+
+    def delete_agency(self):
+        """Delete selected agency"""
+        selected_items = self.agency_tree.selection()
+        if not selected_items:
+            messagebox.showinfo("Selection", "Please select an agency to delete")
+            return
+            
+        # Delete selected agency
+        for item in selected_items:
+            self.agency_tree.delete(item)
+            
+        # Apply alternating row colors
+        self._apply_row_colors(self.agency_tree)
+
+    def add_transfer_party(self):
+        """Add a new transfer party"""
+        tp_name = self.transfer_party_var.get().strip()
+        if not tp_name:
+            messagebox.showerror("Error", "Transfer party name cannot be empty")
+            return
+            
+        # Check if transfer party already exists
+        for item in self.tp_tree.get_children():
+            if self.tp_tree.item(item, 'values')[0] == tp_name:
+                messagebox.showerror("Error", "Transfer party name already exists")
+                return
+                
+        # Add to treeview
+        self.tp_tree.insert("", tk.END, values=(tp_name,))
+        
+        # Apply alternating row colors
+        self._apply_row_colors(self.tp_tree)
+        
+        # Clear entry
+        self.transfer_party_var.set("")
     
+    def delete_transfer_party(self):
+        """Delete selected transfer party"""
+        selected_items = self.tp_tree.selection()
+        if not selected_items:
+            messagebox.showinfo("Selection", "Please select a transfer party to delete")
+            return
+            
+        # Delete selected transfer party
+        for item in selected_items:
+            self.tp_tree.delete(item)
+            
+        # Apply alternating row colors
+        self._apply_row_colors(self.tp_tree)
+
     # Update to settings_panel.py to handle weighbridge connection errors better
 
     def connect_weighbridge(self):
@@ -913,32 +1088,7 @@ class SettingsPanel:
         # Clear status
         self.user_status_var.set("")
     
-    def load_sites(self):
-        """Load sites and incharges into treeviews"""
-        # Clear existing items
-        for item in self.site_tree.get_children():
-            self.site_tree.delete(item)
-            
-        for item in self.incharge_tree.get_children():
-            self.incharge_tree.delete(item)
-            
-        try:
-            # Get sites data
-            sites_data = self.settings_storage.get_sites()
-            
-            # Add sites to treeview
-            for site in sites_data.get('sites', []):
-                self.site_tree.insert("", tk.END, values=(site,))
-                
-            # Add incharges to treeview
-            for incharge in sites_data.get('incharges', []):
-                self.incharge_tree.insert("", tk.END, values=(incharge,))
-                
-            # Apply alternating row colors
-            self._apply_row_colors(self.site_tree)
-            self._apply_row_colors(self.incharge_tree)
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to load sites: {str(e)}")
+
     
     def add_site(self):
         """Add a new site"""
@@ -1017,8 +1167,51 @@ class SettingsPanel:
         # Apply alternating row colors
         self._apply_row_colors(self.incharge_tree)
     
+    def load_sites(self):
+        """Load sites, incharges, transfer parties and agencies into treeviews"""
+        # Clear existing items
+        for item in self.site_tree.get_children():
+            self.site_tree.delete(item)
+            
+        for item in self.incharge_tree.get_children():
+            self.incharge_tree.delete(item)
+            
+        for item in self.tp_tree.get_children():
+            self.tp_tree.delete(item)
+            
+        for item in self.agency_tree.get_children():
+            self.agency_tree.delete(item)
+            
+        try:
+            # Get sites data
+            sites_data = self.settings_storage.get_sites()
+            
+            # Add sites to treeview
+            for site in sites_data.get('sites', []):
+                self.site_tree.insert("", tk.END, values=(site,))
+                
+            # Add incharges to treeview
+            for incharge in sites_data.get('incharges', []):
+                self.incharge_tree.insert("", tk.END, values=(incharge,))
+                
+            # Add transfer parties to treeview
+            for tp in sites_data.get('transfer_parties', ['Advitia Labs']):
+                self.tp_tree.insert("", tk.END, values=(tp,))
+                
+            # Add agencies to treeview
+            for agency in sites_data.get('agencies', []):
+                self.agency_tree.insert("", tk.END, values=(agency,))
+                
+            # Apply alternating row colors
+            self._apply_row_colors(self.site_tree)
+            self._apply_row_colors(self.incharge_tree)
+            self._apply_row_colors(self.tp_tree)
+            self._apply_row_colors(self.agency_tree)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load sites: {str(e)}")
+
     def save_sites_settings(self):
-        """Save sites and incharges to storage"""
+        """Save sites, incharges, transfer parties and agencies to storage"""
         try:
             # Get all sites
             sites = []
@@ -1030,10 +1223,22 @@ class SettingsPanel:
             for item in self.incharge_tree.get_children():
                 incharges.append(self.incharge_tree.item(item, 'values')[0])
                 
+            # Get all transfer parties
+            transfer_parties = []
+            for item in self.tp_tree.get_children():
+                transfer_parties.append(self.tp_tree.item(item, 'values')[0])
+                
+            # Get all agencies
+            agencies = []
+            for item in self.agency_tree.get_children():
+                agencies.append(self.agency_tree.item(item, 'values')[0])
+                
             # Save to storage
             sites_data = {
                 "sites": sites,
-                "incharges": incharges
+                "incharges": incharges,
+                "transfer_parties": transfer_parties,
+                "agencies": agencies
             }
             
             if self.settings_storage.save_sites(sites_data):
@@ -1043,7 +1248,7 @@ class SettingsPanel:
                 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save sites settings: {str(e)}")
-    
+
     def _apply_row_colors(self, tree):
         """Apply alternating row colors to treeview"""
         for i, item in enumerate(tree.get_children()):
