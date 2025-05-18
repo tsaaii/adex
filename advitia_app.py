@@ -45,6 +45,7 @@ class TharuniApp:
         self.logged_in_user = None
         self.user_role = None
         self.selected_site = None
+        self.selected_incharge = None  # Added incharge selection
         self.authenticate_user()
         
         # Initialize UI components if login successful
@@ -68,6 +69,7 @@ class TharuniApp:
             self.logged_in_user = login.username
             self.user_role = login.role
             self.selected_site = login.site
+            self.selected_incharge = login.incharge  # Store the selected incharge
         else:
             # Exit application if login failed or canceled
             self.root.quit()
@@ -101,7 +103,6 @@ class TharuniApp:
         # Create summary panel
         self.summary_panel = SummaryPanel(summary_tab, self.data_manager)
         
-        # Create settings panel
         # Create settings panel with user info
         self.settings_panel = SettingsPanel(
             settings_tab, 
@@ -111,11 +112,14 @@ class TharuniApp:
             user_role=self.user_role
         )
         
-        # Handle role-based access to settings tabs
-        if self.user_role != 'admin':
-            # Hide user and site management tabs for non-admin users
-            self.settings_panel.settings_notebook.tab(2, state=tk.HIDDEN)  # Users tab
-            self.settings_panel.settings_notebook.tab(3, state=tk.HIDDEN)  # Sites tab
+        # Handle role-based access to settings tabs - with error handling
+        try:
+            if self.user_role != 'admin' and hasattr(self.settings_panel, 'settings_notebook'):
+                # Hide user and site management tabs for non-admin users
+                self.settings_panel.settings_notebook.tab(2, state=tk.HIDDEN)  # Users tab
+                self.settings_panel.settings_notebook.tab(3, state=tk.HIDDEN)  # Sites tab
+        except (AttributeError, tk.TclError) as e:
+            print(f"Error setting tab visibility: {e}")
         
         # Buttons at the bottom
         button_container = ttk.Frame(self.root, style="TFrame")
@@ -124,29 +128,38 @@ class TharuniApp:
         self.create_buttons(button_container)
     
     def logout(self):
-        """Logout current user and show login dialog"""
+        """Restart the entire application on logout for a clean slate"""
         # Reset user info
         self.logged_in_user = None
         self.user_role = None
         self.selected_site = None
+        self.selected_incharge = None
         
-        # Show login dialog
-        self.authenticate_user()
+        # Clean up resources before destroying app
+        if hasattr(self, 'main_form'):
+            self.main_form.on_closing()
         
-        # Recreate UI if login successful
-        if self.logged_in_user:
-            # Destroy existing widgets
-            for widget in self.root.winfo_children():
-                widget.destroy()
-                
-            # Reinitialize UI
-            self.create_widgets()
-        else:
-            # Exit application if login failed or canceled
-            self.root.quit()
-    # Update header to show logged in user
+        if hasattr(self, 'settings_panel'):
+            self.settings_panel.on_closing()
+        
+        # Store current app details for restart
+        import sys
+        import os
+        python_executable = sys.executable
+        script_path = os.path.abspath(sys.argv[0])
+        
+        # Destroy the root window to close the current instance
+        self.root.destroy()
+        
+        # Restart the application in a new process
+        import subprocess
+        subprocess.Popen([python_executable, script_path])
+        
+        # Exit this process
+        sys.exit(0)
+
     def create_header(self, parent):
-        """Create header with title, user info, site info and date/time"""
+        """Create header with title, user info, site info, incharge info and date/time"""
         # Title with company logo effect
         header_frame = ttk.Frame(parent, style="TFrame")
         header_frame.pack(fill=tk.X, pady=(0, 5))
@@ -182,6 +195,15 @@ class TharuniApp:
                             fg=config.COLORS["white"],
                             bg=config.COLORS["header_bg"])
             site_label.pack(side=tk.TOP, anchor=tk.W)
+        
+        # Show incharge info if available
+        if self.selected_incharge:
+            incharge_label = tk.Label(info_frame, 
+                                text=f"Incharge: {self.selected_incharge}",
+                                font=("Segoe UI", 9, "italic"),
+                                fg=config.COLORS["white"],
+                                bg=config.COLORS["header_bg"])
+            incharge_label.pack(side=tk.TOP, anchor=tk.W)
         
         # Add logout button
         logout_btn = HoverButton(title_box, 
@@ -274,7 +296,13 @@ class TharuniApp:
             summary_update_callback=self.update_summary,
             data_manager=self.data_manager
         )
-        
+
+        if self.selected_site:
+            self.main_form.set_site(self.selected_site)
+
+        if hasattr(self.main_form, 'set_agency') and self.selected_incharge:
+            self.main_form.set_agency(self.selected_incharge)
+
         # Create the pending vehicles panel on the right
         self.pending_vehicles = PendingVehiclesPanel(
             right_panel,
@@ -354,11 +382,17 @@ class TharuniApp:
     
     def periodic_refresh(self):
         """Periodically refresh data displays"""
-        # Update pending vehicles list
-        self.update_pending_vehicles()
-        
-        # Schedule next refresh
-        self.root.after(60000, self.periodic_refresh)  # Refresh every minute
+        try:
+            # Update pending vehicles list if it exists
+            if hasattr(self, 'pending_vehicles') and self.pending_vehicles:
+                self.update_pending_vehicles()
+            
+            # Schedule next refresh and store the job ID so we can cancel it if needed
+            self._refresh_job = self.root.after(60000, self.periodic_refresh)  # Refresh every minute
+        except Exception as e:
+            print(f"Error in periodic refresh: {e}")
+            # Try to reschedule even if there was an error
+            self._refresh_job = self.root.after(60000, self.periodic_refresh)
     
     def update_weight_from_weighbridge(self, weight):
         """Update weight from weighbridge
@@ -468,8 +502,13 @@ class TharuniApp:
     
     def update_pending_vehicles(self):
         """Update the pending vehicles panel"""
-        if hasattr(self, 'pending_vehicles'):
-            self.pending_vehicles.refresh_pending_list()
+        try:
+            if hasattr(self, 'pending_vehicles') and self.pending_vehicles:
+                # Check if the widget still exists before refreshing
+                if self.pending_vehicles.tree.winfo_exists():
+                    self.pending_vehicles.refresh_pending_list()
+        except Exception as e:
+            print(f"Error updating pending vehicles: {e}")
     
     def view_records(self):
         """View all records in a separate window"""

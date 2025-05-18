@@ -556,8 +556,10 @@ class SettingsPanel:
             else:
                 self.com_port_combo.current(0)
     
+    # Update to settings_panel.py to handle weighbridge connection errors better
+
     def connect_weighbridge(self):
-        """Connect to weighbridge with current settings"""
+        """Connect to weighbridge with current settings and improved error handling"""
         com_port = self.com_port_var.get()
         if not com_port:
             messagebox.showerror("Error", "Please select a COM port")
@@ -580,8 +582,48 @@ class SettingsPanel:
                 messagebox.showinfo("Success", "Weighbridge connected successfully!")
             
         except Exception as e:
-            messagebox.showerror("Connection Error", f"Failed to connect to weighbridge:\n{str(e)}")
-    
+            # Extract error message
+            error_msg = str(e)
+            
+            # Check for device not functioning error
+            if "device attached" in error_msg.lower() and "not functioning" in error_msg.lower():
+                # Show a more helpful error message with recovery options
+                response = messagebox.askretrycancel(
+                    "Connection Error", 
+                    "Failed to connect to weighbridge:\n\n"
+                    f"{error_msg}\n\n"
+                    "Would you like to try again after checking the connection?",
+                    icon=messagebox.ERROR
+                )
+                
+                # If user wants to retry
+                if response:
+                    # Small delay before retry
+                    self.parent.after(1000, self.connect_weighbridge)
+                    
+            elif "permission error" in error_msg.lower() or "access is denied" in error_msg.lower():
+                # Likely another app is using the port
+                response = messagebox.askretrycancel(
+                    "Port in Use", 
+                    "The COM port is currently in use by another application.\n\n"
+                    f"{error_msg}\n\n"
+                    "Close any other applications that might be using the port and try again.",
+                    icon=messagebox.WARNING
+                )
+                
+                # If user wants to retry
+                if response:
+                    # Small delay before retry
+                    self.parent.after(1000, self.connect_weighbridge)
+                    
+            else:
+                # Generic error message for other issues
+                messagebox.showerror("Connection Error", f"Failed to connect to weighbridge:\n\n{error_msg}")
+                
+                # Update the status text to show error
+                self.wb_status_var.set(f"Status: Connection Failed")
+                self.weight_label.config(foreground="red")
+
     def disconnect_weighbridge(self):
         """Disconnect from weighbridge"""
         if self.weighbridge.disconnect():

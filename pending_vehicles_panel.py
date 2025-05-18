@@ -100,33 +100,41 @@ class PendingVehiclesPanel:
     
     def refresh_pending_list(self):
         """Refresh the list of pending vehicles"""
-        # Clear existing items
-        for item in self.tree.get_children():
-            self.tree.delete(item)
+        try:
+            # Check if the tree widget still exists
+            if not hasattr(self, 'tree') or not self.tree.winfo_exists():
+                print("Tree widget no longer exists - skipping refresh")
+                return
+                
+            # Clear existing items
+            for item in self.tree.get_children():
+                self.tree.delete(item)
+                
+            if not self.data_manager:
+                return
+                
+            # Get all records
+            records = self.data_manager.get_all_records()
             
-        if not self.data_manager:
-            return
+            # Filter for records with first weighment but no second weighment
+            pending_records = []
+            for record in records:
+                if (record.get('first_weight') and record.get('first_timestamp') and 
+                    (not record.get('second_weight') or not record.get('second_timestamp'))):
+                    pending_records.append(record)
             
-        # Get all records
-        records = self.data_manager.get_all_records()
-        
-        # Filter for records with first weighment but no second weighment
-        pending_records = []
-        for record in records:
-            if (record.get('first_weight') and record.get('first_timestamp') and 
-                (not record.get('second_weight') or not record.get('second_timestamp'))):
-                pending_records.append(record)
-        
-        # Add to treeview, most recent first
-        for record in reversed(pending_records):
-            self.tree.insert("", tk.END, values=(
-                record.get('ticket_no', ''),
-                record.get('vehicle_no', ''),
-                self.format_timestamp(record.get('first_timestamp', ''))
-            ))
-        
-        # Apply alternating row colors
-        self._apply_row_colors()
+            # Add to treeview, most recent first
+            for record in reversed(pending_records):
+                self.tree.insert("", tk.END, values=(
+                    record.get('ticket_no', ''),
+                    record.get('vehicle_no', ''),
+                    self.format_timestamp(record.get('first_timestamp', ''))
+                ))
+            
+            # Apply alternating row colors
+            self._apply_row_colors()
+        except Exception as e:
+            print(f"Error refreshing pending vehicles list: {e}")
     
     def format_timestamp(self, timestamp):
         """Format timestamp to show just time if it's today"""
