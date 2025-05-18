@@ -74,6 +74,8 @@ class TharuniApp:
             # Exit application if login failed or canceled
             self.root.quit()
     
+# In the create_main_panel method of TharuniApp class in advitia_app.py
+
     def create_main_panel(self, parent):
         """Create main panel with form and pending vehicles list"""
         # Main panel to hold everything with scrollable frame for small screens
@@ -131,9 +133,15 @@ class TharuniApp:
         if self.selected_site:
             self.main_form.set_site(self.selected_site)
 
-        # Set the agency name based on login selection if available
-        if self.selected_incharge and hasattr(self.main_form, 'set_agency'):
+        # Set the agency/incharge name based on login selection if available
+        if self.selected_incharge:
             self.main_form.set_agency(self.selected_incharge)
+        
+        # Set user information
+        self.main_form.set_user_info(
+            username=self.logged_in_user,
+            site_incharge=self.selected_incharge
+        )
 
         # Create the pending vehicles panel on the right
         self.pending_vehicles = PendingVehiclesPanel(

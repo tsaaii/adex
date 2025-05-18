@@ -5,9 +5,11 @@ from pathlib import Path
 DATA_FOLDER = 'data'
 DATA_FILE = os.path.join(DATA_FOLDER, 'tharuni_data.csv')
 IMAGES_FOLDER = os.path.join(DATA_FOLDER, 'images')
+# In config.py, update the CSV_HEADER list:
+
 CSV_HEADER = ['Date', 'Time', 'Site Name', 'Agency Name', 'Material', 'Ticket No', 'Vehicle No', 
               'Transfer Party Name', 'First Weight', 'First Timestamp', 'Second Weight', 'Second Timestamp',
-              'Net Weight', 'Material Type', 'Front Image', 'Back Image']
+              'Net Weight', 'Material Type', 'Front Image', 'Back Image', 'Site Incharge', 'User Name']
 
 # Refreshed color scheme
 COLORS = {

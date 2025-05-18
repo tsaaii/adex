@@ -5,6 +5,7 @@ import time
 import re
 from collections import defaultdict
 from tkinter import messagebox
+import psutil
 
 
 class WeighbridgeManager:

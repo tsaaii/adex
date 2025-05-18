@@ -139,7 +139,9 @@ class DataManager:
                 data.get('net_weight', ''),
                 data.get('material_type', ''),
                 data.get('front_image', ''),
-                data.get('back_image', '')
+                data.get('back_image', ''),
+                data.get('site_incharge', ''),  # New field
+                data.get('user_name', '')       # New field
             ]
             
             # Write to CSV
@@ -152,7 +154,7 @@ class DataManager:
         except Exception as e:
             print(f"Error adding new record: {e}")
             return False
-    
+
     def update_record(self, data):
         """Update an existing record in the CSV file
         
@@ -178,7 +180,7 @@ class DataManager:
                 if len(row) >= 6 and row[5] == ticket_no:  # Ticket number is index 5
                     # Update the row with new data
                     # Keep original date/time if not provided
-                    all_records[i] = [
+                    updated_row = [
                         data.get('date', row[0]),
                         data.get('time', row[1]),
                         data.get('site_name', row[2]),
@@ -194,8 +196,17 @@ class DataManager:
                         data.get('net_weight', row[12] if len(row) > 12 else ''),
                         data.get('material_type', row[13] if len(row) > 13 else ''),
                         data.get('front_image', row[14] if len(row) > 14 else ''),
-                        data.get('back_image', row[15] if len(row) > 15 else '')
+                        data.get('back_image', row[15] if len(row) > 15 else ''),
+                        data.get('site_incharge', row[16] if len(row) > 16 else ''),  # New field
+                        data.get('user_name', row[17] if len(row) > 17 else '')       # New field
                     ]
+                    
+                    # Handle shorter rows by extending them to the expected length
+                    if len(updated_row) > len(row):
+                        all_records[i] = updated_row
+                    else:
+                        all_records[i] = updated_row + [''] * (len(header) - len(updated_row))
+                    
                     updated = True
                     break
             
@@ -213,7 +224,7 @@ class DataManager:
         except Exception as e:
             print(f"Error updating record: {e}")
             return False
-            
+
     def get_all_records(self):
         """Get all records from CSV file
         
@@ -250,7 +261,9 @@ class DataManager:
                             'net_weight': row[12] if len(row) > 12 else '',
                             'material_type': row[13] if len(row) > 13 else '',
                             'front_image': row[14] if len(row) > 14 else '',
-                            'back_image': row[15] if len(row) > 15 else ''
+                            'back_image': row[15] if len(row) > 15 else '',
+                            'site_incharge': row[16] if len(row) > 16 else '',  # New field
+                            'user_name': row[17] if len(row) > 17 else ''       # New field
                         }
                         records.append(record)
                         

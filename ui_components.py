@@ -28,6 +28,8 @@ class HoverButton(tk.Button):
         if self["state"] != "disabled":
             self["background"] = self.defaultBackground
 
+# Add this to the create_styles() function in ui_components.py
+
 def create_styles():
     """Create styles for widgets"""
     style = ttk.Style()
@@ -59,6 +61,14 @@ def create_styles():
                    fieldbackground=config.COLORS["white"])
     style.map("TEntry",
              fieldbackground=[("readonly", config.COLORS["primary_light"])])
+    
+    # Special Weight Entry style with larger font and highlighted background
+    style.configure("Weight.TEntry", 
+                   font=("Segoe UI", 10, "bold"),
+                   fieldbackground=config.COLORS["white"])
+    style.map("Weight.TEntry",
+             fieldbackground=[("readonly", "#E3F2FD")], # Light blue background
+             foreground=[("readonly", config.COLORS["primary"])])
     
     # Combobox style
     style.configure("TCombobox", 
