@@ -1,0 +1,4 @@
+Date,Time,Site Name,Material,RST No,Vehicle No,TPT Name,Party Name,Product Name,Gross Weight,Tare Weight,Net Weight,Material Type,Material Subtype
+06-05-2025,02:48:15,Guntur,MSW(inward),1,AP07UA1234,Tharuni Associates,Jindal,legacy,1200,200,1000.0,Inert,
+07-05-2025,19:39:32,Guntur,MSW(inward),2,AP16TU1616,Tharuni Associates,GMC,Inert,1700,200,1500.0,Inert,,Guntur_AP16TU1616_20250507_193919_front.jpg,Guntur_AP16TU1616_20250507_193929_back.jpg
+08-05-2025,05:25:04,Guntur,Tharuni,MSW,1,Ap01Ap0001,Advitia Labs,1200,200,1000.0,Inert,Guntur_Ap01Ap0001_20250508_052442_front.jpg,Guntur_Ap01Ap0001_20250508_052450_back.jpg

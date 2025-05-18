@@ -1,0 +1,34 @@
+{
+    "sites": [
+        "Guntur",
+        "Addanki"
+    ],
+    "agencies": [],
+    "transfer_parties": [
+        "Advitia Labs"
+    ],
+    "materials": [
+        "MSW"
+    ],
+    "material_types": [
+        "Inert",
+        "Soil",
+        "Construction and Demolition",
+        "RDF(REFUSE DERIVED FUEL)"
+    ],
+    "users": [
+        {
+            "username": "admin",
+            "password_hash": "f16b0d41dce415e24ef536fef66e72d0c7d90e12d03599661662aa9905ea0aae",
+            "role": "admin"
+        },
+        {
+            "username": "Suresh",
+            "password_hash": "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5",
+            "role": "user"
+        }
+    ],
+    "agencys": [
+        "Tharuni"
+    ]
+}

@@ -1,0 +1,5 @@
+Date,Time,Site Name,Agency Name,Material,Ticket No,Vehicle No,Transfer Party Name,First Weight,First Timestamp,Second Weight,Second Timestamp,Net Weight,Material Type,Front Image,Back Image
+06-05-2025,02:48:15,Guntur,MSW(inward),1,AP07UA1234,Tharuni Associates,Jindal,legacy,,1200,,200,1000.0,Inert,
+07-05-2025,19:39:32,Guntur,MSW(inward),2,AP16TU1616,Tharuni Associates,GMC,Inert,,1700,,200,1500.0,Inert,
+08-05-2025,05:25:04,Guntur,Tharuni,MSW,1,Ap01Ap0001,Advitia Labs,1200,,200,,1000.0,Inert,Guntur_Ap01Ap0001_20250508_052442_front.jpg,Guntur_Ap01Ap0001_20250508_052450_back.jpg
+15-05-2025,01:35:32,Guntur,Tharuni,MSW,5,TS01UA0001 ,Advitia Labs,702.51,15-05-2025 01:34:54,1952.97,15-05-2025 01:35:04,1250.46,Inert,,
