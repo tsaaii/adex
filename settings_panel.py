@@ -137,6 +137,9 @@ class SettingsPanel:
         self.incharge_name_var = tk.StringVar()
         self.transfer_party_var = tk.StringVar()
         self.agency_name_var = tk.StringVar()
+        
+        # Cloud backup status variable
+        self.backup_status_var = tk.StringVar()
     
     def load_saved_settings(self):
         """Load settings from storage"""
@@ -195,29 +198,6 @@ class SettingsPanel:
         # Weighbridge settings frame
         wb_frame = ttk.LabelFrame(parent, text="Weighbridge Configuration", padding=10)
         wb_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
-        # Create a separator
-            ttk.Separator(wb_frame, orient=tk.HORIZONTAL).grid(
-                row=8, column=0, columnspan=3, sticky=tk.EW, pady=10)
-            
-            # Cloud backup section
-            cloud_frame = ttk.Frame(wb_frame)
-            cloud_frame.grid(row=9, column=0, columnspan=3, sticky=tk.EW, pady=5)
-            
-            ttk.Label(cloud_frame, text="Cloud Backup:").grid(row=0, column=0, sticky=tk.W)
-            
-            # Backup button
-            self.backup_btn = HoverButton(cloud_frame, 
-                                        text="Backup All Records to Cloud", 
-                                        bg=config.COLORS["primary_light"], 
-                                        fg=config.COLORS["text"], padx=5, pady=2,
-                                        command=self.backup_to_cloud)
-            self.backup_btn.grid(row=0, column=1, padx=5, pady=2)
-            
-            # Backup status
-            self.backup_status_var = tk.StringVar()
-            ttk.Label(cloud_frame, textvariable=self.backup_status_var).grid(
-                row=0, column=2, sticky=tk.W, padx=5)        
         
         # COM Port selection
         ttk.Label(wb_frame, text="COM Port:").grid(row=0, column=0, sticky=tk.W, pady=2)
@@ -282,10 +262,34 @@ class SettingsPanel:
         self.weight_label = ttk.Label(wb_frame, textvariable=self.current_weight_var, 
                                     font=("Segoe UI", 10, "bold"))
         self.weight_label.grid(row=7, column=1, sticky=tk.W, pady=2)
+        
+        # Check if cloud storage is enabled and add backup section
+        if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
+            # Create a separator
+            ttk.Separator(wb_frame, orient=tk.HORIZONTAL).grid(
+                row=8, column=0, columnspan=3, sticky=tk.EW, pady=10)
+            
+            # Cloud backup section
+            cloud_frame = ttk.Frame(wb_frame)
+            cloud_frame.grid(row=9, column=0, columnspan=3, sticky=tk.EW, pady=5)
+            
+            ttk.Label(cloud_frame, text="Cloud Backup:").grid(row=0, column=0, sticky=tk.W)
+            
+            # Backup button
+            self.backup_btn = HoverButton(cloud_frame, 
+                                        text="Backup All Records to Cloud", 
+                                        bg=config.COLORS["primary_light"], 
+                                        fg=config.COLORS["text"], padx=5, pady=2,
+                                        command=self.backup_to_cloud)
+            self.backup_btn.grid(row=0, column=1, padx=5, pady=2)
+            
+            # Backup status
+            ttk.Label(cloud_frame, textvariable=self.backup_status_var).grid(
+                row=0, column=2, sticky=tk.W, padx=5)
 
 
-        def backup_to_cloud(self):
-         """Backup all records to cloud storage"""
+    def backup_to_cloud(self):
+        """Backup all records to cloud storage"""
         try:
             # Find data manager
             data_manager = self.find_data_manager()
@@ -295,62 +299,56 @@ class SettingsPanel:
                 return
             
             # Check if data manager has backup_to_cloud method
-            if not hasattr(data_manager, 'backup_to_cloud'):
-                # Add backup method to data manager
-                from cloud_storage import CloudStorageService
-                import datetime
-                import config
-                
-                # Define backup method on the fly
-                def backup_to_cloud(dm):
-                    try:
-                        # Initialize cloud storage
-                        cloud_storage = CloudStorageService(
-                            config.CLOUD_BUCKET_NAME,
-                            config.CLOUD_CREDENTIALS_PATH
-                        )
+            if not hasattr(data_manager, 'save_to_cloud'):
+                # Try to import necessary modules for backup
+                try:
+                    from cloud_storage import CloudStorageService
+                    import datetime
+                    
+                    # Initialize cloud storage
+                    cloud_storage = CloudStorageService(
+                        config.CLOUD_BUCKET_NAME,
+                        config.CLOUD_CREDENTIALS_PATH
+                    )
+                    
+                    if not cloud_storage.is_connected():
+                        self.backup_status_var.set("Error: Cloud connection failed")
+                        return
+                    
+                    # Get all records
+                    records = data_manager.get_all_records()
+                    
+                    # Create backup filename with timestamp
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = f"backups/all_records_{timestamp}.json"
+                    
+                    # Save to cloud
+                    self.backup_status_var.set("Backing up...")
+                    success = cloud_storage.save_json(records, filename)
+                    
+                    # Update status
+                    if success:
+                        self.backup_status_var.set("Backup successful!")
+                    else:
+                        self.backup_status_var.set("Backup failed!")
                         
-                        if not cloud_storage.is_connected():
-                            return False
-                        
-                        # Create backup filename with timestamp
-                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                        filename = f"backups/all_records_{timestamp}.json"
-                        
-                        # Get all records
-                        records = dm.get_all_records()
-                        
-                        # Convert records to list of dictionaries if not already
-                        if hasattr(records, 'to_dict'):
-                            records = records.to_dict('records')
-                        
-                        # Save to cloud
-                        return cloud_storage.save_json(records, filename)
-                        
-                    except Exception as e:
-                        print(f"Error backing up to cloud: {e}")
-                        return False
-                
-                # Start backup
-                self.backup_status_var.set("Backing up...")
-                success = backup_to_cloud(data_manager)
+                except Exception as e:
+                    print(f"Error during backup: {e}")
+                    self.backup_status_var.set(f"Error: {str(e)}")
             else:
                 # Use existing backup method
                 self.backup_status_var.set("Backing up...")
-                success = data_manager.backup_to_cloud()
-            
-            # Update status
-            if success:
-                self.backup_status_var.set("Backup successful!")
-                self.backup_btn.config(state=tk.NORMAL)
-            else:
-                self.backup_status_var.set("Backup failed!")
-                self.backup_btn.config(state=tk.NORMAL)
+                success = data_manager.save_to_cloud({})
+                
+                # Update status
+                if success:
+                    self.backup_status_var.set("Backup successful!")
+                else:
+                    self.backup_status_var.set("Backup failed!")
                 
         except Exception as e:
             print(f"Error during backup: {e}")
             self.backup_status_var.set(f"Error: {str(e)}")
-            self.backup_btn.config(state=tk.NORMAL)
 
     def find_data_manager(self):
         """Find data manager from the application"""
@@ -401,143 +399,143 @@ class SettingsPanel:
         # Status message
         ttk.Label(cam_frame, textvariable=self.cam_status_var, 
                 foreground=config.COLORS["primary"]).grid(row=3, column=0, columnspan=2, sticky=tk.W)
-    
+
     def create_user_management(self, parent):
         """Create user management tab"""
         # Main container
         main_frame = ttk.Frame(parent, style="TFrame")
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        # Split into two sides - left for list, right for details
+            
+            # Split into two sides - left for list, right for details
         left_frame = ttk.LabelFrame(main_frame, text="Users")
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5), pady=5)
-        
+            
         right_frame = ttk.LabelFrame(main_frame, text="User Details")
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(5, 0), pady=5)
-        
-        # User list (left side)
+            
+            # User list (left side)
         self.create_user_list(left_frame)
-        
-        # User details (right side)
+            
+            # User details (right side)
         self.create_user_form(right_frame)
     
     def create_user_list(self, parent):
         """Create user list with controls"""
-        # List frame
+            # List frame
         list_frame = ttk.Frame(parent)
         list_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
-        # Create listbox for users
+            
+            # Create listbox for users
         columns = ("username", "name", "role")
         self.users_tree = ttk.Treeview(list_frame, columns=columns, show="headings", height=10)
-        
-        # Define headings
+            
+            # Define headings
         self.users_tree.heading("username", text="Username")
         self.users_tree.heading("name", text="Name")
         self.users_tree.heading("role", text="Role")
-        
-        # Define column widths
+            
+            # Define column widths
         self.users_tree.column("username", width=100)
         self.users_tree.column("name", width=150)
         self.users_tree.column("role", width=80)
-        
-        # Add scrollbar
+            
+            # Add scrollbar
         scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.users_tree.yview)
         self.users_tree.configure(yscroll=scrollbar.set)
-        
-        # Pack widgets
+            
+            # Pack widgets
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.users_tree.pack(fill=tk.BOTH, expand=True)
-        
-        # Bind selection event
+            
+            # Bind selection event
         self.users_tree.bind("<<TreeviewSelect>>", self.on_user_select)
-        
-        # Buttons frame
+            
+            # Buttons frame
         buttons_frame = ttk.Frame(parent)
         buttons_frame.pack(fill=tk.X, padx=5, pady=5)
-        
-        # Add buttons
+            
+            # Add buttons
         new_btn = HoverButton(buttons_frame, 
-                            text="New User", 
-                            bg=config.COLORS["primary"],
-                            fg=config.COLORS["button_text"],
-                            padx=5, pady=2,
-                            command=self.new_user)
-        new_btn.pack(side=tk.LEFT, padx=2)
-        
-        delete_btn = HoverButton(buttons_frame, 
-                               text="Delete User",
-                               bg=config.COLORS["error"],
-                               fg=config.COLORS["button_text"],
-                               padx=5, pady=2,
-                               command=self.delete_user)
-        delete_btn.pack(side=tk.LEFT, padx=2)
-        
-        refresh_btn = HoverButton(buttons_frame, 
-                                text="Refresh", 
-                                bg=config.COLORS["secondary"],
+                                text="New User", 
+                                bg=config.COLORS["primary"],
                                 fg=config.COLORS["button_text"],
                                 padx=5, pady=2,
-                                command=self.load_users)
+                                command=self.new_user)
+        new_btn.pack(side=tk.LEFT, padx=2)
+            
+        delete_btn = HoverButton(buttons_frame, 
+                                text="Delete User",
+                                bg=config.COLORS["error"],
+                                fg=config.COLORS["button_text"],
+                                padx=5, pady=2,
+                                command=self.delete_user)
+        delete_btn.pack(side=tk.LEFT, padx=2)
+            
+        refresh_btn = HoverButton(buttons_frame, 
+                                    text="Refresh", 
+                                    bg=config.COLORS["secondary"],
+                                    fg=config.COLORS["button_text"],
+                                    padx=5, pady=2,
+                                    command=self.load_users)
         refresh_btn.pack(side=tk.RIGHT, padx=2)
-        
-        # Load users
+            
+            # Load users
         self.load_users()
     
     def create_user_form(self, parent):
         """Create user details form"""
         form_frame = ttk.Frame(parent)
         form_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
-        # Username
+            
+        #Username
         ttk.Label(form_frame, text="Username:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
         self.username_entry = ttk.Entry(form_frame, textvariable=self.username_var, width=20)
         self.username_entry.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5)
-        
-        # Full Name
+            
+            # Full Name
         ttk.Label(form_frame, text="Full Name:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
         ttk.Entry(form_frame, textvariable=self.fullname_var, width=30).grid(row=1, column=1, columnspan=2, sticky=tk.W, padx=5, pady=5)
-        
-        # Password
+            
+            # Password
         ttk.Label(form_frame, text="Password:").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
         ttk.Entry(form_frame, textvariable=self.password_var, show="*", width=20).grid(row=2, column=1, sticky=tk.W, padx=5, pady=5)
-        
-        # Confirm Password
+            
+            # Confirm Password
         ttk.Label(form_frame, text="Confirm Password:").grid(row=3, column=0, sticky=tk.W, padx=5, pady=5)
         ttk.Entry(form_frame, textvariable=self.confirm_password_var, show="*", width=20).grid(row=3, column=1, sticky=tk.W, padx=5, pady=5)
-        
-        # Admin checkbox
+            
+            # Admin checkbox
         ttk.Checkbutton(form_frame, text="Admin User", variable=self.is_admin_var).grid(row=4, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
-        
-        # Buttons
+            
+            # Buttons
         buttons_frame = ttk.Frame(form_frame)
         buttons_frame.grid(row=5, column=0, columnspan=2, pady=10)
-        
+            
         self.save_btn = HoverButton(buttons_frame, 
-                                  text="Save User", 
-                                  bg=config.COLORS["secondary"],
-                                  fg=config.COLORS["button_text"],
-                                  padx=5, pady=2,
-                                  command=self.save_user)
-        self.save_btn.pack(side=tk.LEFT, padx=5)
-        
-        self.cancel_btn = HoverButton(buttons_frame, 
-                                    text="Cancel", 
-                                    bg=config.COLORS["button_alt"],
+                                    text="Save User", 
+                                    bg=config.COLORS["secondary"],
                                     fg=config.COLORS["button_text"],
                                     padx=5, pady=2,
-                                    command=self.clear_user_form)
+                                    command=self.save_user)
+        self.save_btn.pack(side=tk.LEFT, padx=5)
+            
+        self.cancel_btn = HoverButton(buttons_frame, 
+                                        text="Cancel", 
+                                        bg=config.COLORS["button_alt"],
+                                        fg=config.COLORS["button_text"],
+                                        padx=5, pady=2,
+                                        command=self.clear_user_form)
         self.cancel_btn.pack(side=tk.LEFT, padx=5)
-        
-        # Status label
+            
+            # Status label
         self.user_status_var = tk.StringVar()
         status_label = ttk.Label(form_frame, textvariable=self.user_status_var, foreground="blue")
         status_label.grid(row=6, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
-        
-        # Initially disable username field (for editing existing user)
+            
+            # Initially disable username field (for editing existing user)
         self.username_entry.configure(state="disabled")
-        
-        # Set edit mode flag
+            
+            # Set edit mode flag
         self.edit_mode = False
     
     def create_site_management(self, parent):

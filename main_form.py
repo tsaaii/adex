@@ -13,7 +13,8 @@ from camera import CameraView, add_watermark
 class MainForm:
     """Main data entry form for vehicle information"""
     
-    def __init__(self, parent, notebook=None, summary_update_callback=None, data_manager=None):
+    def __init__(self, parent, notebook=None, summary_update_callback=None, data_manager=None, 
+                save_callback=None, view_callback=None, clear_callback=None, exit_callback=None):
         """Initialize the main form
         
         Args:
@@ -21,11 +22,19 @@ class MainForm:
             notebook: Notebook for tab switching
             summary_update_callback: Function to call to update summary view
             data_manager: Data manager instance for checking existing entries
+            save_callback: Callback for save button
+            view_callback: Callback for view records button
+            clear_callback: Callback for clear button
+            exit_callback: Callback for exit button
         """
         self.parent = parent
         self.notebook = notebook
         self.summary_update_callback = summary_update_callback
         self.data_manager = data_manager
+        self.save_callback = save_callback
+        self.view_callback = view_callback
+        self.clear_callback = clear_callback
+        self.exit_callback = exit_callback
         
         # Create form variables
         self.init_variables()
@@ -618,7 +627,7 @@ class MainForm:
         self.first_weight_entry.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5)
 
         # First Timestamp
-        ttk.Label(weighment_frame, text="Timestamp:").grid(row=0, column=2, sticky=tk.W, padx=5, pady=5)
+        #ttk.Label(weighment_frame, text="Timestamp:").grid(row=0, column=2, sticky=tk.W, padx=5, pady=5)
         first_timestamp_label = ttk.Label(weighment_frame, textvariable=self.first_timestamp_var, foreground="blue")
         first_timestamp_label.grid(row=0, column=2, sticky=tk.E, padx=5, pady=5)
 
@@ -632,7 +641,7 @@ class MainForm:
         self.second_weight_entry.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
 
         # Second Timestamp
-        ttk.Label(weighment_frame, text="Timestamp:").grid(row=1, column=2, sticky=tk.W, padx=5, pady=5)
+        #ttk.Label(weighment_frame, text="Timestamp:").grid(row=1, column=2, sticky=tk.W, padx=5, pady=5)
         second_timestamp_label = ttk.Label(weighment_frame, textvariable=self.second_timestamp_var, foreground="blue")
         second_timestamp_label.grid(row=1, column=2, sticky=tk.E, padx=5, pady=5)
 
@@ -894,7 +903,7 @@ class MainForm:
         return True
     
     def create_cameras_panel(self, parent):
-        """Create the cameras panel with cameras side by side"""
+        """Create the cameras panel with cameras side by side and action buttons"""
         # Camera container with compact layout
         camera_frame = ttk.LabelFrame(parent, text="Camera Capture")
         camera_frame.pack(fill=tk.X, padx=5, pady=5)
@@ -926,6 +935,47 @@ class MainForm:
         # Create back camera
         self.back_camera = CameraView(back_panel)
         self.back_camera.save_function = self.save_back_image
+        
+        # Add action buttons below the cameras
+        action_buttons_frame = ttk.Frame(camera_frame, style="TFrame")
+        action_buttons_frame.pack(fill=tk.X, padx=5, pady=(5, 8))
+        
+        # Create the buttons with callbacks to main application functions
+        save_btn = HoverButton(action_buttons_frame, 
+                              text="Save Record", 
+                              font=("Segoe UI", 10, "bold"),
+                              bg=config.COLORS["secondary"],
+                              fg=config.COLORS["button_text"],
+                              padx=8, pady=3,
+                              command=self.save_callback if self.save_callback else lambda: None)
+        save_btn.pack(side=tk.LEFT, padx=5)
+        
+        view_btn = HoverButton(action_buttons_frame, 
+                              text="View Records", 
+                              font=("Segoe UI", 10),
+                              bg=config.COLORS["primary"],
+                              fg=config.COLORS["button_text"],
+                              padx=8, pady=3,
+                              command=self.view_callback if self.view_callback else lambda: None)
+        view_btn.pack(side=tk.LEFT, padx=5)
+        
+        clear_btn = HoverButton(action_buttons_frame, 
+                               text="Clear", 
+                               font=("Segoe UI", 10),
+                               bg=config.COLORS["button_alt"],
+                               fg=config.COLORS["button_text"],
+                               padx=8, pady=3,
+                               command=self.clear_callback if self.clear_callback else lambda: None)
+        clear_btn.pack(side=tk.LEFT, padx=5)
+        
+        exit_btn = HoverButton(action_buttons_frame, 
+                              text="Exit", 
+                              font=("Segoe UI", 10),
+                              bg=config.COLORS["error"],
+                              fg=config.COLORS["button_text"],
+                              padx=8, pady=3,
+                              command=self.exit_callback if self.exit_callback else lambda: None)
+        exit_btn.pack(side=tk.LEFT, padx=5)
     
     def validate_vehicle_number(self):
         """Validate that vehicle number is entered before capturing images"""

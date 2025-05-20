@@ -121,7 +121,11 @@ class TharuniApp:
             scrollable_frame, 
             notebook=self.notebook,
             summary_update_callback=self.update_summary,
-            data_manager=self.data_manager
+            data_manager=self.data_manager,
+            save_callback=self.save_record,
+            view_callback=self.view_records,
+            clear_callback=self.clear_form,
+            exit_callback=self.on_closing
         )
 
         # Load sites and agencies for dropdowns in the main form
@@ -190,30 +194,6 @@ class TharuniApp:
             user_role=self.user_role
         )
         
-        # Add backup frame if cloud storage is enabled
-        # This was causing the error - moved from class body to this method
-        self.backup_status_var = tk.StringVar()
-        try:
-            if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
-                backup_frame = ttk.Frame(settings_tab)
-                backup_frame.pack(fill=tk.X, padx=10, pady=10)
-
-                backup_label = ttk.Label(backup_frame, text="Cloud Backup:")
-                backup_label.pack(side=tk.LEFT, padx=(0, 10))
-
-                backup_btn = HoverButton(backup_frame,
-                                       text="Backup All Records to Cloud",
-                                       bg=config.COLORS["primary"],
-                                       fg=config.COLORS["button_text"],
-                                       padx=10, pady=3,
-                                       command=self.backup_to_cloud)
-                backup_btn.pack(side=tk.LEFT)
-
-                backup_status = ttk.Label(backup_frame, textvariable=self.backup_status_var)
-                backup_status.pack(side=tk.LEFT, padx=10)
-        except Exception as e:
-            print(f"Error setting up cloud backup UI: {e}")
-        
         # Handle role-based access to settings tabs - with error handling
         try:
             if self.user_role != 'admin' and hasattr(self.settings_panel, 'settings_notebook'):
@@ -223,11 +203,7 @@ class TharuniApp:
         except (AttributeError, tk.TclError) as e:
             print(f"Error setting tab visibility: {e}")
         
-        # Buttons at the bottom
-        button_container = ttk.Frame(self.root, style="TFrame")
-        button_container.pack(fill=tk.X, side=tk.BOTTOM, pady=5)
-        
-        self.create_buttons(button_container)
+        # We're no longer placing buttons at the bottom since they're now inside the camera container
     
     def create_header(self, parent):
         """Create header with title, user info, site info, incharge info and date/time"""
@@ -334,49 +310,6 @@ class TharuniApp:
             # Trigger the ticket existence check
             self.main_form.check_ticket_exists()
     
-    def create_buttons(self, parent):
-        """Create action buttons"""
-        # Button bar
-        button_frame = ttk.Frame(parent, style="TFrame")
-        button_frame.pack(fill=tk.X, padx=10, pady=3)
-        
-        # Single row for buttons
-        save_btn = HoverButton(button_frame, 
-                              text="Save Record", 
-                              font=("Segoe UI", 10, "bold"),
-                              bg=config.COLORS["secondary"],
-                              fg=config.COLORS["button_text"],
-                              padx=8, pady=3,
-                              command=self.save_record)
-        save_btn.pack(side=tk.LEFT, padx=5)
-        
-        view_btn = HoverButton(button_frame, 
-                              text="View Records", 
-                              font=("Segoe UI", 10),
-                              bg=config.COLORS["primary"],
-                              fg=config.COLORS["button_text"],
-                              padx=8, pady=3,
-                              command=self.view_records)
-        view_btn.pack(side=tk.LEFT, padx=5)
-        
-        clear_btn = HoverButton(button_frame, 
-                               text="Clear", 
-                               font=("Segoe UI", 10),
-                               bg=config.COLORS["button_alt"],
-                               fg=config.COLORS["button_text"],
-                               padx=8, pady=3,
-                               command=self.clear_form)
-        clear_btn.pack(side=tk.LEFT, padx=5)
-        
-        exit_btn = HoverButton(button_frame, 
-                              text="Exit", 
-                              font=("Segoe UI", 10),
-                              bg=config.COLORS["error"],
-                              fg=config.COLORS["button_text"],
-                              padx=8, pady=3,
-                              command=self.on_closing)
-        exit_btn.pack(side=tk.LEFT, padx=5)
-    
     def update_datetime(self):
         """Update date and time display"""
         now = datetime.datetime.now()
@@ -428,28 +361,6 @@ class TharuniApp:
             if hasattr(self.main_form, 'back_camera'):
                 self.main_form.back_camera.stop_camera()
                 self.main_form.back_camera.camera_index = back_index
-    
-    def backup_to_cloud(self):
-        """Backup all records to cloud storage"""
-        try:
-            # Update status
-            self.backup_status_var.set("Backing up...")
-            
-            # Use data_manager to backup to cloud
-            if hasattr(self.data_manager, 'save_to_cloud'):
-                success = self.data_manager.save_to_cloud({})
-                
-                # Update status based on result
-                if success:
-                    self.backup_status_var.set("Backup complete!")
-                else:
-                    self.backup_status_var.set("Backup failed")
-            else:
-                self.backup_status_var.set("Cloud backup not implemented")
-                
-        except Exception as e:
-            print(f"Error in cloud backup: {e}")
-            self.backup_status_var.set(f"Error: {str(e)}")
     
     def save_record(self):
         """Save current record to database"""
