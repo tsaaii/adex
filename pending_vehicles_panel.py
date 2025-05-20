@@ -95,18 +95,6 @@ class PendingVehiclesPanel:
         # Bind double-click event
         self.tree.bind("<Double-1>", self.on_item_double_click)
         
-        # Add a button to select the highlighted vehicle
-        select_btn_frame = ttk.Frame(main_frame)
-        select_btn_frame.grid(row=2, column=0, sticky="ew", padx=2, pady=5)
-        
-        select_btn = HoverButton(select_btn_frame, 
-                              text="Select Vehicle", 
-                              bg=config.COLORS["secondary"],
-                              fg=config.COLORS["button_text"],
-                              padx=5, pady=2,
-                              command=self.select_vehicle)
-        select_btn.pack(side=tk.LEFT, padx=5)
-        
         # Populate the list initially
         self.refresh_pending_list()
     
@@ -124,6 +112,7 @@ class PendingVehiclesPanel:
         if self.on_vehicle_select and ticket_no:
             self.on_vehicle_select(ticket_no)
     
+
     def refresh_pending_list(self):
         """Refresh the list of pending vehicles"""
         try:
@@ -145,18 +134,26 @@ class PendingVehiclesPanel:
             # Filter for records with first weighment but no second weighment
             pending_records = []
             for record in records:
-                # Check if record has first weighment
-                has_first = record.get('first_weight') and record.get('first_timestamp')
+                # Check if record has first weighment - MODIFIED LOGIC HERE
+                first_weight = record.get('first_weight', '')
+                first_timestamp = record.get('first_timestamp', '')
+                has_first = first_weight.strip() != '' and first_timestamp.strip() != ''
                 
-                # Check if record is missing second weighment (None, empty string, or whitespace)
+                # Check if record is missing second weighment
                 second_weight = record.get('second_weight', '')
                 second_timestamp = record.get('second_timestamp', '')
                 missing_second = (not second_weight or second_weight.strip() == '') or \
                                 (not second_timestamp or second_timestamp.strip() == '')
                 
+                print(f"Record {record.get('ticket_no')}: has_first={has_first}, missing_second={missing_second}")
+                print(f"  First weight: '{first_weight}', First timestamp: '{first_timestamp}'")
+                print(f"  Second weight: '{second_weight}', Second timestamp: '{second_timestamp}'")
+                
                 # Add to pending if it has first weighment but missing second
                 if has_first and missing_second:
                     pending_records.append(record)
+            
+            print(f"Found {len(pending_records)} pending records")
             
             # Add to treeview, most recent first
             for record in reversed(pending_records):
@@ -170,7 +167,7 @@ class PendingVehiclesPanel:
             self._apply_row_colors()
         except Exception as e:
             print(f"Error refreshing pending vehicles list: {e}")
-    
+
     def format_timestamp(self, timestamp):
         """Format timestamp to show just time if it's today"""
         if not timestamp:

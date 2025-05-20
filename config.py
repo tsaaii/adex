@@ -1,6 +1,11 @@
 import os
 from pathlib import Path
 
+# Add to config.py
+# Cloud Storage settings
+USE_CLOUD_STORAGE = True
+CLOUD_BUCKET_NAME = "advitia-weighbridge-data"  # Your bucket name
+CLOUD_CREDENTIALS_PATH = "gcloud-credentials.json"  # Path to your service account key
 # Global constants
 DATA_FOLDER = 'data'
 DATA_FILE = os.path.join(DATA_FOLDER, 'tharuni_data.csv')

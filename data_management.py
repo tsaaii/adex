@@ -4,6 +4,9 @@ import pandas as pd
 import datetime
 from tkinter import messagebox, filedialog
 import config
+import json
+from cloud_storage import CloudStorageService
+
 
 class DataManager:
     """Class for managing data operations with the CSV file"""
@@ -78,9 +81,45 @@ class DataManager:
             messagebox.showerror("Database Update Error", 
                               f"Error updating database structure: {e}\n"
                               "The application may not function correctly.")
+            
+    def save_to_cloud(self, data):
+        """Save record as JSON to Google Cloud Storage
+        
+        Args:
+            data: Record data dictionary
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Initialize cloud storage if not already initialized
+            if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
+                self.cloud_storage = CloudStorageService(
+                    config.CLOUD_BUCKET_NAME,
+                    config.CLOUD_CREDENTIALS_PATH
+                )
+            
+            # Check if connected to cloud storage
+            if not self.cloud_storage.is_connected():
+                print("Not connected to cloud storage")
+                return False
+            
+            # Create a filename using ticket number and timestamp
+            ticket_no = data.get('ticket_no', 'unknown')
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create a structured filename for better organization
+            filename = f"records/{ticket_no}/{timestamp}.json"
+            
+            # Save to cloud storage
+            return self.cloud_storage.save_json(data, filename)
+            
+        except Exception as e:
+            print(f"Error saving to cloud: {str(e)}")
+            return False
     
     def save_record(self, data):
-        """Save record to CSV file
+        """Save record to CSV file and cloud storage
         
         Args:
             data: Dictionary of data to save
@@ -101,13 +140,28 @@ class DataManager:
                         is_update = True
                         break
             
+            # Save to CSV as before
+            csv_success = False
             if is_update:
                 # Update existing record
-                return self.update_record(data)
+                csv_success = self.update_record(data)
             else:
                 # Add new record
-                return self.add_new_record(data)
+                csv_success = self.add_new_record(data)
                 
+            # Also save to cloud storage if enabled
+            cloud_success = False
+            if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
+                cloud_success = self.save_to_cloud(data)
+                
+                if cloud_success:
+                    print(f"Record {ticket_no} successfully saved to cloud")
+                else:
+                    print(f"Warning: Record {ticket_no} could not be saved to cloud")
+            
+            # Return overall success
+            return csv_success or cloud_success
+                    
         except Exception as e:
             print(f"Error saving record: {e}")
             return False
