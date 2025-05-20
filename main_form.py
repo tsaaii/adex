@@ -37,74 +37,82 @@ class MainForm:
         self.create_form(parent)
         self.create_cameras_panel(parent)
         
-        # Bind space key to the parent window
-        self.parent.bind("<space>", self.handle_space_key)
+        # Remove spacebar binding since we now have manual buttons
+        # self.parent.bind("<space>", self.handle_space_key)
         self.refresh_vehicle_numbers_cache()
         
-
-    def handle_space_key(self, event=None):
-        """Handle spacebar press to capture current weight"""
-        # Check if a ticket number is entered
-        if not self.rst_var.get().strip():
-            messagebox.showerror("Error", "Please enter a Ticket Number first.")
-            return
-            
-        # Determine which weighment to capture based on current state
-        if self.current_weighment == "first":
-            self.capture_first_weighment()
-        elif self.current_weighment == "second":
-            self.capture_second_weighment()
-
     def capture_first_weighment(self):
-        """Capture the first weighment from the weighbridge"""
+        """Capture the first weighment"""
         # Validate required fields
         if not self.validate_basic_fields():
             return
             
-        # Get current weight from weighbridge
-        current_weight = self.get_current_weighbridge_value()
-        if current_weight is None:
-            return
-            
-        # Set first weighment
-        self.first_weight_var.set(str(current_weight))
+        # Check if manual entry has a value
+        manual_weight = self.first_weight_var.get().strip()
+        
+        if manual_weight:
+            # Use the manually entered weight
+            try:
+                weight_value = float(manual_weight)
+                # Format to 2 decimal places
+                self.first_weight_var.set(f"{weight_value:.2f}")
+            except ValueError:
+                messagebox.showerror("Error", "Invalid weight value. Please enter a valid number.")
+                return
+        else:
+            # Get current weight from weighbridge
+            current_weight = self.get_current_weighbridge_value()
+            if current_weight is None:
+                return
+                
+            # Set first weighment
+            self.first_weight_var.set(f"{current_weight:.2f}")
         
         # Set timestamp
         now = datetime.datetime.now()
         timestamp = now.strftime("%d-%m-%Y %H:%M:%S")
         self.first_timestamp_var.set(timestamp)
         
+        # Disable first weighment button, enable second
+        self.first_weighment_btn.config(state=tk.DISABLED)
+        self.second_weighment_btn.config(state=tk.NORMAL)
+        
         # Update current weighment state
         self.current_weighment = "second"
         self.weighment_state_var.set("Second Weighment")
         
-        # Automatically save the record to add to the pending queue
-        if hasattr(self, 'summary_update_callback'):
-            # Try to find the main app to trigger save
-            app = self.find_main_app()
-            if app and hasattr(app, 'save_record'):
-                app.save_record()
-            else:
-                # Show confirmation if auto-save not available
-                messagebox.showinfo("First Weighment", 
-                                f"First weighment recorded: {current_weight} kg\n"
-                                f"Please save the record to add to the pending queue.")
-
+        # Display prompt to save the first weighment
+        messagebox.showinfo("First Weighment", 
+                            f"First weighment recorded: {self.first_weight_var.get()} kg\n"
+                            f"Please save the record to add to the pending queue.")
 
     def capture_second_weighment(self):
-        """Capture the second weighment from the weighbridge"""
+        """Capture the second weighment"""
         # Validate first weighment exists
         if not self.first_weight_var.get():
             messagebox.showerror("Error", "Please record the first weighment first.")
             return
             
-        # Get current weight from weighbridge
-        current_weight = self.get_current_weighbridge_value()
-        if current_weight is None:
-            return
-            
-        # Set second weighment
-        self.second_weight_var.set(str(current_weight))
+        # Check if manual entry has a value
+        manual_weight = self.second_weight_var.get().strip()
+        
+        if manual_weight:
+            # Use the manually entered weight
+            try:
+                weight_value = float(manual_weight)
+                # Format to 2 decimal places
+                self.second_weight_var.set(f"{weight_value:.2f}")
+            except ValueError:
+                messagebox.showerror("Error", "Invalid weight value. Please enter a valid number.")
+                return
+        else:
+            # Get current weight from weighbridge
+            current_weight = self.get_current_weighbridge_value()
+            if current_weight is None:
+                return
+                
+            # Set second weighment
+            self.second_weight_var.set(f"{current_weight:.2f}")
         
         # Set timestamp
         now = datetime.datetime.now()
@@ -114,19 +122,16 @@ class MainForm:
         # Calculate net weight
         self.calculate_net_weight()
         
-        # Update state indicator
+        # Update state
         self.weighment_state_var.set("Weighment Complete")
         
-        # Automatically save the record to complete the process
-        app = self.find_main_app()
-        if app and hasattr(app, 'save_record'):
-            app.save_record()
-        else:
-            # Show confirmation if auto-save not available
-            messagebox.showinfo("Second Weighment", 
-                        f"Second weighment recorded: {current_weight} kg\n"
+        # Display prompt to save and complete the record
+        messagebox.showinfo("Second Weighment", 
+                        f"Second weighment recorded: {self.second_weight_var.get()} kg\n"
                         f"Net weight: {self.net_weight_var.get()} kg\n"
                         f"Please save the record to complete the process.")
+
+
 
     def check_ticket_exists(self, event=None):
         """Check if the ticket number already exists in the database"""
@@ -146,12 +151,18 @@ class MainForm:
                                         "This ticket already has both weighments completed.")
                         self.load_record_data(record)
                         self.weighment_state_var.set("Weighment Complete")
+                        # Disable both buttons
+                        self.first_weighment_btn.config(state=tk.DISABLED)
+                        self.second_weighment_btn.config(state=tk.DISABLED)
                         return
                     elif record.get('first_weight') and record.get('first_timestamp'):
                         # First weighment done, set up for second
                         self.current_weighment = "second"
                         self.load_record_data(record)
                         self.weighment_state_var.set("Second Weighment")
+                        # Disable first button, enable second
+                        self.first_weighment_btn.config(state=tk.DISABLED)
+                        self.second_weighment_btn.config(state=tk.NORMAL)
                         
                         messagebox.showinfo("Existing Ticket", 
                                         "This ticket already has a first weighment. Proceed with second weighment.")
@@ -160,6 +171,10 @@ class MainForm:
         # If we get here, this is a new ticket - set for first weighment
         self.current_weighment = "first"
         self.weighment_state_var.set("First Weighment")
+        
+        # Enable first button, disable second
+        self.first_weighment_btn.config(state=tk.NORMAL)
+        self.second_weighment_btn.config(state=tk.DISABLED)
         
         # Clear weight fields for new entry
         self.first_weight_var.set("")
@@ -216,6 +231,7 @@ class MainForm:
         self.rst_var = tk.StringVar()
         self.vehicle_var = tk.StringVar()
         self.tpt_var = tk.StringVar()
+        self.material_var = tk.StringVar()  # Added missing material variable
         
         # User and site incharge variables
         self.user_name_var = tk.StringVar()
@@ -375,16 +391,31 @@ class MainForm:
 
     def calculate_net_weight(self):
         """Calculate net weight as the difference between weighments"""
+        # Check if we have at least one weight
+        first_weight_str = self.first_weight_var.get().strip()
+        second_weight_str = self.second_weight_var.get().strip()
+        
         try:
-            first_weight = float(self.first_weight_var.get() or 0)
-            second_weight = float(self.second_weight_var.get() or 0)
-            
-            # Calculate the absolute difference for net weight
-            net_weight = abs(first_weight - second_weight)
-            
-            self.net_weight_var.set(str(net_weight))
+            if first_weight_str and second_weight_str:
+                # Calculate difference if both weights are available
+                first_weight = float(first_weight_str)
+                second_weight = float(second_weight_str)
+                
+                # Calculate the absolute difference for net weight
+                net_weight = abs(first_weight - second_weight)
+                
+                # Format to 2 decimal places
+                self.net_weight_var.set(f"{net_weight:.2f}")
+            elif first_weight_str:
+                # If only first weight available, leave net weight empty
+                self.net_weight_var.set("")
+            else:
+                # No weights available
+                messagebox.showerror("Error", "Please enter at least one weight value")
+                
         except ValueError:
             # Handle non-numeric input
+            messagebox.showerror("Error", "Invalid weight values. Please enter valid numbers.")
             self.net_weight_var.set("")
 
     def validate_basic_fields(self):
@@ -521,33 +552,51 @@ class MainForm:
         # Configure grid columns for weighment panel
         weighment_frame.columnconfigure(0, weight=1)  # Description
         weighment_frame.columnconfigure(1, weight=1)  # Weight value
-        weighment_frame.columnconfigure(2, weight=3)  # Timestamp
+        weighment_frame.columnconfigure(2, weight=1)  # Timestamp
+        weighment_frame.columnconfigure(3, weight=1)  # Manual entry button
         
         # First Row - First Weighment
         ttk.Label(weighment_frame, text="First Weighment:", font=("Segoe UI", 9, "bold")).grid(
             row=0, column=0, sticky=tk.W, padx=5, pady=5)
         
-        # First Weight Entry (read-only)
+        # First Weight Entry (editable for manual entry)
         self.first_weight_entry = ttk.Entry(weighment_frame, textvariable=self.first_weight_var, 
-                                        width=12, state="readonly", style="Weight.TEntry")
+                                       width=12, style="Weight.TEntry")
         self.first_weight_entry.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5)
         
         # First Timestamp
         first_timestamp_label = ttk.Label(weighment_frame, textvariable=self.first_timestamp_var)
         first_timestamp_label.grid(row=0, column=2, sticky=tk.W, padx=5, pady=5)
         
+        # Manual First Weight Button - Added
+        self.first_weighment_btn = HoverButton(weighment_frame, text="Capture First Weight", 
+                                          bg=config.COLORS["primary"], 
+                                          fg=config.COLORS["button_text"],
+                                          padx=2, pady=1,
+                                          command=self.capture_first_weighment)
+        self.first_weighment_btn.grid(row=0, column=3, sticky=tk.E, padx=5, pady=5)
+        
         # Second Row - Second Weighment
         ttk.Label(weighment_frame, text="Second Weighment:", font=("Segoe UI", 9, "bold")).grid(
             row=1, column=0, sticky=tk.W, padx=5, pady=5)
         
-        # Second Weight Entry (read-only)
+        # Second Weight Entry (editable for manual entry)
         self.second_weight_entry = ttk.Entry(weighment_frame, textvariable=self.second_weight_var, 
-                                        width=12, state="readonly", style="Weight.TEntry")
+                                        width=12, style="Weight.TEntry")
         self.second_weight_entry.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
         
         # Second Timestamp
         second_timestamp_label = ttk.Label(weighment_frame, textvariable=self.second_timestamp_var)
         second_timestamp_label.grid(row=1, column=2, sticky=tk.W, padx=5, pady=5)
+        
+        # Manual Second Weight Button - Added
+        self.second_weighment_btn = HoverButton(weighment_frame, text="Capture Second Weight", 
+                                           bg=config.COLORS["secondary"], 
+                                           fg=config.COLORS["button_text"],
+                                           padx=2, pady=1,
+                                           command=self.capture_second_weighment,
+                                           state=tk.DISABLED)
+        self.second_weighment_btn.grid(row=1, column=3, sticky=tk.E, padx=5, pady=5)
         
         # Third Row - Net Weight
         ttk.Label(weighment_frame, text="Net Weight:", font=("Segoe UI", 9, "bold")).grid(
@@ -558,23 +607,31 @@ class MainForm:
                                     width=12, state="readonly", style="Weight.TEntry")
         net_weight_display.grid(row=2, column=1, sticky=tk.W, padx=5, pady=5)
         
-        # Help instruction label (spacebar)
-        spacebar_frame = ttk.Frame(weighment_frame)
-        spacebar_frame.grid(row=3, column=0, columnspan=3, sticky=tk.EW, padx=5, pady=(10,5))
-        
-        spacebar_hint = ttk.Label(spacebar_frame, text="Press SPACEBAR to capture current weight", 
-                                font=("Segoe UI", 9, "italic"))
-        spacebar_hint.pack(side=tk.RIGHT)
+        # Calculate Net Weight Button - Added
+        calc_net_btn = HoverButton(weighment_frame, text="Calculate Net", 
+                                 bg=config.COLORS["button_alt"], 
+                                 fg=config.COLORS["button_text"],
+                                 padx=2, pady=1,
+                                 command=self.calculate_net_weight)
+        calc_net_btn.grid(row=2, column=3, sticky=tk.E, padx=5, pady=5)
         
         # Current weighment state indicator
-        state_label = ttk.Label(spacebar_frame, text="Ready for: ", font=("Segoe UI", 9))
+        state_frame = ttk.Frame(weighment_frame)
+        state_frame.grid(row=3, column=0, columnspan=4, sticky=tk.EW, padx=5, pady=(10,5))
+        
+        state_label = ttk.Label(state_frame, text="Current State: ", font=("Segoe UI", 9))
         state_label.pack(side=tk.LEFT)
         
-        # Create a variable to show the current weighment state
-        self.weighment_state_var = tk.StringVar(value="First Weighment")
-        state_value_label = ttk.Label(spacebar_frame, textvariable=self.weighment_state_var, 
+        state_value_label = ttk.Label(state_frame, textvariable=self.weighment_state_var, 
                                     font=("Segoe UI", 9, "bold"), foreground=config.COLORS["primary"])
         state_value_label.pack(side=tk.LEFT)
+        
+        # Note about manual entry
+        manual_note = ttk.Label(state_frame, 
+                              text="Note: You can manually type weights or use the buttons to capture from weighbridge", 
+                              font=("Segoe UI", 8, "italic"), 
+                              foreground="gray")
+        manual_note.pack(side=tk.RIGHT)
         
         # Image status indicators
         image_status_frame = ttk.Frame(form_inner)
@@ -589,6 +646,7 @@ class MainForm:
         self.back_image_status_var = tk.StringVar(value="Back: ✗")
         self.back_image_status = ttk.Label(image_status_frame, textvariable=self.back_image_status_var, foreground="red")
         self.back_image_status.pack(side=tk.LEFT)
+
 
 
     def update_vehicle_autocomplete(self, event=None):
@@ -899,13 +957,14 @@ class MainForm:
             'time': now.strftime("%H:%M:%S"),
             'site_name': self.site_var.get(),
             'agency_name': self.agency_var.get(),
+            'material': self.material_var.get() if hasattr(self, 'material_var') else "",
             'ticket_no': self.rst_var.get(),
             'vehicle_no': self.vehicle_var.get(),
             'transfer_party_name': self.tpt_var.get(),
             'first_weight': self.first_weight_var.get(),
             'first_timestamp': self.first_timestamp_var.get(),
             'second_weight': self.second_weight_var.get(),
-            'second_timestamp': self.second_timestamp_var.get(),  # Fixed from set() to get()
+            'second_timestamp': self.second_timestamp_var.get(),
             'net_weight': self.net_weight_var.get(),
             'material_type': self.material_type_var.get(),
             'front_image': os.path.basename(self.front_image_path) if self.front_image_path else "",
@@ -913,6 +972,21 @@ class MainForm:
             'site_incharge': self.site_incharge_var.get() if hasattr(self, 'site_incharge_var') else "",
             'user_name': self.user_name_var.get() if hasattr(self, 'user_name_var') else ""
         }
+        
+        # Ensure empty weight fields are saved as empty strings
+        # This is important for the pending vehicles filtering
+        if not data['first_weight']:
+            data['first_weight'] = ''
+        if not data['second_weight']:
+            data['second_weight'] = ''
+        if not data['first_timestamp']:
+            data['first_timestamp'] = ''
+        if not data['second_timestamp']:
+            data['second_timestamp'] = ''
+        if not data['net_weight']:
+            data['net_weight'] = ''
+            
+        return data
     
     def validate_form(self):
         """Validate form fields"""
@@ -930,20 +1004,12 @@ class MainForm:
             return False
         
         # For first time entry, we need first weighment
-        if self.current_weighment == "first" and not self.first_weight_var.get():
+        if not self.first_weight_var.get():
             messagebox.showerror("Validation Error", "Please capture first weighment before saving.")
             return False
             
-        # For second weighment entry, we need both first and second
-        if self.current_weighment == "second":
-            if not self.first_weight_var.get():
-                messagebox.showerror("Validation Error", "First weighment is missing.")
-                return False
+        # We don't require the second weighment anymore - we allow saving with just the first weighment
             
-            if not self.second_weight_var.get():
-                messagebox.showerror("Validation Error", "Please capture second weighment before saving.")
-                return False
-        
         # Validate at least one image is captured
         if not self.front_image_path and not self.back_image_path:
             result = messagebox.askyesno("Missing Images", 

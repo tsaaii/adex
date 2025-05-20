@@ -95,8 +95,34 @@ class PendingVehiclesPanel:
         # Bind double-click event
         self.tree.bind("<Double-1>", self.on_item_double_click)
         
+        # Add a button to select the highlighted vehicle
+        select_btn_frame = ttk.Frame(main_frame)
+        select_btn_frame.grid(row=2, column=0, sticky="ew", padx=2, pady=5)
+        
+        select_btn = HoverButton(select_btn_frame, 
+                              text="Select Vehicle", 
+                              bg=config.COLORS["secondary"],
+                              fg=config.COLORS["button_text"],
+                              padx=5, pady=2,
+                              command=self.select_vehicle)
+        select_btn.pack(side=tk.LEFT, padx=5)
+        
         # Populate the list initially
         self.refresh_pending_list()
+    
+    def select_vehicle(self):
+        """Select the currently highlighted vehicle"""
+        selected_items = self.tree.selection()
+        if not selected_items:
+            messagebox.showinfo("Selection", "Please select a vehicle from the list")
+            return
+            
+        # Get ticket number from selected item
+        ticket_no = self.tree.item(selected_items[0], "values")[0]
+        
+        # Call callback with ticket number
+        if self.on_vehicle_select and ticket_no:
+            self.on_vehicle_select(ticket_no)
     
     def refresh_pending_list(self):
         """Refresh the list of pending vehicles"""
@@ -119,8 +145,17 @@ class PendingVehiclesPanel:
             # Filter for records with first weighment but no second weighment
             pending_records = []
             for record in records:
-                if (record.get('first_weight') and record.get('first_timestamp') and 
-                    (not record.get('second_weight') or not record.get('second_timestamp'))):
+                # Check if record has first weighment
+                has_first = record.get('first_weight') and record.get('first_timestamp')
+                
+                # Check if record is missing second weighment (None, empty string, or whitespace)
+                second_weight = record.get('second_weight', '')
+                second_timestamp = record.get('second_timestamp', '')
+                missing_second = (not second_weight or second_weight.strip() == '') or \
+                                (not second_timestamp or second_timestamp.strip() == '')
+                
+                # Add to pending if it has first weighment but missing second
+                if has_first and missing_second:
                     pending_records.append(record)
             
             # Add to treeview, most recent first

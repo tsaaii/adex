@@ -1,7 +1,7 @@
 {
     "weighbridge": {
-        "com_port": "",
-        "baud_rate": 9600,
+        "com_port": "COM3",
+        "baud_rate": 2400,
         "data_bits": 8,
         "parity": "None",
         "stop_bits": 1.0

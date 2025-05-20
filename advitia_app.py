@@ -74,8 +74,6 @@ class TharuniApp:
             # Exit application if login failed or canceled
             self.root.quit()
     
-# In the create_main_panel method of TharuniApp class in advitia_app.py
-
     def create_main_panel(self, parent):
         """Create main panel with form and pending vehicles list"""
         # Main panel to hold everything with scrollable frame for small screens
@@ -207,37 +205,6 @@ class TharuniApp:
         
         self.create_buttons(button_container)
     
-    def logout(self):
-        """Restart the entire application on logout for a clean slate"""
-        # Reset user info
-        self.logged_in_user = None
-        self.user_role = None
-        self.selected_site = None
-        self.selected_incharge = None
-        
-        # Clean up resources before destroying app
-        if hasattr(self, 'main_form'):
-            self.main_form.on_closing()
-        
-        if hasattr(self, 'settings_panel'):
-            self.settings_panel.on_closing()
-        
-        # Store current app details for restart
-        import sys
-        import os
-        python_executable = sys.executable
-        script_path = os.path.abspath(sys.argv[0])
-        
-        # Destroy the root window to close the current instance
-        self.root.destroy()
-        
-        # Restart the application in a new process
-        import subprocess
-        subprocess.Popen([python_executable, script_path])
-        
-        # Exit this process
-        sys.exit(0)
-
     def create_header(self, parent):
         """Create header with title, user info, site info, incharge info and date/time"""
         # Title with company logo effect
@@ -326,7 +293,6 @@ class TharuniApp:
                             fg=config.COLORS["white"],
                             bg=config.COLORS["header_bg"])
         time_label.grid(row=0, column=3, sticky="w")
-    
     
     def load_pending_vehicle(self, ticket_no):
         """Load a pending vehicle when selected from the pending vehicles panel
@@ -450,62 +416,36 @@ class TharuniApp:
         
         # Save to database
         if self.data_manager.save_record(record_data):
-            # Show success message
-            if record_data.get('second_weight') and record_data.get('second_timestamp'):
+            # Check if this is a second weighment being completed
+            is_second_weighment_complete = (
+                record_data.get('second_weight') and record_data.get('second_timestamp') and 
+                self.main_form.current_weighment == "second"
+            )
+            
+            # Set appropriate message based on what was saved
+            if is_second_weighment_complete:
                 # Both weighments complete
                 messagebox.showinfo("Success", "Record completed with both weighments!")
             else:
                 # Only first weighment
                 messagebox.showinfo("Success", "First weighment saved! Vehicle added to pending queue.")
             
-            # Update the summary and pending vehicles
+            # Always update the summary and pending vehicles list when saving
             self.update_summary()
             self.update_pending_vehicles()
             
-            # Generate a new ticket number for the next entry
-            self.main_form.generate_next_ticket_number()
-            
             # If second weighment is done, clear form for next entry
-            if record_data.get('second_weight') and record_data.get('second_timestamp'):
+            if is_second_weighment_complete:
                 self.clear_form()
+                # Generate a new ticket number
+                self.main_form.generate_next_ticket_number()
                 # Switch to summary tab
                 self.notebook.select(1)
             else:
-                # For first weighment, just clear the vehicle number and images
-                # but keep the ticket number and agency information
-                self.main_form.vehicle_var.set("")
-                self.main_form.front_image_path = None
-                self.main_form.back_image_path = None
-                self.main_form.front_image_status_var.set("Front: ✗")
-                self.main_form.back_image_status_var.set("Back: ✗")
-                self.main_form.front_image_status.config(foreground="red")
-                self.main_form.back_image_status.config(foreground="red")
-                
-                # Reset camera displays if they were used
-                if hasattr(self.main_form, 'front_camera'):
-                    self.main_form.front_camera.stop_camera()
-                    self.main_form.front_camera.captured_image = None
-                    self.main_form.front_camera.canvas.delete("all")
-                    self.main_form.front_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
-                    self.main_form.front_camera.capture_button.config(text="Capture")
-                    
-                if hasattr(self.main_form, 'back_camera'):
-                    self.main_form.back_camera.stop_camera()
-                    self.main_form.back_camera.captured_image = None
-                    self.main_form.back_camera.canvas.delete("all")
-                    self.main_form.back_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
-                    self.main_form.back_camera.capture_button.config(text="Capture")
-                
-                # Reset weighment state for next entry
-                self.main_form.current_weighment = "first"
-                self.main_form.first_weight_var.set("")
-                self.main_form.first_timestamp_var.set("")
-                self.main_form.second_weight_var.set("")
-                self.main_form.second_timestamp_var.set("")
-                self.main_form.net_weight_var.set("")
-                self.main_form.first_weighment_btn.config(state=tk.NORMAL)
-                self.main_form.second_weighment_btn.config(state=tk.DISABLED)
-                
+                # For first weighment, clear form and prepare for next entry
+                self.clear_form()
+                # Generate a new ticket
+                self.main_form.generate_next_ticket_number()
         else:
             messagebox.showerror("Error", "Failed to save record.")
     
@@ -536,6 +476,37 @@ class TharuniApp:
         """Clear the main form"""
         if hasattr(self, 'main_form'):
             self.main_form.clear_form()
+    
+    def logout(self):
+        """Restart the entire application on logout for a clean slate"""
+        # Reset user info
+        self.logged_in_user = None
+        self.user_role = None
+        self.selected_site = None
+        self.selected_incharge = None
+        
+        # Clean up resources before destroying app
+        if hasattr(self, 'main_form'):
+            self.main_form.on_closing()
+        
+        if hasattr(self, 'settings_panel'):
+            self.settings_panel.on_closing()
+        
+        # Store current app details for restart
+        import sys
+        import os
+        python_executable = sys.executable
+        script_path = os.path.abspath(sys.argv[0])
+        
+        # Destroy the root window to close the current instance
+        self.root.destroy()
+        
+        # Restart the application in a new process
+        import subprocess
+        subprocess.Popen([python_executable, script_path])
+        
+        # Exit this process
+        sys.exit(0)
     
     def on_closing(self):
         """Handle application closing"""
