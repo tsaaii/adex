@@ -24,7 +24,6 @@ class TharuniApp:
         Args:
             root: Root Tkinter window
         """
-        self.check_cloud_status()
         self.root = root
         self.root.title("Advitia Labs")
         self.root.geometry("900x580")
@@ -191,6 +190,30 @@ class TharuniApp:
             user_role=self.user_role
         )
         
+        # Add backup frame if cloud storage is enabled
+        # This was causing the error - moved from class body to this method
+        self.backup_status_var = tk.StringVar()
+        try:
+            if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
+                backup_frame = ttk.Frame(settings_tab)
+                backup_frame.pack(fill=tk.X, padx=10, pady=10)
+
+                backup_label = ttk.Label(backup_frame, text="Cloud Backup:")
+                backup_label.pack(side=tk.LEFT, padx=(0, 10))
+
+                backup_btn = HoverButton(backup_frame,
+                                       text="Backup All Records to Cloud",
+                                       bg=config.COLORS["primary"],
+                                       fg=config.COLORS["button_text"],
+                                       padx=10, pady=3,
+                                       command=self.backup_to_cloud)
+                backup_btn.pack(side=tk.LEFT)
+
+                backup_status = ttk.Label(backup_frame, textvariable=self.backup_status_var)
+                backup_status.pack(side=tk.LEFT, padx=10)
+        except Exception as e:
+            print(f"Error setting up cloud backup UI: {e}")
+        
         # Handle role-based access to settings tabs - with error handling
         try:
             if self.user_role != 'admin' and hasattr(self.settings_panel, 'settings_notebook'):
@@ -209,30 +232,9 @@ class TharuniApp:
     def create_header(self, parent):
         """Create header with title, user info, site info, incharge info and date/time"""
         # Title with company logo effect
-        self.cloud_status_var = tk.StringVar(value="Cloud: Disconnected")
-        cloud_status = ttk.Label(title_box, 
-                            textvariable=self.cloud_status_var,
-                            font=("Segoe UI", 8),
-                            foreground="gray",
-                            background=config.COLORS["header_bg"])
-        cloud_status.pack(side=tk.RIGHT, padx=(0, 10))
         header_frame = ttk.Frame(parent, style="TFrame")
         header_frame.pack(fill=tk.X, pady=(0, 5))
         
-        if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
-    # Initialize cloud storage
-            try:
-                from cloud_storage import CloudStorageService
-                cloud_storage = CloudStorageService(
-                    config.CLOUD_BUCKET_NAME,
-                    config.CLOUD_CREDENTIALS_PATH
-                ) 
-                
-                if cloud_storage.is_connected():
-                    self.cloud_status_var.set("Cloud: Connected")
-                    self.cloud_status_label.config(foreground="green")
-            except Exception as e:
-                print(f"Error checking cloud status: {e}")
         # Create a styled header with gradient-like background
         title_box = tk.Frame(header_frame, bg=config.COLORS["header_bg"], padx=10, pady=5)
         title_box.pack(fill=tk.X)
@@ -315,94 +317,7 @@ class TharuniApp:
                             fg=config.COLORS["white"],
                             bg=config.COLORS["header_bg"])
         time_label.grid(row=0, column=3, sticky="w")
-
-
-    backup_frame = ttk.Frame(settings_tab)
-    backup_frame.pack(fill=tk.X, padx=10, pady=10)
-
-    backup_label = ttk.Label(backup_frame, text="Cloud Backup:")
-    backup_label.pack(side=tk.LEFT, padx=(0, 10))
-
-    backup_btn = HoverButton(backup_frame,
-                            text="Backup All Records to Cloud",
-                            bg=config.COLORS["primary"],
-                            fg=config.COLORS["button_text"],
-                            padx=10, pady=3,
-                            command=self.backup_to_cloud)
-    backup_btn.pack(side=tk.LEFT)
-
-    # Add a status label
-    self.backup_status_var = tk.StringVar()
-    backup_status = ttk.Label(backup_frame, textvariable=self.backup_status_var)
-    backup_status.pack(side=tk.LEFT, padx=10)
-
-    def backup_to_cloud(self):
-        """Backup all records to cloud storage
-        
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        try:
-            # Check if cloud storage is enabled
-            if not hasattr(config, 'USE_CLOUD_STORAGE') or not config.USE_CLOUD_STORAGE:
-                return False
-                
-            # Initialize cloud storage if needed
-            if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
-                self.cloud_storage = CloudStorageService(
-                    config.CLOUD_BUCKET_NAME,
-                    config.CLOUD_CREDENTIALS_PATH
-                )
-                
-            # Check if connected
-            if not self.cloud_storage.is_connected():
-                return False
-                
-            # Create backup filename with timestamp
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"backups/all_records_{timestamp}.json"
-            
-            # Get all records
-            records = self.get_all_records()
-            
-            # Save to cloud
-            success = self.cloud_storage.save_json(records, filename)
-            
-            return success
-            
-        except Exception as e:
-            print(f"Error backing up to cloud: {e}")
-            return False
-
-    def check_cloud_status(self):
-        """Check cloud connection status and update UI"""
-        if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
-            try:
-                from cloud_storage import CloudStorageService
-                
-                # Initialize cloud storage
-                cloud_storage = CloudStorageService(
-                    config.CLOUD_BUCKET_NAME,
-                    config.CLOUD_CREDENTIALS_PATH
-                )
-                
-                # Update status indicator
-                if cloud_storage.is_connected():
-                    self.cloud_status_var.set("Cloud: Connected")
-                    self.cloud_status_label.config(foreground="green")
-                else:
-                    self.cloud_status_var.set("Cloud: Disconnected")
-                    self.cloud_status_label.config(foreground="red")
-                    
-            except Exception as e:
-                print(f"Error checking cloud status: {e}")
-                self.cloud_status_var.set("Cloud: Error")
-                self.cloud_status_label.config(foreground="red")
-        
-        # Schedule next check
-        self.root.after(60000, self.check_cloud_status)  # Check every minute
-
-
+    
     def load_pending_vehicle(self, ticket_no):
         """Load a pending vehicle when selected from the pending vehicles panel
         
@@ -410,31 +325,14 @@ class TharuniApp:
             ticket_no: Ticket number to load
         """
         if hasattr(self, 'main_form'):
-            # Get the complete record data for this ticket
-            if self.data_manager:
-                records = self.data_manager.get_filtered_records(ticket_no)
-                for record in records:
-                    if record.get('ticket_no') == ticket_no:
-                        # Switch to main tab
-                        self.notebook.select(0)
-                        
-                        # Load full record data into the form
-                        self.main_form.load_record_data(record)
-                        
-                        # Set the current weighment state to "second"
-                        self.main_form.current_weighment = "second"
-                        self.main_form.weighment_state_var.set("Second Weighment")
-                        
-                        # Show a helpful message to the user
-                        messagebox.showinfo("Record Loaded", 
-                                        f"Vehicle {record.get('vehicle_no')} loaded for second weighment.\n"
-                                        f"First weight was: {record.get('first_weight')} kg\n"
-                                        f"Please click 'Capture Weight' to record the second weighment.")
-                        return
-                        
-                # If we get here, the record wasn't found
-                messagebox.showwarning("Record Not Found", 
-                                    f"Could not find a record with ticket number {ticket_no}")
+            # Switch to main tab
+            self.notebook.select(0)
+            
+            # Set the ticket number in the form
+            self.main_form.rst_var.set(ticket_no)
+            
+            # Trigger the ticket existence check
+            self.main_form.check_ticket_exists()
     
     def create_buttons(self, parent):
         """Create action buttons"""
@@ -531,6 +429,28 @@ class TharuniApp:
                 self.main_form.back_camera.stop_camera()
                 self.main_form.back_camera.camera_index = back_index
     
+    def backup_to_cloud(self):
+        """Backup all records to cloud storage"""
+        try:
+            # Update status
+            self.backup_status_var.set("Backing up...")
+            
+            # Use data_manager to backup to cloud
+            if hasattr(self.data_manager, 'save_to_cloud'):
+                success = self.data_manager.save_to_cloud({})
+                
+                # Update status based on result
+                if success:
+                    self.backup_status_var.set("Backup complete!")
+                else:
+                    self.backup_status_var.set("Backup failed")
+            else:
+                self.backup_status_var.set("Cloud backup not implemented")
+                
+        except Exception as e:
+            print(f"Error in cloud backup: {e}")
+            self.backup_status_var.set(f"Error: {str(e)}")
+    
     def save_record(self):
         """Save current record to database"""
         # Validate form first
@@ -542,8 +462,6 @@ class TharuniApp:
         
         # Save to database
         if self.data_manager.save_record(record_data):
-            print(f"Record saved successfully: {record_data.get('ticket_no')}")
-            print(f"First weight: {record_data.get('first_weight')}, Second weight: {record_data.get('second_weight')}")
             # Check if this is a second weighment being completed
             is_second_weighment_complete = (
                 record_data.get('second_weight') and record_data.get('second_timestamp') and 

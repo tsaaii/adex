@@ -7,6 +7,8 @@ from ui_components import HoverButton
 from weighbridge import WeighbridgeManager
 from settings_storage import SettingsStorage
 
+
+
 class SettingsPanel:
     """Settings panel for camera and weighbridge configuration"""
     
@@ -39,7 +41,7 @@ class SettingsPanel:
         self.weighbridge = WeighbridgeManager(self.weighbridge_callback)
         self.create_panel()
         self.load_saved_settings()
-
+    
     def authenticate_settings_access(self):
         """Authenticate for settings access"""
         # If we already have a current user with admin role, allow access
