@@ -279,32 +279,34 @@ class WeighbridgeManager:
                 time.sleep(0.1)
     
     def _process_weighbridge_data(self):
-        """Process weighbridge data to find most common valid weight"""
+        """Process weighbridge data to find valid weight with faster updates"""
+        last_update_time = 0
+        update_interval = 0.5  # Update every 0.5 seconds instead of 20
+        
         while self.weight_processing:
             try:
-                if not self.weight_buffer:
-                    time.sleep(0.1)
+                current_time = time.time()
+                
+                # Process data more frequently
+                if not self.weight_buffer or current_time - last_update_time < update_interval:
+                    time.sleep(0.05)  # Short sleep to avoid CPU hogging
                     continue
                 
-                # Process data in 20-second windows
-                start_time = time.time()
+                # Process all available data in the buffer
                 window_data = []
-                
-                while time.time() - start_time < 20 and self.weight_processing:
-                    if self.weight_buffer:
-                        line = self.weight_buffer.pop(0)
-                        # Clean the line - remove special characters
-                        cleaned = re.sub(r'[^\d.]', '', line)
-                        # Find all sequences of digits (with optional decimal point)
-                        matches = re.findall(r'\d+\.?\d*', cleaned)
-                        for match in matches:
-                            if len(match) >= 6:  # At least 6 digits
-                                try:
-                                    weight = float(match)
-                                    window_data.append(weight)
-                                except ValueError:
-                                    pass
-                    time.sleep(0.05)
+                while self.weight_buffer:
+                    line = self.weight_buffer.pop(0)
+                    # Clean the line - remove special characters
+                    cleaned = re.sub(r'[^\d.]', '', line)
+                    # Find all sequences of digits (with optional decimal point)
+                    matches = re.findall(r'\d+\.?\d*', cleaned)
+                    for match in matches:
+                        if len(match) >= 6:  # At least 6 digits
+                            try:
+                                weight = float(match)
+                                window_data.append(weight)
+                            except ValueError:
+                                pass
                 
                 if window_data:
                     # Find the most common weight in the window
@@ -318,6 +320,9 @@ class WeighbridgeManager:
                         if self.update_callback:
                             self.update_callback(most_common)
                 
+                # Update the last update time
+                last_update_time = current_time
+                    
             except Exception as e:
                 print(f"Weight processing error: {str(e)}")
-                time.sleep(1)
+                time.sleep(0.5)  # Shorter sleep on error

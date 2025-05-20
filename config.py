@@ -7,6 +7,13 @@ USE_CLOUD_STORAGE = True
 CLOUD_BUCKET_NAME = "advitia-weighbridge-data"  # Your bucket name
 CLOUD_CREDENTIALS_PATH = "gcloud-credentials.json"  # Path to your service account key
 
+# Add to config.py:
+
+# Global weighbridge reference
+GLOBAL_WEIGHBRIDGE_MANAGER = None
+GLOBAL_WEIGHBRIDGE_WEIGHT_VAR = None
+GLOBAL_WEIGHBRIDGE_STATUS_VAR = None
+
 # Global constants
 DATA_FOLDER = 'data'
 DATA_FILE = os.path.join(DATA_FOLDER, 'tharuni_data.csv')
@@ -61,3 +68,16 @@ def setup():
     """Initialize the application data structures"""
     initialize_folders()
     initialize_csv()
+
+
+def set_global_weighbridge(manager, weight_var, status_var):
+    """Set global references to weighbridge components"""
+    global GLOBAL_WEIGHBRIDGE_MANAGER, GLOBAL_WEIGHBRIDGE_WEIGHT_VAR, GLOBAL_WEIGHBRIDGE_STATUS_VAR
+    GLOBAL_WEIGHBRIDGE_MANAGER = manager
+    GLOBAL_WEIGHBRIDGE_WEIGHT_VAR = weight_var
+    GLOBAL_WEIGHBRIDGE_STATUS_VAR = status_var
+
+def get_global_weighbridge_info():
+    """Get global weighbridge references"""
+    return GLOBAL_WEIGHBRIDGE_MANAGER, GLOBAL_WEIGHBRIDGE_WEIGHT_VAR, GLOBAL_WEIGHBRIDGE_STATUS_VAR
+

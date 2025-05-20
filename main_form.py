@@ -342,38 +342,42 @@ class MainForm:
                         f"Please save the record to complete the process.")                
 
     def get_current_weighbridge_value(self):
-        """Get the current value from the weighbridge"""
+        """Get the current value from the weighbridge using global reference"""
         try:
-            # Try to find the main app instance to access weighbridge data
-            app = self.find_main_app()
-            if app and hasattr(app, 'settings_panel'):
-                # Get weight from the weighbridge display
-                weight_str = app.settings_panel.current_weight_var.get()
-                
-                # Check if weighbridge is connected
-                is_connected = app.settings_panel.weighbridge and app.settings_panel.wb_status_var.get() == "Status: Connected"
-                
-                if not is_connected:
-                    messagebox.showerror("Weighbridge Error", 
-                                    "Weighbridge is not connected. Please connect the weighbridge in Settings tab.")
-                    return None
-                
-                # Extract number from string like "123.45 kg"
-                import re
-                match = re.search(r'(\d+\.?\d*)', weight_str)
-                if match:
-                    return float(match.group(1))
-                else:
-                    messagebox.showerror("Error", "Could not read weight from weighbridge. Please check connection.")
-                    return None
-            else:
+            # Use the global weighbridge reference
+            import config
+            weighbridge, weight_var, status_var = config.get_global_weighbridge_info()
+            
+            if weighbridge is None or weight_var is None or status_var is None:
                 messagebox.showerror("Application Error", 
                                 "Cannot access weighbridge settings. Please restart the application.")
+                return None
+            
+            # Get weight from the weighbridge display
+            weight_str = weight_var.get()
+            
+            # Check if weighbridge is connected
+            is_connected = (weighbridge is not None and 
+                        status_var.get() == "Status: Connected")
+            
+            if not is_connected:
+                messagebox.showerror("Weighbridge Error", 
+                                "Weighbridge is not connected. Please connect the weighbridge in Settings tab.")
+                return None
+            
+            # Extract number from string like "123.45 kg"
+            import re
+            match = re.search(r'(\d+\.?\d*)', weight_str)
+            if match:
+                return float(match.group(1))
+            else:
+                messagebox.showerror("Error", "Could not read weight from weighbridge. Please check connection.")
                 return None
                 
         except Exception as e:
             messagebox.showerror("Weighbridge Error", f"Error reading weighbridge: {str(e)}")
             return None
+
 
     def find_main_app(self):
         """Find the main app instance to access weighbridge data"""
@@ -859,17 +863,33 @@ class MainForm:
     
     def find_main_app(self):
         """Find the main app instance to access weighbridge data"""
-        # Try to traverse up widget hierarchy to find main app instance
-        widget = self.parent
-        while widget:
-            if hasattr(widget, 'settings_panel'):
-                return widget
-            if hasattr(widget, 'master'):
-                widget = widget.master
+        # Start from the parent widget and traverse up
+        current = self.parent
+        
+        # Keep going up the widget hierarchy until we find the main app
+        while current:
+            # Check if this widget has settings_panel attribute
+            if hasattr(current, 'settings_panel'):
+                return current
+                
+            # Check if this is the root widget (TharuniApp)
+            if hasattr(current, 'data_manager') and hasattr(current, 'notebook'):
+                return current
+                
+            # Move up to the parent widget
+            if hasattr(current, 'master'):
+                current = current.master
             else:
+                # No more parents, break the loop
                 break
+                
+        # Try to look for a root-level attribute that might be accessible
+        root = self.parent.winfo_toplevel()
+        if hasattr(root, 'settings_panel'):
+            return root
+        
+        # If we get here, we couldn't find the main app
         return None
-    
     def calculate_net_weight(self):
         """Calculate net weight as the absolute difference between weighments"""
         try:

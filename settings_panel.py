@@ -32,16 +32,19 @@ class SettingsPanel:
         # Initialize settings storage
         self.settings_storage = SettingsStorage()
         
+        # Continue with initialization
+        self.init_variables()
+        self.weighbridge = WeighbridgeManager(self.update_weight_display)
+        import config
+        config.set_global_weighbridge(self.weighbridge, self.current_weight_var, self.wb_status_var)        
+
         # Check authentication for settings access
         if not self.authenticate_settings_access():
             return
-        
-        # Continue with initialization
-        self.init_variables()
-        self.weighbridge = WeighbridgeManager(self.weighbridge_callback)
         self.create_panel()
         self.load_saved_settings()
-    
+
+
     def authenticate_settings_access(self):
         """Authenticate for settings access"""
         # If we already have a current user with admin role, allow access
