@@ -306,15 +306,17 @@ class TharuniApp:
             self.main_form.rst_var.set(ticket_no)
             
             # Trigger the ticket existence check
+            # This will load record data and set correct weighment state
             self.main_form.check_ticket_exists()
             
             # If connected to weighbridge, automatically capture the weight
-            # This is the key enhancement to handle automatic second weighment
+            # for second weighment when a pending vehicle is selected
             if self.is_weighbridge_connected():
                 # Get current weight from weighbridge
                 weight = self.get_current_weighbridge_weight()
                 if weight is not None:
                     # Call the handle_weighbridge_weight method with the current weight
+                    # This will save the second weighment automatically if current_weighment is "second"
                     self.main_form.handle_weighbridge_weight(weight)
     
     def is_weighbridge_connected(self):
@@ -419,7 +421,7 @@ class TharuniApp:
                 if hasattr(self, 'pending_vehicles'):
                     self.pending_vehicles.remove_saved_record(ticket_no)
             else:
-                # Only first weighment
+                # Only first weighment - must explicitly tell user it's added to pending queue
                 messagebox.showinfo("Success", "First weighment saved! Vehicle added to pending queue.")
             
             # Always update the summary and pending vehicles list when saving

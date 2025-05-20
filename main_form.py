@@ -62,9 +62,6 @@ class MainForm:
         # Format weight to 2 decimal places
         formatted_weight = f"{weight:.2f}"
         
-        # Check if this is a new ticket or existing one
-        ticket_no = self.rst_var.get().strip()
-        
         # Set current timestamp
         now = datetime.datetime.now()
         timestamp = now.strftime("%d-%m-%Y %H:%M:%S")
@@ -108,7 +105,7 @@ class MainForm:
                             f"Second weighment recorded: {formatted_weight} kg\n"
                             f"Net weight: {self.net_weight_var.get()} kg\n"
                             f"Record completed")
-           
+            
 
     def get_current_weighbridge_value(self):
         """Get the current value from the weighbridge using global reference"""
@@ -264,6 +261,7 @@ class MainForm:
                         messagebox.showinfo("Completed Record", 
                                         "This ticket already has both weighments completed.")
                         self.load_record_data(record)
+                        self.current_weighment = "second"  # Set to "second" even though completed
                         self.weighment_state_var.set("Weighment Complete")
                         return
                     elif record.get('first_weight') and record.get('first_timestamp'):
@@ -1022,14 +1020,18 @@ class MainForm:
             return False
         
         # For first time entry, we need first weighment and timestamp
-        if not self.first_weight_var.get() or not self.first_timestamp_var.get():
+        if self.current_weighment == "first" and (not self.first_weight_var.get() or not self.first_timestamp_var.get()):
             messagebox.showerror("Validation Error", "Please capture first weighment before saving.")
             return False
             
-        # If this is a second weighment, check if the second weight and timestamp exist
-        if self.current_weighment == "second" and (not self.second_weight_var.get() or not self.second_timestamp_var.get()):
-            messagebox.showerror("Validation Error", "Please capture second weighment before completing the record.")
+        # If this is a second weighment being completed, check if the second weight and timestamp exist
+        # This validation is only applied if we're trying to complete the second weighment
+        if self.current_weighment == "second" and self.second_weight_var.get() and not self.second_timestamp_var.get():
+            messagebox.showerror("Validation Error", "Second weighment timestamp is missing.")
             return False
+        
+        # Note: We are no longer requiring second weighment to save the record
+        # This allows records with only first weighment to be saved to the pending panel
                 
         # Validate at least one image is captured
         if not self.front_image_path and not self.back_image_path:
