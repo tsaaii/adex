@@ -193,6 +193,29 @@ class SettingsPanel:
         # Weighbridge settings frame
         wb_frame = ttk.LabelFrame(parent, text="Weighbridge Configuration", padding=10)
         wb_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
+        # Create a separator
+            ttk.Separator(wb_frame, orient=tk.HORIZONTAL).grid(
+                row=8, column=0, columnspan=3, sticky=tk.EW, pady=10)
+            
+            # Cloud backup section
+            cloud_frame = ttk.Frame(wb_frame)
+            cloud_frame.grid(row=9, column=0, columnspan=3, sticky=tk.EW, pady=5)
+            
+            ttk.Label(cloud_frame, text="Cloud Backup:").grid(row=0, column=0, sticky=tk.W)
+            
+            # Backup button
+            self.backup_btn = HoverButton(cloud_frame, 
+                                        text="Backup All Records to Cloud", 
+                                        bg=config.COLORS["primary_light"], 
+                                        fg=config.COLORS["text"], padx=5, pady=2,
+                                        command=self.backup_to_cloud)
+            self.backup_btn.grid(row=0, column=1, padx=5, pady=2)
+            
+            # Backup status
+            self.backup_status_var = tk.StringVar()
+            ttk.Label(cloud_frame, textvariable=self.backup_status_var).grid(
+                row=0, column=2, sticky=tk.W, padx=5)        
         
         # COM Port selection
         ttk.Label(wb_frame, text="COM Port:").grid(row=0, column=0, sticky=tk.W, pady=2)
@@ -257,6 +280,89 @@ class SettingsPanel:
         self.weight_label = ttk.Label(wb_frame, textvariable=self.current_weight_var, 
                                     font=("Segoe UI", 10, "bold"))
         self.weight_label.grid(row=7, column=1, sticky=tk.W, pady=2)
+
+
+        def backup_to_cloud(self):
+         """Backup all records to cloud storage"""
+        try:
+            # Find data manager
+            data_manager = self.find_data_manager()
+            
+            if not data_manager:
+                self.backup_status_var.set("Error: Data manager not found")
+                return
+            
+            # Check if data manager has backup_to_cloud method
+            if not hasattr(data_manager, 'backup_to_cloud'):
+                # Add backup method to data manager
+                from cloud_storage import CloudStorageService
+                import datetime
+                import config
+                
+                # Define backup method on the fly
+                def backup_to_cloud(dm):
+                    try:
+                        # Initialize cloud storage
+                        cloud_storage = CloudStorageService(
+                            config.CLOUD_BUCKET_NAME,
+                            config.CLOUD_CREDENTIALS_PATH
+                        )
+                        
+                        if not cloud_storage.is_connected():
+                            return False
+                        
+                        # Create backup filename with timestamp
+                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                        filename = f"backups/all_records_{timestamp}.json"
+                        
+                        # Get all records
+                        records = dm.get_all_records()
+                        
+                        # Convert records to list of dictionaries if not already
+                        if hasattr(records, 'to_dict'):
+                            records = records.to_dict('records')
+                        
+                        # Save to cloud
+                        return cloud_storage.save_json(records, filename)
+                        
+                    except Exception as e:
+                        print(f"Error backing up to cloud: {e}")
+                        return False
+                
+                # Start backup
+                self.backup_status_var.set("Backing up...")
+                success = backup_to_cloud(data_manager)
+            else:
+                # Use existing backup method
+                self.backup_status_var.set("Backing up...")
+                success = data_manager.backup_to_cloud()
+            
+            # Update status
+            if success:
+                self.backup_status_var.set("Backup successful!")
+                self.backup_btn.config(state=tk.NORMAL)
+            else:
+                self.backup_status_var.set("Backup failed!")
+                self.backup_btn.config(state=tk.NORMAL)
+                
+        except Exception as e:
+            print(f"Error during backup: {e}")
+            self.backup_status_var.set(f"Error: {str(e)}")
+            self.backup_btn.config(state=tk.NORMAL)
+
+    def find_data_manager(self):
+        """Find data manager from the application"""
+        # Try to traverse widget hierarchy to find app instance
+        widget = self.parent
+        while widget:
+            if hasattr(widget, 'data_manager'):
+                return widget.data_manager
+            if hasattr(widget, 'master'):
+                widget = widget.master
+            else:
+                break
+        return None
+            
     
     def create_camera_settings(self, parent):
         """Create camera configuration settings"""
