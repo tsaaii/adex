@@ -226,7 +226,7 @@ class TharuniApp:
                 cloud_storage = CloudStorageService(
                     config.CLOUD_BUCKET_NAME,
                     config.CLOUD_CREDENTIALS_PATH
-                )
+                ) 
                 
                 if cloud_storage.is_connected():
                     self.cloud_status_var.set("Cloud: Connected")
