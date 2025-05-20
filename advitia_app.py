@@ -355,27 +355,189 @@ class TharuniApp:
             print(f"Error in periodic refresh: {e}")
             # Try to reschedule even if there was an error
             self._refresh_job = self.root.after(60000, self.periodic_refresh)
-    
+
+
+    # Fix for TharuniApp.update_weight_from_weighbridge in advitia_app.py
+    # Fix for TharuniApp.update_weight_from_weighbridge in advitia_app.py
+
     def update_weight_from_weighbridge(self, weight):
         """Update weight from weighbridge - this is the key callback function
         
         Args:
             weight: Weight value from weighbridge
         """
-        # Make the weight available to the main form
-        if hasattr(self, 'settings_panel'):
-            self.settings_panel.current_weight_var.set(f"{weight} kg")
+        # Guard against recursive calls - add this flag
+        if hasattr(self, '_processing_weight_update') and self._processing_weight_update:
+            return
+        
+        try:
+            # Set processing flag
+            self._processing_weight_update = True
             
-        # Notify the settings panel to update its display
-        if hasattr(self, 'settings_panel'):
-            self.settings_panel.update_weight_display(weight)
+            # Make the weight available to the main form
+            if hasattr(self, 'settings_panel'):
+                self.settings_panel.current_weight_var.set(f"{weight} kg")
+                
+            # REMOVE this call to prevent circular reference:
+            # if hasattr(self, 'settings_panel'):
+            #     self.settings_panel.update_weight_display(weight)
+                
+            # Automatic weight handling only if we're on the vehicle entry tab
+            if self.notebook.index("current") == 0 and hasattr(self, 'main_form'):
+                # Check if form fields are filled - use internal method for silent validation
+                if hasattr(self.main_form, '_validate_basic_fields_internal'):
+                    if self.main_form._validate_basic_fields_internal(show_error=False):
+                        # Handle the weight directly in the main form
+                        self.main_form.handle_weighbridge_weight(weight)
+                else:
+                    # Fallback to original method if _validate_basic_fields_internal doesn't exist
+                    if self.main_form.validate_basic_fields():
+                        # Handle the weight directly in the main form
+                        self.main_form.handle_weighbridge_weight(weight)
+        finally:
+            # Clear processing flag
+            self._processing_weight_update = False
+
+    # Update main_form.py with a new validation method to avoid changing the signature of existing methods
+
+    def validate_basic_fields(self):
+        """Validate that basic required fields are filled"""
+        return self._validate_basic_fields_internal(show_error=True)
+
+    def _validate_basic_fields_internal(self, show_error=True):
+        """Internal validation method with error display control
+        
+        Args:
+            show_error: Whether to show error message boxes
+        """
+        required_fields = {
+            "Ticket No": self.rst_var.get(),
+            "Vehicle No": self.vehicle_var.get(),
+            "Agency Name": self.agency_var.get()
+        }
+        
+        missing_fields = [field for field, value in required_fields.items() if not value.strip()]
+        
+        if missing_fields:
+            if show_error:
+                messagebox.showerror("Validation Error", 
+                                f"Please fill in the following required fields: {', '.join(missing_fields)}")
+            return False
             
-        # Automatic weight handling only if we're on the vehicle entry tab
-        if self.notebook.index("current") == 0 and hasattr(self, 'main_form'):
-            # Check if form fields are filled
-            if self.main_form.validate_basic_fields():
-                # Handle the weight directly in the main form
-                self.main_form.handle_weighbridge_weight(weight)
+        return True
+
+    # Update main_form.py handle_weighbridge_weight to add processing flag
+
+    def handle_weighbridge_weight(self, weight):
+        """Handle weight from weighbridge based on current state
+        
+        Args:
+            weight: Current weight from weighbridge
+        """
+        # Add a guard flag
+        if hasattr(self, '_processing_weight') and self._processing_weight:
+            return
+            
+        try:
+            # Set processing flag
+            self._processing_weight = True
+            
+            if not self.validate_basic_fields():
+                return
+                
+            # Format weight to 2 decimal places
+            formatted_weight = f"{weight:.2f}"
+            
+            # Set current timestamp
+            now = datetime.datetime.now()
+            timestamp = now.strftime("%d-%m-%Y %H:%M:%S")
+            
+            # Check if this is a first or second weighment
+            if self.current_weighment == "first":
+                # This is a new entry - set first weighment
+                self.first_weight_var.set(formatted_weight)
+                self.first_timestamp_var.set(timestamp)
+                
+                # Change current state to second weighment
+                self.current_weighment = "second"
+                self.weighment_state_var.set("Second Weighment")
+                
+                # Save the record to add it to the pending queue
+                if self.save_callback:
+                    self.save_callback()
+                    
+                # Display confirmation
+                messagebox.showinfo("First Weighment", 
+                                f"First weighment recorded: {formatted_weight} kg\n"
+                                f"Record saved to pending queue")
+                    
+            elif self.current_weighment == "second":
+                # This is a pending entry - set second weighment
+                self.second_weight_var.set(formatted_weight)
+                self.second_timestamp_var.set(timestamp)
+                
+                # Calculate net weight
+                self.calculate_net_weight()
+                
+                # Update state
+                self.weighment_state_var.set("Weighment Complete")
+                
+                # Save the complete record
+                if self.save_callback:
+                    self.save_callback()
+                    
+                # Display confirmation
+                messagebox.showinfo("Second Weighment", 
+                                f"Second weighment recorded: {formatted_weight} kg\n"
+                                f"Net weight: {self.net_weight_var.get()} kg\n"
+                                f"Record completed")
+        finally:
+            # Clear processing flag
+            self._processing_weight = False
+
+    # Update settings_panel.py update_weight_display to avoid double callbacks
+
+    def update_weight_display(self, weight):
+        """Update weight display (callback for weighbridge)
+        
+        Args:
+            weight: Weight value to display
+        """
+        # Guard against recursive callbacks
+        if self.processing_callback:
+            return
+            
+        try:
+            self.processing_callback = True
+            
+            # Update the weight variable
+            self.current_weight_var.set(f"{weight:.2f} kg")
+            
+            # Update weight label color based on connection status
+            if hasattr(self, 'weight_label'):
+                if self.wb_status_var.get() == "Status: Connected":
+                    self.weight_label.config(foreground="green")
+                else:
+                    self.weight_label.config(foreground="red")
+            
+            # Only propagate the callback if this is a direct weighbridge update,
+            # not if we're being called from TharuniApp.update_weight_from_weighbridge
+            if self.weighbridge_callback and not hasattr(self, '_from_app_update'):
+                try:
+                    # Set a flag so we know this is from TharuniApp
+                    self._from_app_update = True
+                    self.weighbridge_callback(weight)
+                except Exception as e:
+                    print(f"Error in weighbridge_callback: {e}")
+                finally:
+                    # Clear the flag
+                    if hasattr(self, '_from_app_update'):
+                        delattr(self, '_from_app_update')
+                    
+        except Exception as e:
+            print(f"Error in update_weight_display: {e}")
+        finally:
+            self.processing_callback = False
     
     def update_camera_indices(self, front_index, back_index):
         """Update camera indices
