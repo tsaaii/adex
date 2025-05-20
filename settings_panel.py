@@ -34,9 +34,14 @@ class SettingsPanel:
         
         # Continue with initialization
         self.init_variables()
+        
+        # Set up a flag to prevent recursive callbacks
+        self.processing_callback = False
+        
+        # Initialize weighbridge with the fixed callback
         self.weighbridge = WeighbridgeManager(self.update_weight_display)
         import config
-        config.set_global_weighbridge(self.weighbridge, self.current_weight_var, self.wb_status_var)        
+        config.set_global_weighbridge(self.weighbridge, self.current_weight_var, self.wb_status_var)
 
         # Check authentication for settings access
         if not self.authenticate_settings_access():
@@ -924,17 +929,35 @@ class SettingsPanel:
         Args:
             weight: Weight value to display
         """
-        self.current_weight_var.set(f"{weight:.2f} kg")
-        
-        # Update weight label color based on connection status
-        if self.wb_status_var.get() == "Status: Connected":
-            self.weight_label.config(foreground="green")
-        else:
-            self.weight_label.config(foreground="red")
-        
-        # Propagate weight update to form if callback is set
-        if self.weighbridge_callback:
-            self.weighbridge_callback(weight)
+        # Guard against recursive callbacks
+        if self.processing_callback:
+            return
+            
+        try:
+            self.processing_callback = True
+            
+            # Update the weight variable
+            self.current_weight_var.set(f"{weight:.2f} kg")
+            
+            # Update weight label color based on connection status
+            if hasattr(self, 'weight_label'):
+                if self.wb_status_var.get() == "Status: Connected":
+                    self.weight_label.config(foreground="green")
+                else:
+                    self.weight_label.config(foreground="red")
+            
+            # Propagate weight update to form if callback is set
+            # Use try/except to prevent recursive errors
+            if self.weighbridge_callback:
+                try:
+                    self.weighbridge_callback(weight)
+                except Exception as e:
+                    print(f"Error in weighbridge_callback: {e}")
+                    
+        except Exception as e:
+            print(f"Error in update_weight_display: {e}")
+        finally:
+            self.processing_callback = False
     
     def apply_camera_settings(self):
         """Apply camera index settings"""

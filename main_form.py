@@ -49,7 +49,118 @@ class MainForm:
         # Remove spacebar binding since we now have manual buttons
         # self.parent.bind("<space>", self.handle_space_key)
         self.refresh_vehicle_numbers_cache()
+
+    def handle_weighbridge_weight(self, weight):
+        """Handle weight from weighbridge based on current state
         
+        Args:
+            weight: Current weight from weighbridge
+        """
+        if not self.validate_basic_fields():
+            return
+            
+        # Format weight to 2 decimal places
+        formatted_weight = f"{weight:.2f}"
+        
+        # Check if this is a new ticket or existing one
+        ticket_no = self.rst_var.get().strip()
+        
+        # Set current timestamp
+        now = datetime.datetime.now()
+        timestamp = now.strftime("%d-%m-%Y %H:%M:%S")
+        
+        # Check if this is a first or second weighment
+        if self.current_weighment == "first":
+            # This is a new entry - set first weighment
+            self.first_weight_var.set(formatted_weight)
+            self.first_timestamp_var.set(timestamp)
+            
+            # Change current state to second weighment
+            self.current_weighment = "second"
+            self.weighment_state_var.set("Second Weighment")
+            
+            # Save the record to add it to the pending queue
+            if self.save_callback:
+                self.save_callback()
+                
+            # Display confirmation
+            messagebox.showinfo("First Weighment", 
+                            f"First weighment recorded: {formatted_weight} kg\n"
+                            f"Record saved to pending queue")
+                
+        elif self.current_weighment == "second":
+            # This is a pending entry - set second weighment
+            self.second_weight_var.set(formatted_weight)
+            self.second_timestamp_var.set(timestamp)
+            
+            # Calculate net weight
+            self.calculate_net_weight()
+            
+            # Update state
+            self.weighment_state_var.set("Weighment Complete")
+            
+            # Save the complete record
+            if self.save_callback:
+                self.save_callback()
+                
+            # Display confirmation
+            messagebox.showinfo("Second Weighment", 
+                            f"Second weighment recorded: {formatted_weight} kg\n"
+                            f"Net weight: {self.net_weight_var.get()} kg\n"
+                            f"Record completed")
+           
+
+    def get_current_weighbridge_value(self):
+        """Get the current value from the weighbridge using global reference"""
+        try:
+            # Use the global weighbridge reference
+            import config
+            weighbridge, weight_var, status_var = config.get_global_weighbridge_info()
+            
+            if weighbridge is None or weight_var is None or status_var is None:
+                messagebox.showerror("Application Error", 
+                                "Cannot access weighbridge settings. Please restart the application.")
+                return None
+            
+            # Get weight from the weighbridge display
+            weight_str = weight_var.get()
+            
+            # Check if weighbridge is connected
+            is_connected = (weighbridge is not None and 
+                        status_var.get() == "Status: Connected")
+            
+            if not is_connected:
+                messagebox.showerror("Weighbridge Error", 
+                                "Weighbridge is not connected. Please connect the weighbridge in Settings tab.")
+                return None
+            
+            # Extract number from string like "123.45 kg"
+            import re
+            match = re.search(r'(\d+\.?\d*)', weight_str)
+            if match:
+                return float(match.group(1))
+            else:
+                messagebox.showerror("Error", "Could not read weight from weighbridge. Please check connection.")
+                return None
+                
+        except Exception as e:
+            messagebox.showerror("Weighbridge Error", f"Error reading weighbridge: {str(e)}")
+            return None
+
+
+    def find_main_app(self):
+        """Find the main app instance to access weighbridge data"""
+        # Try to traverse up widget hierarchy to find main app instance
+        widget = self.parent
+        while widget:
+            if hasattr(widget, 'settings_panel'):
+                return widget
+            if hasattr(widget, 'master'):
+                widget = widget.master
+            else:
+                break
+        return None
+
     def capture_first_weighment(self):
         """Capture the first weighment"""
         # Validate required fields
@@ -81,10 +192,6 @@ class MainForm:
         now = datetime.datetime.now()
         timestamp = now.strftime("%d-%m-%Y %H:%M:%S")
         self.first_timestamp_var.set(timestamp)
-        
-        # Disable first weighment button, enable second
-        self.first_weighment_btn.config(state=tk.DISABLED)
-        self.second_weighment_btn.config(state=tk.NORMAL)
         
         # Update current weighment state
         self.current_weighment = "second"
@@ -139,8 +246,6 @@ class MainForm:
                         f"Second weighment recorded: {self.second_weight_var.get()} kg\n"
                         f"Net weight: {self.net_weight_var.get()} kg\n"
                         f"Please save the record to complete the process.")
-
-
 
     def check_ticket_exists(self, event=None):
         """Check if the ticket number already exists in the database"""
@@ -221,6 +326,9 @@ class MainForm:
             self.back_camera.canvas.delete("all")
             self.back_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
             self.back_camera.capture_button.config(text="Capture")
+            
+        # Generate new ticket number
+        self.generate_next_ticket_number()
 
     def init_variables(self):
         """Initialize form variables"""
@@ -266,178 +374,6 @@ class MainForm:
         self.vehicle_numbers_cache = self.get_vehicle_numbers()
         if hasattr(self, 'vehicle_entry'):
             self.vehicle_entry['values'] = self.vehicle_numbers_cache
-
-
-    def capture_first_weighment(self):
-        """Capture the first weighment"""
-        # Validate required fields
-        if not self.validate_basic_fields():
-            return
-            
-        # Get current weight from weighbridge
-        current_weight = self.get_current_weighbridge_value()
-        if current_weight is None:
-            return
-            
-        # Set first weighment
-        self.first_weight_var.set(str(current_weight))
-        
-        # Set timestamp
-        now = datetime.datetime.now()
-        timestamp = now.strftime("%d-%m-%Y %H:%M:%S")
-        self.first_timestamp_var.set(timestamp)
-        
-        # Disable first weighment button, enable second
-        self.first_weighment_btn.config(state=tk.DISABLED)
-        self.second_weighment_btn.config(state=tk.NORMAL)
-        
-        # Update current weighment state
-        self.current_weighment = "second"
-        
-        # Automatically save the record to add to the pending queue
-        if hasattr(self, 'summary_update_callback'):
-            # Try to find the main app to trigger save
-            app = self.find_main_app()
-            if app and hasattr(app, 'save_record'):
-                app.save_record()
-            else:
-                # Show confirmation if auto-save not available
-                messagebox.showinfo("First Weighment", 
-                                f"First weighment recorded: {current_weight} kg\n"
-                                f"Please save the record to add to the pending queue.")
-                
-
-    def capture_second_weighment(self):
-        """Capture the second weighment"""
-        # Validate first weighment exists
-        if not self.first_weight_var.get():
-            messagebox.showerror("Error", "Please record the first weighment first.")
-            return
-            
-        # Get current weight from weighbridge
-        current_weight = self.get_current_weighbridge_value()
-        if current_weight is None:
-            return
-            
-        # Set second weighment
-        self.second_weight_var.set(str(current_weight))
-        
-        # Set timestamp
-        now = datetime.datetime.now()
-        timestamp = now.strftime("%d-%m-%Y %H:%M:%S")
-        self.second_timestamp_var.set(timestamp)
-        
-        # Calculate net weight
-        self.calculate_net_weight()
-        
-        # Automatically save the record to complete the process
-        app = self.find_main_app()
-        if app and hasattr(app, 'save_record'):
-            app.save_record()
-        else:
-            # Show confirmation if auto-save not available
-            messagebox.showinfo("Second Weighment", 
-                        f"Second weighment recorded: {current_weight} kg\n"
-                        f"Net weight: {self.net_weight_var.get()} kg\n"
-                        f"Please save the record to complete the process.")                
-
-    def get_current_weighbridge_value(self):
-        """Get the current value from the weighbridge using global reference"""
-        try:
-            # Use the global weighbridge reference
-            import config
-            weighbridge, weight_var, status_var = config.get_global_weighbridge_info()
-            
-            if weighbridge is None or weight_var is None or status_var is None:
-                messagebox.showerror("Application Error", 
-                                "Cannot access weighbridge settings. Please restart the application.")
-                return None
-            
-            # Get weight from the weighbridge display
-            weight_str = weight_var.get()
-            
-            # Check if weighbridge is connected
-            is_connected = (weighbridge is not None and 
-                        status_var.get() == "Status: Connected")
-            
-            if not is_connected:
-                messagebox.showerror("Weighbridge Error", 
-                                "Weighbridge is not connected. Please connect the weighbridge in Settings tab.")
-                return None
-            
-            # Extract number from string like "123.45 kg"
-            import re
-            match = re.search(r'(\d+\.?\d*)', weight_str)
-            if match:
-                return float(match.group(1))
-            else:
-                messagebox.showerror("Error", "Could not read weight from weighbridge. Please check connection.")
-                return None
-                
-        except Exception as e:
-            messagebox.showerror("Weighbridge Error", f"Error reading weighbridge: {str(e)}")
-            return None
-
-
-    def find_main_app(self):
-        """Find the main app instance to access weighbridge data"""
-        # Try to traverse up widget hierarchy to find main app instance
-        widget = self.parent
-        while widget:
-            if hasattr(widget, 'settings_panel'):
-                return widget
-            if hasattr(widget, 'master'):
-                widget = widget.master
-            else:
-                break
-        return None
-
-    def calculate_net_weight(self):
-        """Calculate net weight as the difference between weighments"""
-        # Check if we have at least one weight
-        first_weight_str = self.first_weight_var.get().strip()
-        second_weight_str = self.second_weight_var.get().strip()
-        
-        try:
-            if first_weight_str and second_weight_str:
-                # Calculate difference if both weights are available
-                first_weight = float(first_weight_str)
-                second_weight = float(second_weight_str)
-                
-                # Calculate the absolute difference for net weight
-                net_weight = abs(first_weight - second_weight)
-                
-                # Format to 2 decimal places
-                self.net_weight_var.set(f"{net_weight:.2f}")
-            elif first_weight_str:
-                # If only first weight available, leave net weight empty
-                self.net_weight_var.set("")
-            else:
-                # No weights available
-                messagebox.showerror("Error", "Please enter at least one weight value")
-                
-        except ValueError:
-            # Handle non-numeric input
-            messagebox.showerror("Error", "Invalid weight values. Please enter valid numbers.")
-            self.net_weight_var.set("")
-
-    def validate_basic_fields(self):
-        """Validate that basic required fields are filled"""
-        required_fields = {
-            "Ticket No": self.rst_var.get(),
-            "Vehicle No": self.vehicle_var.get(),
-            "Agency Name": self.agency_var.get(),
-            "Transfer Party Name": self.tpt_var.get()
-        }
-        
-        missing_fields = [field for field, value in required_fields.items() if not value.strip()]
-        
-        if missing_fields:
-            messagebox.showerror("Validation Error", 
-                            f"Please fill in the following required fields: {', '.join(missing_fields)}")
-            return False
-            
-        return True
 
     def generate_next_ticket_number(self):
         """Generate the next ticket number based on existing records"""
@@ -529,6 +465,37 @@ class MainForm:
             app = self.find_main_app()
             if app and hasattr(app, 'save_record'):
                 app.save_record()
+
+
+    def calculate_net_weight(self):
+        """Calculate net weight as the difference between weighments"""
+        # Check if we have at least one weight
+        first_weight_str = self.first_weight_var.get().strip()
+        second_weight_str = self.second_weight_var.get().strip()
+        
+        try:
+            if first_weight_str and second_weight_str:
+                # Calculate difference if both weights are available
+                first_weight = float(first_weight_str)
+                second_weight = float(second_weight_str)
+                
+                # Calculate the absolute difference for net weight
+                net_weight = abs(first_weight - second_weight)
+                
+                # Format to 2 decimal places
+                self.net_weight_var.set(f"{net_weight:.2f}")
+            elif first_weight_str:
+                # If only first weight available, leave net weight empty
+                self.net_weight_var.set("")
+            else:
+                # No weights available
+                messagebox.showerror("Error", "Please enter at least one weight value")
+                
+        except ValueError:
+            # Handle non-numeric input
+            messagebox.showerror("Error", "Invalid weight values. Please enter valid numbers.")
+            self.net_weight_var.set("")
+
 
     def create_form(self, parent):
         """Create the main data entry form with modified layout"""
@@ -824,86 +791,6 @@ class MainForm:
                 if vehicle_no and vehicle_no not in vehicle_numbers:
                     vehicle_numbers.append(vehicle_no)
         return vehicle_numbers
-
-
-    
-    def get_current_weighbridge_value(self):
-        """Get the current value from the weighbridge"""
-        try:
-            # Try to find the main app instance to access weighbridge data
-            app = self.find_main_app()
-            if app and hasattr(app, 'settings_panel'):
-                # Get weight from the weighbridge display
-                weight_str = app.settings_panel.current_weight_var.get()
-                
-                # Check if weighbridge is connected
-                is_connected = app.settings_panel.weighbridge and app.settings_panel.wb_status_var.get() == "Status: Connected"
-                
-                if not is_connected:
-                    messagebox.showerror("Weighbridge Error", 
-                                       "Weighbridge is not connected. Please connect the weighbridge in Settings tab.")
-                    return None
-                
-                # Extract number from string like "123.45 kg"
-                import re
-                match = re.search(r'(\d+\.?\d*)', weight_str)
-                if match:
-                    return float(match.group(1))
-                else:
-                    messagebox.showerror("Error", "Could not read weight from weighbridge. Please check connection.")
-                    return None
-            else:
-                messagebox.showerror("Application Error", 
-                                   "Cannot access weighbridge settings. Please restart the application.")
-                return None
-                
-        except Exception as e:
-            messagebox.showerror("Weighbridge Error", f"Error reading weighbridge: {str(e)}")
-            return None
-    
-    def find_main_app(self):
-        """Find the main app instance to access weighbridge data"""
-        # Start from the parent widget and traverse up
-        current = self.parent
-        
-        # Keep going up the widget hierarchy until we find the main app
-        while current:
-            # Check if this widget has settings_panel attribute
-            if hasattr(current, 'settings_panel'):
-                return current
-                
-            # Check if this is the root widget (TharuniApp)
-            if hasattr(current, 'data_manager') and hasattr(current, 'notebook'):
-                return current
-                
-            # Move up to the parent widget
-            if hasattr(current, 'master'):
-                current = current.master
-            else:
-                # No more parents, break the loop
-                break
-                
-        # Try to look for a root-level attribute that might be accessible
-        root = self.parent.winfo_toplevel()
-        if hasattr(root, 'settings_panel'):
-            return root
-        
-        # If we get here, we couldn't find the main app
-        return None
-    def calculate_net_weight(self):
-        """Calculate net weight as the absolute difference between weighments"""
-        try:
-            first_weight = float(self.first_weight_var.get() or 0)
-            second_weight = float(self.second_weight_var.get() or 0)
-            
-            # Calculate the absolute difference for net weight
-            net_weight = abs(first_weight - second_weight)
-            
-            # Format to 2 decimal places
-            self.net_weight_var.set(f"{net_weight:.2f}")
-        except ValueError:
-            # Handle non-numeric input
-            self.net_weight_var.set("")
     
     def validate_basic_fields(self):
         """Validate that basic required fields are filled"""

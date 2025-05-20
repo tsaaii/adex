@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import datetime
+import threading
 
 import config
 from ui_components import HoverButton
@@ -95,6 +96,15 @@ class PendingVehiclesPanel:
         # Bind double-click event
         self.tree.bind("<Double-1>", self.on_item_double_click)
         
+        # Add Select button below the treeview
+        select_btn = HoverButton(main_frame, 
+                              text="Select for Weighment", 
+                              bg=config.COLORS["primary"],
+                              fg=config.COLORS["button_text"],
+                              padx=5, pady=2,
+                              command=self.select_vehicle)
+        select_btn.grid(row=2, column=0, sticky="ew", padx=5, pady=5)
+        
         # Populate the list initially
         self.refresh_pending_list()
     
@@ -111,7 +121,6 @@ class PendingVehiclesPanel:
         # Call callback with ticket number
         if self.on_vehicle_select and ticket_no:
             self.on_vehicle_select(ticket_no)
-    
 
     def refresh_pending_list(self):
         """Refresh the list of pending vehicles"""
@@ -134,7 +143,7 @@ class PendingVehiclesPanel:
             # Filter for records with first weighment but no second weighment
             pending_records = []
             for record in records:
-                # Check if record has first weighment - MODIFIED LOGIC HERE
+                # Check if record has first weighment
                 first_weight = record.get('first_weight', '')
                 first_timestamp = record.get('first_timestamp', '')
                 has_first = first_weight.strip() != '' and first_timestamp.strip() != ''
@@ -145,15 +154,9 @@ class PendingVehiclesPanel:
                 missing_second = (not second_weight or second_weight.strip() == '') or \
                                 (not second_timestamp or second_timestamp.strip() == '')
                 
-                print(f"Record {record.get('ticket_no')}: has_first={has_first}, missing_second={missing_second}")
-                print(f"  First weight: '{first_weight}', First timestamp: '{first_timestamp}'")
-                print(f"  Second weight: '{second_weight}', Second timestamp: '{second_timestamp}'")
-                
                 # Add to pending if it has first weighment but missing second
                 if has_first and missing_second:
                     pending_records.append(record)
-            
-            print(f"Found {len(pending_records)} pending records")
             
             # Add to treeview, most recent first
             for record in reversed(pending_records):
@@ -209,3 +212,21 @@ class PendingVehiclesPanel:
         # Call the callback if provided
         if self.on_vehicle_select and ticket_no:
             self.on_vehicle_select(ticket_no)
+            
+    def remove_saved_record(self, ticket_no):
+        """Remove a record from the pending list after it's saved with second weighment
+        
+        Args:
+            ticket_no: Ticket number to remove
+        """
+        if not ticket_no:
+            return
+            
+        # Find and remove the record with this ticket number
+        for item in self.tree.get_children():
+            if self.tree.item(item, "values")[0] == ticket_no:
+                self.tree.delete(item)
+                break
+                
+        # Apply alternating row colors after removal
+        self._apply_row_colors()

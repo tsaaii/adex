@@ -24,6 +24,7 @@ class WeighbridgeManager:
         self.weight_thread = None
         self.weight_update_thread = None
         self.update_callback = update_callback
+        self.last_weight = None  # Store last weight to prevent recursive updates
     
     def get_available_ports(self):
         """Get list of available COM ports"""
@@ -197,6 +198,10 @@ class WeighbridgeManager:
                     # General serial error
                     raise Exception(f"Connection error: {str(e)}")
             
+            # Reset state and buffers
+            self.weight_buffer = []
+            self.last_weight = None
+            
             # Start processing
             self.weighbridge_connected = True
             
@@ -301,7 +306,7 @@ class WeighbridgeManager:
                     # Find all sequences of digits (with optional decimal point)
                     matches = re.findall(r'\d+\.?\d*', cleaned)
                     for match in matches:
-                        if len(match) >= 6:  # At least 6 digits
+                        if len(match) >= 2:  # At least 2 digits (was 6 before, which might be too strict)
                             try:
                                 weight = float(match)
                                 window_data.append(weight)
@@ -309,16 +314,27 @@ class WeighbridgeManager:
                                 pass
                 
                 if window_data:
-                    # Find the most common weight in the window
-                    freq = defaultdict(int)
-                    for weight in window_data:
-                        freq[weight] += 1
-                    
-                    if freq:
-                        most_common = max(freq.items(), key=lambda x: x[1])[0]
-                        # Update with the new weight through callback
-                        if self.update_callback:
-                            self.update_callback(most_common)
+                    try:
+                        # Find the most common weight in the window
+                        freq = defaultdict(int)
+                        for weight in window_data:
+                            freq[weight] += 1
+                        
+                        if freq:
+                            most_common = max(freq.items(), key=lambda x: x[1])[0]
+                            
+                            # Only update if the weight has changed significantly (to avoid callback loops)
+                            if self.last_weight is None or abs(most_common - self.last_weight) > 0.1:
+                                self.last_weight = most_common
+                                
+                                # Update with the new weight through callback (using a try-except to prevent callback errors)
+                                if self.update_callback:
+                                    try:
+                                        self.update_callback(most_common)
+                                    except Exception as callback_error:
+                                        print(f"Error in update_callback: {callback_error}")
+                    except Exception as e:
+                        print(f"Error processing weight data: {e}")
                 
                 # Update the last update time
                 last_update_time = current_time

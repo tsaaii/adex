@@ -185,10 +185,10 @@ class TharuniApp:
         # Create summary panel
         self.summary_panel = SummaryPanel(summary_tab, self.data_manager)
         
-        # Create settings panel with user info
+        # Create settings panel with user info and weighbridge callback
         self.settings_panel = SettingsPanel(
             settings_tab, 
-            weighbridge_callback=self.update_weight_from_weighbridge,
+            weighbridge_callback=self.update_weight_from_weighbridge,  # This is the key callback
             update_cameras_callback=self.update_camera_indices,
             current_user=self.logged_in_user,
             user_role=self.user_role
@@ -202,8 +202,6 @@ class TharuniApp:
                 self.settings_panel.settings_notebook.tab(3, state=tk.HIDDEN)  # Sites tab
         except (AttributeError, tk.TclError) as e:
             print(f"Error setting tab visibility: {e}")
-        
-        # We're no longer placing buttons at the bottom since they're now inside the camera container
     
     def create_header(self, parent):
         """Create header with title, user info, site info, incharge info and date/time"""
@@ -309,6 +307,31 @@ class TharuniApp:
             
             # Trigger the ticket existence check
             self.main_form.check_ticket_exists()
+            
+            # If connected to weighbridge, automatically capture the weight
+            # This is the key enhancement to handle automatic second weighment
+            if self.is_weighbridge_connected():
+                # Get current weight from weighbridge
+                weight = self.get_current_weighbridge_weight()
+                if weight is not None:
+                    # Call the handle_weighbridge_weight method with the current weight
+                    self.main_form.handle_weighbridge_weight(weight)
+    
+    def is_weighbridge_connected(self):
+        """Check if weighbridge is connected"""
+        if hasattr(self, 'settings_panel') and hasattr(self.settings_panel, 'wb_status_var'):
+            return self.settings_panel.wb_status_var.get() == "Status: Connected"
+        return False
+    
+    def get_current_weighbridge_weight(self):
+        """Get the current weight from weighbridge"""
+        if hasattr(self, 'settings_panel') and hasattr(self.settings_panel, 'current_weight_var'):
+            weight_str = self.settings_panel.current_weight_var.get()
+            import re
+            match = re.search(r'(\d+\.?\d*)', weight_str)
+            if match:
+                return float(match.group(1))
+        return None
     
     def update_datetime(self):
         """Update date and time display"""
@@ -332,7 +355,7 @@ class TharuniApp:
             self._refresh_job = self.root.after(60000, self.periodic_refresh)
     
     def update_weight_from_weighbridge(self, weight):
-        """Update weight from weighbridge
+        """Update weight from weighbridge - this is the key callback function
         
         Args:
             weight: Weight value from weighbridge
@@ -344,6 +367,13 @@ class TharuniApp:
         # Notify the settings panel to update its display
         if hasattr(self, 'settings_panel'):
             self.settings_panel.update_weight_display(weight)
+            
+        # Automatic weight handling only if we're on the vehicle entry tab
+        if self.notebook.index("current") == 0 and hasattr(self, 'main_form'):
+            # Check if form fields are filled
+            if self.main_form.validate_basic_fields():
+                # Handle the weight directly in the main form
+                self.main_form.handle_weighbridge_weight(weight)
     
     def update_camera_indices(self, front_index, back_index):
         """Update camera indices
@@ -370,6 +400,7 @@ class TharuniApp:
         
         # Get form data
         record_data = self.main_form.get_form_data()
+        ticket_no = record_data.get('ticket_no', '')
         
         # Save to database
         if self.data_manager.save_record(record_data):
@@ -383,6 +414,10 @@ class TharuniApp:
             if is_second_weighment_complete:
                 # Both weighments complete
                 messagebox.showinfo("Success", "Record completed with both weighments!")
+                
+                # Remove from pending vehicles list
+                if hasattr(self, 'pending_vehicles'):
+                    self.pending_vehicles.remove_saved_record(ticket_no)
             else:
                 # Only first weighment
                 messagebox.showinfo("Success", "First weighment saved! Vehicle added to pending queue.")
