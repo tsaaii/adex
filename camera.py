@@ -151,9 +151,23 @@ class CameraView:
             self.stop_camera()
             self.capture_button.config(text="Capture")
     
+# In camera.py, ensure save_image doesn't trigger unintended actions
+
     def save_image(self):
         """Call the save function provided by main app"""
-        if self.save_function and self.captured_image is not None:
+        if not self.captured_image:
+            self.status_var.set("Please capture an image first")
+            return
+            
+        if self.save_function:
+            # Check if user explicitly confirmed to save the image
+            should_save = messagebox.askyesno("Confirm Save", 
+                                            "Do you want to save this image?",
+                                            default=messagebox.YES)
+            if not should_save:
+                return
+                
+            # Now proceed with saving
             if self.save_function(self.captured_image):
                 # Stop the camera after successful save
                 self.stop_camera()
@@ -162,9 +176,11 @@ class CameraView:
                 # Clear canvas and show saved message
                 self.canvas.delete("all")
                 self.canvas.create_text(75, 60, text="Image Saved\nClick Capture for new", 
-                                      fill="white", justify=tk.CENTER)
+                                    fill="white", justify=tk.CENTER)
+            else:
+                self.status_var.set("Error saving image")
         else:
-            self.status_var.set("Please capture an image first")
+            self.status_var.set("Save function not configured")
     
     def stop_camera(self):
         """Stop the camera feed"""

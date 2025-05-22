@@ -149,6 +149,59 @@ class SettingsPanel:
         # Cloud backup status variable
         self.backup_status_var = tk.StringVar()
     
+    def update_weight_display(self, weight):
+        """Update weight display (callback for weighbridge)
+        
+        Args:
+            weight: Weight value to display
+        """
+        # Guard against recursive callbacks
+        if self.processing_callback:
+            return
+            
+        try:
+            self.processing_callback = True
+            
+            # Update the weight variable
+            self.current_weight_var.set(f"{weight:.2f} kg")
+            
+            # Update weight label color based on connection status
+            if hasattr(self, 'weight_label'):
+                if self.wb_status_var.get() == "Status: Connected":
+                    self.weight_label.config(foreground="green")
+                else:
+                    self.weight_label.config(foreground="red")
+                    
+            # Reset any error status after a valid weight
+            if hasattr(self, 'weight_status_label'):
+                self.weight_status_label.config(foreground="black")
+                self.weight_status_var.set("Valid weight reading")
+            
+            # Propagate weight update to form if callback is set
+            # Use try/except to prevent recursive errors
+            if self.weighbridge_callback:
+                try:
+                    self.weighbridge_callback(weight)
+                except Exception as e:
+                    print(f"Error in weighbridge_callback: {e}")
+                        
+        except Exception as e:
+            print(f"Error in update_weight_display: {e}")
+        finally:
+            self.processing_callback = False
+
+    # Add this method to report invalid readings
+    def report_invalid_reading(self, value):
+        """Display when an invalid reading is filtered out
+        
+        Args:
+            value: The value that was filtered out
+        """
+        if hasattr(self, 'weight_status_var') and hasattr(self, 'weight_status_label'):
+            self.weight_status_var.set(f"Filtered invalid reading: {value}")
+            self.weight_status_label.config(foreground="red")
+
+
     def load_saved_settings(self):
         """Load settings from storage"""
         # Load weighbridge settings
@@ -201,8 +254,13 @@ class SettingsPanel:
         self.create_user_management(users_tab)
         self.create_site_management(sites_tab)
     
+# Fix for the create_weighbridge_settings method in settings_panel.py
+
     def create_weighbridge_settings(self, parent):
         """Create weighbridge configuration settings"""
+        # Initialize the weight status variable
+        self.weight_status_var = tk.StringVar(value="Ready")
+        
         # Weighbridge settings frame
         wb_frame = ttk.LabelFrame(parent, text="Weighbridge Configuration", padding=10)
         wb_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
@@ -215,8 +273,8 @@ class SettingsPanel:
         
         # Refresh COM ports button
         refresh_btn = HoverButton(wb_frame, text="Refresh Ports", bg=config.COLORS["primary_light"], 
-                                 fg=config.COLORS["text"], padx=5, pady=2,
-                                 command=self.refresh_com_ports)
+                                fg=config.COLORS["text"], padx=5, pady=2,
+                                command=self.refresh_com_ports)
         refresh_btn.grid(row=0, column=2, padx=5, pady=2)
         
         # Baud rate
@@ -246,8 +304,8 @@ class SettingsPanel:
         btn_frame.grid(row=5, column=0, columnspan=3, pady=10)
         
         self.connect_btn = HoverButton(btn_frame, text="Connect", bg=config.COLORS["secondary"], 
-                                     fg=config.COLORS["button_text"], padx=10, pady=3,
-                                     command=self.connect_weighbridge)
+                                    fg=config.COLORS["button_text"], padx=10, pady=3,
+                                    command=self.connect_weighbridge)
         self.connect_btn.pack(side=tk.LEFT, padx=5)
         
         self.disconnect_btn = HoverButton(btn_frame, text="Disconnect", bg=config.COLORS["error"], 
@@ -257,8 +315,8 @@ class SettingsPanel:
         
         # Save settings button
         save_settings_btn = HoverButton(btn_frame, text="Save Settings", bg=config.COLORS["primary"], 
-                                      fg=config.COLORS["button_text"], padx=10, pady=3,
-                                      command=self.save_weighbridge_settings)
+                                    fg=config.COLORS["button_text"], padx=10, pady=3,
+                                    command=self.save_weighbridge_settings)
         save_settings_btn.pack(side=tk.LEFT, padx=5)
         
         # Status indicator
@@ -271,15 +329,20 @@ class SettingsPanel:
                                     font=("Segoe UI", 10, "bold"))
         self.weight_label.grid(row=7, column=1, sticky=tk.W, pady=2)
         
+        # Add a status indicator for invalid readings - NOW WE HAVE THE wb_frame VARIABLE
+        self.weight_status_label = ttk.Label(wb_frame, textvariable=self.weight_status_var, 
+                                        foreground="black")
+        self.weight_status_label.grid(row=8, column=0, columnspan=3, sticky=tk.W, pady=2)
+        
         # Check if cloud storage is enabled and add backup section
         if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
             # Create a separator
             ttk.Separator(wb_frame, orient=tk.HORIZONTAL).grid(
-                row=8, column=0, columnspan=3, sticky=tk.EW, pady=10)
+                row=9, column=0, columnspan=3, sticky=tk.EW, pady=10)
             
             # Cloud backup section
             cloud_frame = ttk.Frame(wb_frame)
-            cloud_frame.grid(row=9, column=0, columnspan=3, sticky=tk.EW, pady=5)
+            cloud_frame.grid(row=10, column=0, columnspan=3, sticky=tk.EW, pady=5)
             
             ttk.Label(cloud_frame, text="Cloud Backup:").grid(row=0, column=0, sticky=tk.W)
             
@@ -923,41 +986,7 @@ class SettingsPanel:
             self.disconnect_btn.config(state=tk.DISABLED)
             self.current_weight_var.set("0 kg")
     
-    def update_weight_display(self, weight):
-        """Update weight display (callback for weighbridge)
-        
-        Args:
-            weight: Weight value to display
-        """
-        # Guard against recursive callbacks
-        if self.processing_callback:
-            return
-            
-        try:
-            self.processing_callback = True
-            
-            # Update the weight variable
-            self.current_weight_var.set(f"{weight:.2f} kg")
-            
-            # Update weight label color based on connection status
-            if hasattr(self, 'weight_label'):
-                if self.wb_status_var.get() == "Status: Connected":
-                    self.weight_label.config(foreground="green")
-                else:
-                    self.weight_label.config(foreground="red")
-            
-            # Propagate weight update to form if callback is set
-            # Use try/except to prevent recursive errors
-            if self.weighbridge_callback:
-                try:
-                    self.weighbridge_callback(weight)
-                except Exception as e:
-                    print(f"Error in weighbridge_callback: {e}")
-                    
-        except Exception as e:
-            print(f"Error in update_weight_display: {e}")
-        finally:
-            self.processing_callback = False
+
     
     def apply_camera_settings(self):
         """Apply camera index settings"""
@@ -1151,7 +1180,18 @@ class SettingsPanel:
             
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save user: {str(e)}")
-    
+
+
+    # In settings_panel.py, improve the update_weight_display method
+
+
+
+    # Add a method to explicitly request callback propagation
+    def request_callback_propagation(self):
+        """Request that the next weight update propagates the callback"""
+        self._propagate_callback = True
+
+
     def delete_user(self):
         """Delete selected user"""
         selected_items = self.users_tree.selection()

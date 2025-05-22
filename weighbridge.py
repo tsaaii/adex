@@ -9,13 +9,15 @@ import psutil
 
 
 class WeighbridgeManager:
-    """Class to manage weighbridge connection and data processing"""
+    """Class to manage weighbridge connection and data processing for 6-digit weight values between markers"""
     
-    def __init__(self, update_callback=None):
-        """Initialize weighbridge manager
+    def __init__(self, update_callback=None, settings_update_callback=None, main_form_callback=None):
+        """Initialize weighbridge manager with callbacks for different UI components
         
         Args:
-            update_callback: Function to call when weight is updated
+            update_callback: General callback for weight updates
+            settings_update_callback: Callback to update weight in settings tab
+            main_form_callback: Callback to send weight to main form for first/second weighment
         """
         self.serial_port = None
         self.weighbridge_connected = False
@@ -23,8 +25,25 @@ class WeighbridgeManager:
         self.weight_processing = False
         self.weight_thread = None
         self.weight_update_thread = None
+        
+        # Store callbacks for different UI components
         self.update_callback = update_callback
+        self.settings_update_callback = settings_update_callback
+        self.main_form_callback = main_form_callback
+        
         self.last_weight = None  # Store last weight to prevent recursive updates
+        
+        # Add constants for weight filtering - wide range to accept all 6-digit weights
+        self.MIN_VALID_WEIGHT = 1.0       # Minimum valid weight in kg
+        self.MAX_VALID_WEIGHT = 999999.0  # Maximum valid weight (6 digits)
+        
+        # Default serial port settings (will be overridden by settings panel)
+        self.default_settings = {
+            "baud_rate": 9600,
+            "data_bits": 8,
+            "parity": 'N',
+            "stop_bits": 1
+        }
     
     def get_available_ports(self):
         """Get list of available COM ports"""
@@ -67,6 +86,79 @@ class WeighbridgeManager:
         except Exception as e:
             return False, f"Error checking port: {str(e)}"
     
+    def get_settings_from_panel(self, settings_dict):
+        """Get serial port settings from the settings panel
+        
+        Args:
+            settings_dict: Dictionary with COM port, baud rate, data bits, parity, and stop bits
+        
+        Returns:
+            dict: Validated settings dictionary
+        """
+        # Validate or use defaults if invalid
+        validated = {}
+        
+        # Baud rate - common values: 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200
+        try:
+            validated["baud_rate"] = int(settings_dict.get("baud_rate", 9600))
+        except (ValueError, TypeError):
+            validated["baud_rate"] = 9600
+            
+        # Data bits - common values: 5, 6, 7, 8
+        try:
+            data_bits = int(settings_dict.get("data_bits", 8))
+            if data_bits not in [5, 6, 7, 8]:
+                data_bits = 8
+            validated["data_bits"] = data_bits
+        except (ValueError, TypeError):
+            validated["data_bits"] = 8
+            
+        # Parity - common values: N (None), E (Even), O (Odd), M (Mark), S (Space)
+        parity = str(settings_dict.get("parity", "N")).upper()
+        if parity and parity[0] in "NEOMS":
+            validated["parity"] = parity[0]
+        else:
+            validated["parity"] = "N"
+            
+        # Stop bits - common values: 1, 1.5, 2
+        try:
+            stop_bits = float(settings_dict.get("stop_bits", 1))
+            if stop_bits not in [1, 1.5, 2]:
+                stop_bits = 1
+            validated["stop_bits"] = stop_bits
+        except (ValueError, TypeError):
+            validated["stop_bits"] = 1
+            
+        # COM port
+        validated["com_port"] = str(settings_dict.get("com_port", ""))
+        
+        return validated
+    
+    def connect_with_settings(self, settings_dict):
+        """Connect to weighbridge using settings from settings panel
+        
+        Args:
+            settings_dict: Dictionary with COM port, baud rate, data bits, parity, and stop bits
+            
+        Returns:
+            tuple: (success, message)
+        """
+        # Get validated settings
+        settings = self.get_settings_from_panel(settings_dict)
+        
+        try:
+            # Connect using settings
+            self.connect(
+                settings["com_port"], 
+                settings["baud_rate"],
+                settings["data_bits"],
+                settings["parity"],
+                settings["stop_bits"]
+            )
+            return True, f"Connected to {settings['com_port']} successfully"
+        except Exception as e:
+            return False, str(e)
+    
     def find_and_close_port_users(self, com_port):
         """Attempt to find processes using the COM port (Windows only)
         
@@ -97,15 +189,15 @@ class WeighbridgeManager:
             
         return using_processes
     
-    def connect(self, com_port, baud_rate, data_bits, parity, stop_bits):
+    def connect(self, com_port, baud_rate, data_bits=8, parity='N', stop_bits=1):
         """Connect to weighbridge with specified parameters and enhanced error handling
         
         Args:
             com_port: COM port name
             baud_rate: Baud rate (int)
-            data_bits: Data bits (int)
-            parity: Parity setting (string, first letter used)
-            stop_bits: Stop bits (float)
+            data_bits: Data bits (int), default is 8 for weighbridge 
+            parity: Parity setting (string, first letter used), default 'N' (None)
+            stop_bits: Stop bits (float), default 1
             
         Returns:
             bool: True if connected successfully, False otherwise
@@ -272,21 +364,35 @@ class WeighbridgeManager:
             return False
     
     def _read_weighbridge_data(self):
-        """Read data from weighbridge in a separate thread"""
+        """Read data from weighbridge in a separate thread and accumulate all data"""
         while self.weighbridge_connected and self.serial_port:
             try:
                 if self.serial_port.in_waiting > 0:
-                    line = self.serial_port.readline().decode('ascii', errors='ignore').strip()
-                    if line:
-                        self.weight_buffer.append(line)
+                    # Get raw bytes - try readline first (more likely to get a complete message)
+                    try:
+                        raw_bytes = self.serial_port.readline()
+                    except:
+                        # Fallback to reading whatever is available
+                        raw_bytes = self.serial_port.read(self.serial_port.in_waiting)
+                    
+                    if raw_bytes:
+                        # Commented out serial data debug printing
+                        # ascii_repr = ' '.join([f"{b:02X}({chr(b) if 32 <= b <= 126 else '•'})" for b in raw_bytes])
+                        # print(f"Serial data received: {ascii_repr}")
+                        
+                        # Add to buffer for processing
+                        self.weight_buffer.append(raw_bytes)
+                        
+                # Sleep to avoid high CPU usage
+                time.sleep(0.05)
             except Exception as e:
                 print(f"Weighbridge read error: {str(e)}")
                 time.sleep(0.1)
     
     def _process_weighbridge_data(self):
-        """Process weighbridge data to find valid weight with faster updates"""
+        """Process weighbridge data specifically looking for 6 digits between any marker characters"""
         last_update_time = 0
-        update_interval = 0.5  # Update every 0.5 seconds instead of 20
+        update_interval = 0.2  # More responsive update interval (200ms)
         
         while self.weight_processing:
             try:
@@ -299,19 +405,67 @@ class WeighbridgeManager:
                 
                 # Process all available data in the buffer
                 window_data = []
+                
                 while self.weight_buffer:
-                    line = self.weight_buffer.pop(0)
-                    # Clean the line - remove special characters
-                    cleaned = re.sub(r'[^\d.]', '', line)
-                    # Find all sequences of digits (with optional decimal point)
-                    matches = re.findall(r'\d+\.?\d*', cleaned)
-                    for match in matches:
-                        if len(match) >= 2:  # At least 2 digits (was 6 before, which might be too strict)
-                            try:
-                                weight = float(match)
-                                window_data.append(weight)
-                            except ValueError:
-                                pass
+                    raw_bytes = self.weight_buffer.pop(0)
+                    
+                    # Look for any sequences of exactly 6 digits between non-digit characters
+                    # Iterate through the bytes
+                    idx = 0
+                    digit_sequence = []
+                    in_digit_sequence = False
+                    
+                    while idx < len(raw_bytes):
+                        byte = raw_bytes[idx]
+                        is_digit = 48 <= byte <= 57  # ASCII codes for 0-9
+                        
+                        # Logic for handling digits and non-digits
+                        if is_digit:
+                            # Add to current sequence if we're in one
+                            if in_digit_sequence:
+                                digit_sequence.append(byte)
+                            # Start a new sequence if we're not
+                            else:
+                                digit_sequence = [byte]
+                                in_digit_sequence = True
+                        else:
+                            # End of a digit sequence - check if it's exactly 6 digits
+                            if in_digit_sequence and len(digit_sequence) == 6:
+                                # Convert digit sequence to a string and then a number
+                                digit_string = ''.join([chr(b) for b in digit_sequence])
+                                try:
+                                    weight = float(digit_string)
+                                    
+                                    # Only print the weight matches
+                                    print(f"Found 6-digit weight: {weight}")
+                                    
+                                    # Add to window data
+                                    window_data.append(weight)
+                                    
+                                    # Immediate update for faster response - update UI immediately when a 6-digit weight is found
+                                    self._update_all_ui_components(weight)
+                                except ValueError:
+                                    # Not a valid number, ignore
+                                    pass
+                            
+                            # Reset for next sequence
+                            in_digit_sequence = False
+                            digit_sequence = []
+                        
+                        idx += 1
+                    
+                    # Check end of buffer for a complete 6-digit sequence
+                    if in_digit_sequence and len(digit_sequence) == 6:
+                        digit_string = ''.join([chr(b) for b in digit_sequence])
+                        try:
+                            weight = float(digit_string)
+                            print(f"Found 6-digit weight at end: {weight}")
+                            window_data.append(weight)
+                            
+                            # Immediate update for faster response
+                            self._update_all_ui_components(weight)
+                        except ValueError:
+                            pass
                 
                 if window_data:
                     try:
@@ -322,19 +476,21 @@ class WeighbridgeManager:
                         
                         if freq:
                             most_common = max(freq.items(), key=lambda x: x[1])[0]
+                            frequency = max(freq.items(), key=lambda x: x[1])[1]
                             
-                            # Only update if the weight has changed significantly (to avoid callback loops)
-                            if self.last_weight is None or abs(most_common - self.last_weight) > 0.1:
-                                self.last_weight = most_common
-                                
-                                # Update with the new weight through callback (using a try-except to prevent callback errors)
-                                if self.update_callback:
-                                    try:
-                                        self.update_callback(most_common)
-                                    except Exception as callback_error:
-                                        print(f"Error in update_callback: {callback_error}")
+                            # Only update if frequency threshold met (at least 2 times)
+                            if frequency >= 2:
+                                # Only update if the weight has changed significantly
+                                if self.last_weight is None or abs(most_common - self.last_weight) > 0.1:
+                                    self.last_weight = most_common
+                                    
+                                    # Print weight update
+                                    print(f"Updating weight: {most_common} kg (frequency: {frequency})")
+                                    
+                                    # Update all UI components with weight
+                                    self._update_all_ui_components(most_common)
                     except Exception as e:
-                        print(f"Error processing weight data: {e}")
+                        print(f"Error analyzing weight data: {e}")
                 
                 # Update the last update time
                 last_update_time = current_time
@@ -342,3 +498,34 @@ class WeighbridgeManager:
             except Exception as e:
                 print(f"Weight processing error: {str(e)}")
                 time.sleep(0.5)  # Shorter sleep on error
+    
+    def _update_all_ui_components(self, weight):
+        """Update all UI components with the weight value
+        
+        Args:
+            weight: The weight value to update
+        """
+        # Update settings tab display
+        if self.settings_update_callback:
+            try:
+                # Try running callback directly in this thread for immediate update
+                self.settings_update_callback(weight)
+            except Exception as e:
+                print(f"Error updating settings display: {e}")
+        
+        # Send to main form for first/second weighment
+        if self.main_form_callback:
+            try:
+                self.main_form_callback(weight)
+            except Exception as e:
+                print(f"Error sending to main form: {e}")
+        
+        # Call the general update callback if provided
+        if self.update_callback:
+            try:
+                self.update_callback(weight)
+            except Exception as e:
+                print(f"Error in update callback: {e}")
+        
+        # Debug message to confirm callbacks were called
+        print(f"Weight {weight} sent to all UI components")

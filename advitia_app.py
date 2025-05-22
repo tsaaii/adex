@@ -292,6 +292,8 @@ class TharuniApp:
                             bg=config.COLORS["header_bg"])
         time_label.grid(row=0, column=3, sticky="w")
     
+# In advitia_app.py, fix load_pending_vehicle method
+
     def load_pending_vehicle(self, ticket_no):
         """Load a pending vehicle when selected from the pending vehicles panel
         
@@ -309,15 +311,17 @@ class TharuniApp:
             # This will load record data and set correct weighment state
             self.main_form.check_ticket_exists()
             
-            # If connected to weighbridge, automatically capture the weight
-            # for second weighment when a pending vehicle is selected
+            # CHANGED: Don't automatically capture weight when selecting a pending vehicle
+            # Instead, inform the user they need to capture weight manually
             if self.is_weighbridge_connected():
-                # Get current weight from weighbridge
-                weight = self.get_current_weighbridge_weight()
-                if weight is not None:
-                    # Call the handle_weighbridge_weight method with the current weight
-                    # This will save the second weighment automatically if current_weighment is "second"
-                    self.main_form.handle_weighbridge_weight(weight)
+                messagebox.showinfo("Vehicle Selected", 
+                                f"Ticket {ticket_no} loaded for second weighment.\n"
+                                "Press 'Capture Weight' button when the vehicle is on the weighbridge.")
+                
+                # REMOVED: The auto-capture code
+                # weight = self.get_current_weighbridge_weight()
+                # if weight is not None:
+                #     self.main_form.handle_weighbridge_weight(weight)
     
     def is_weighbridge_connected(self):
         """Check if weighbridge is connected"""
@@ -360,43 +364,7 @@ class TharuniApp:
     # Fix for TharuniApp.update_weight_from_weighbridge in advitia_app.py
     # Fix for TharuniApp.update_weight_from_weighbridge in advitia_app.py
 
-    def update_weight_from_weighbridge(self, weight):
-        """Update weight from weighbridge - this is the key callback function
-        
-        Args:
-            weight: Weight value from weighbridge
-        """
-        # Guard against recursive calls - add this flag
-        if hasattr(self, '_processing_weight_update') and self._processing_weight_update:
-            return
-        
-        try:
-            # Set processing flag
-            self._processing_weight_update = True
-            
-            # Make the weight available to the main form
-            if hasattr(self, 'settings_panel'):
-                self.settings_panel.current_weight_var.set(f"{weight} kg")
-                
-            # REMOVE this call to prevent circular reference:
-            # if hasattr(self, 'settings_panel'):
-            #     self.settings_panel.update_weight_display(weight)
-                
-            # Automatic weight handling only if we're on the vehicle entry tab
-            if self.notebook.index("current") == 0 and hasattr(self, 'main_form'):
-                # Check if form fields are filled - use internal method for silent validation
-                if hasattr(self.main_form, '_validate_basic_fields_internal'):
-                    if self.main_form._validate_basic_fields_internal(show_error=False):
-                        # Handle the weight directly in the main form
-                        self.main_form.handle_weighbridge_weight(weight)
-                else:
-                    # Fallback to original method if _validate_basic_fields_internal doesn't exist
-                    if self.main_form.validate_basic_fields():
-                        # Handle the weight directly in the main form
-                        self.main_form.handle_weighbridge_weight(weight)
-        finally:
-            # Clear processing flag
-            self._processing_weight_update = False
+
 
     # Update main_form.py with a new validation method to avoid changing the signature of existing methods
 
@@ -425,9 +393,53 @@ class TharuniApp:
             return False
             
         return True
+    # In advitia_app.py, modify update_weight_from_weighbridge
 
-    # Update main_form.py handle_weighbridge_weight to add processing flag
+    def update_weight_from_weighbridge(self, weight):
+        """Update weight from weighbridge - this is the key callback function
+        
+        Args:
+            weight: Weight value from weighbridge
+        """
+        # Guard against recursive calls
+        if hasattr(self, '_processing_weight_update') and self._processing_weight_update:
+            return
+        
+        try:
+            # Set processing flag
+            self._processing_weight_update = True
+            
+            # Make the weight available to the main form
+            if hasattr(self, 'settings_panel'):
+                self.settings_panel.current_weight_var.set(f"{weight} kg")
+                
+            # Remove callback to settings_panel to prevent circular reference
+            # if hasattr(self, 'settings_panel'):
+            #     self.settings_panel.update_weight_display(weight)
+                
+            # Only update UI, don't perform automatic actions
+            # Just update the weight display in the UI
+            if self.notebook.index("current") == 0 and hasattr(self, 'main_form'):
+                # Update the weight display, but don't automatically capture or save
+                if hasattr(self.main_form, 'current_weight_var'):
+                    self.main_form.current_weight_var.set(f"{weight:.2f} kg")
+                    
+                # IMPORTANT: Only automatically capture weight when explicitly requested
+                # by the user, not on every weighbridge update
+                if hasattr(self, '_auto_capture_requested') and self._auto_capture_requested:
+                    self._auto_capture_requested = False  # Reset the flag
+                    if hasattr(self.main_form, 'handle_weighbridge_weight'):
+                        self.main_form.handle_weighbridge_weight(weight)
+        finally:
+            # Clear processing flag
+            self._processing_weight_update = False
 
+        # Add a method to request auto capture when user explicitly asks for it
+    def request_auto_capture(self):
+        """Request that the next weighbridge update auto-captures the weight"""
+        self._auto_capture_requested = True
+
+    # In main_form.py, modify the handle_weighbridge_weight method
     def handle_weighbridge_weight(self, weight):
         """Handle weight from weighbridge based on current state
         
@@ -462,17 +474,19 @@ class TharuniApp:
                 self.current_weighment = "second"
                 self.weighment_state_var.set("Second Weighment")
                 
-                # Save the record to add it to the pending queue
-                if self.save_callback:
+                # DON'T auto-save unless user explicitly requested it
+                user_requested_save = getattr(self, '_user_requested_save', False)
+                if self.save_callback and user_requested_save:
+                    self._user_requested_save = False  # Reset the flag
                     self.save_callback()
                     
                 # Display confirmation
                 messagebox.showinfo("First Weighment", 
                                 f"First weighment recorded: {formatted_weight} kg\n"
-                                f"Record saved to pending queue")
+                                f"Click Save Record to add to pending queue")
                     
             elif self.current_weighment == "second":
-                # This is a pending entry - set second weighment
+                # Similar changes for second weighment
                 self.second_weight_var.set(formatted_weight)
                 self.second_timestamp_var.set(timestamp)
                 
@@ -482,62 +496,69 @@ class TharuniApp:
                 # Update state
                 self.weighment_state_var.set("Weighment Complete")
                 
-                # Save the complete record
-                if self.save_callback:
+                # DON'T auto-save unless user explicitly requested it
+                user_requested_save = getattr(self, '_user_requested_save', False)
+                if self.save_callback and user_requested_save:
+                    self._user_requested_save = False  # Reset the flag
                     self.save_callback()
                     
                 # Display confirmation
                 messagebox.showinfo("Second Weighment", 
                                 f"Second weighment recorded: {formatted_weight} kg\n"
                                 f"Net weight: {self.net_weight_var.get()} kg\n"
-                                f"Record completed")
+                                f"Click Save Record to complete the record")
         finally:
             # Clear processing flag
             self._processing_weight = False
 
-    # Update settings_panel.py update_weight_display to avoid double callbacks
+    # Add a method to request user-initiated save
+    def request_save(self):
+        """Mark that the user has explicitly requested a save"""
+        self._user_requested_save = True
 
-    def update_weight_display(self, weight):
-        """Update weight display (callback for weighbridge)
-        
-        Args:
-            weight: Weight value to display
-        """
-        # Guard against recursive callbacks
-        if self.processing_callback:
-            return
+        # Update settings_panel.py update_weight_display to avoid double callbacks
+
+        def update_weight_display(self, weight):
+            """Update weight display (callback for weighbridge)
             
-        try:
-            self.processing_callback = True
-            
-            # Update the weight variable
-            self.current_weight_var.set(f"{weight:.2f} kg")
-            
-            # Update weight label color based on connection status
-            if hasattr(self, 'weight_label'):
-                if self.wb_status_var.get() == "Status: Connected":
-                    self.weight_label.config(foreground="green")
-                else:
-                    self.weight_label.config(foreground="red")
-            
-            # Only propagate the callback if this is a direct weighbridge update,
-            # not if we're being called from TharuniApp.update_weight_from_weighbridge
-            if self.weighbridge_callback and not hasattr(self, '_from_app_update'):
-                try:
-                    # Set a flag so we know this is from TharuniApp
-                    self._from_app_update = True
-                    self.weighbridge_callback(weight)
-                except Exception as e:
-                    print(f"Error in weighbridge_callback: {e}")
-                finally:
-                    # Clear the flag
-                    if hasattr(self, '_from_app_update'):
-                        delattr(self, '_from_app_update')
-                    
-        except Exception as e:
-            print(f"Error in update_weight_display: {e}")
-        finally:
-            self.processing_callback = False
+            Args:
+                weight: Weight value to display
+            """
+            # Guard against recursive callbacks
+            if self.processing_callback:
+                return
+                
+            try:
+                self.processing_callback = True
+                
+                # Update the weight variable
+                self.current_weight_var.set(f"{weight:.2f} kg")
+                
+                # Update weight label color based on connection status
+                if hasattr(self, 'weight_label'):
+                    if self.wb_status_var.get() == "Status: Connected":
+                        self.weight_label.config(foreground="green")
+                    else:
+                        self.weight_label.config(foreground="red")
+                
+                # Only propagate the callback if this is a direct weighbridge update,
+                # not if we're being called from TharuniApp.update_weight_from_weighbridge
+                if self.weighbridge_callback and not hasattr(self, '_from_app_update'):
+                    try:
+                        # Set a flag so we know this is from TharuniApp
+                        self._from_app_update = True
+                        self.weighbridge_callback(weight)
+                    except Exception as e:
+                        print(f"Error in weighbridge_callback: {e}")
+                    finally:
+                        # Clear the flag
+                        if hasattr(self, '_from_app_update'):
+                            delattr(self, '_from_app_update')
+                        
+            except Exception as e:
+                print(f"Error in update_weight_display: {e}")
+            finally:
+                self.processing_callback = False
     
     def update_camera_indices(self, front_index, back_index):
         """Update camera indices

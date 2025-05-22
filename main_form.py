@@ -401,6 +401,8 @@ class MainForm:
         # Set the ticket number
         self.rst_var.set(next_ticket)
 
+# In main_form.py, fix the capture_weight method
+
     def capture_weight(self):
         """Capture weight from weighbridge based on current state"""
         # Validate required fields
@@ -428,16 +430,16 @@ class MainForm:
             self.current_weighment = "second"
             self.weighment_state_var.set("Second Weighment")
             
-            # Display prompt to save the first weighment
+            # Display prompt to save the first weighment - but don't auto-save
             messagebox.showinfo("First Weighment", 
                             f"First weighment recorded: {current_weight:.2f} kg\n"
                             f"Time: {timestamp}\n"
-                            f"Please save the record to add to the pending queue.")
+                            f"Click Save Record to add to the pending queue.")
             
-            # Try to automatically save the record
-            app = self.find_main_app()
-            if app and hasattr(app, 'save_record'):
-                app.save_record()
+            # REMOVED: Automatic save attempt
+            # app = self.find_main_app()
+            # if app and hasattr(app, 'save_record'):
+            #     app.save_record()
                 
         elif self.current_weighment == "second":
             # Capture second weighment
@@ -452,18 +454,17 @@ class MainForm:
             # Update state
             self.weighment_state_var.set("Weighment Complete")
             
-            # Display prompt to save and complete the record
+            # Display prompt to save and complete the record - but don't auto-save
             messagebox.showinfo("Second Weighment", 
                             f"Second weighment recorded: {current_weight:.2f} kg\n"
                             f"Time: {timestamp}\n"
                             f"Net weight: {self.net_weight_var.get()} kg\n"
-                            f"Please save the record to complete the process.")
-            
-            # Try to automatically save the record
-            app = self.find_main_app()
-            if app and hasattr(app, 'save_record'):
-                app.save_record()
-
+                            f"Click Save Record to complete the process.")
+        
+        # REMOVED: Automatic save attempt
+        # app = self.find_main_app()
+        # if app and hasattr(app, 'save_record'):
+        #     app.save_record()
 
     def calculate_net_weight(self):
         """Calculate net weight as the difference between weighments"""
