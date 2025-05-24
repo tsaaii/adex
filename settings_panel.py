@@ -434,42 +434,451 @@ class SettingsPanel:
                 break
         return None
             
-    
     def create_camera_settings(self, parent):
-        """Create camera configuration settings"""
+        """Create camera configuration settings with RTSP support"""
         # Camera settings frame
         cam_frame = ttk.LabelFrame(parent, text="Camera Configuration", padding=10)
         cam_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
-        # Front camera index
-        ttk.Label(cam_frame, text="Front Camera Index:").grid(row=0, column=0, sticky=tk.W, pady=2)
-        ttk.Combobox(cam_frame, textvariable=self.front_cam_index_var, 
-                    values=[0, 1, 2, 3], state="readonly").grid(row=0, column=1, sticky=tk.EW, pady=2, padx=5)
+        # Create notebook for front and back camera tabs
+        camera_notebook = ttk.Notebook(cam_frame)
+        camera_notebook.pack(fill=tk.BOTH, expand=True, pady=5)
         
-        # Back camera index
-        ttk.Label(cam_frame, text="Back Camera Index:").grid(row=1, column=0, sticky=tk.W, pady=2)
-        ttk.Combobox(cam_frame, textvariable=self.back_cam_index_var, 
-                    values=[0, 1, 2, 3], state="readonly").grid(row=1, column=1, sticky=tk.EW, pady=2, padx=5)
+        # Front Camera Tab
+        front_cam_tab = ttk.Frame(camera_notebook)
+        camera_notebook.add(front_cam_tab, text="Front Camera")
+        self.create_camera_config_tab(front_cam_tab, "front")
         
-        # Button frame
-        cam_btn_frame = ttk.Frame(cam_frame)
-        cam_btn_frame.grid(row=2, column=0, columnspan=2, pady=10)
+        # Back Camera Tab
+        back_cam_tab = ttk.Frame(camera_notebook)
+        camera_notebook.add(back_cam_tab, text="Back Camera")
+        self.create_camera_config_tab(back_cam_tab, "back")
+        
+        # Apply and Save buttons
+        btn_frame = ttk.Frame(cam_frame)
+        btn_frame.pack(fill=tk.X, pady=10)
         
         # Apply button
-        apply_btn = HoverButton(cam_btn_frame, text="Apply Settings", bg=config.COLORS["primary"], 
-                               fg=config.COLORS["button_text"], padx=10, pady=3,
-                               command=self.apply_camera_settings)
+        apply_btn = HoverButton(btn_frame, text="Apply Settings", bg=config.COLORS["primary"], 
+                            fg=config.COLORS["button_text"], padx=10, pady=3,
+                            command=self.apply_camera_settings)
         apply_btn.pack(side=tk.LEFT, padx=5)
         
         # Save settings button
-        save_cam_btn = HoverButton(cam_btn_frame, text="Save Settings", bg=config.COLORS["secondary"], 
-                                 fg=config.COLORS["button_text"], padx=10, pady=3,
-                                 command=self.save_camera_settings)
+        save_cam_btn = HoverButton(btn_frame, text="Save Settings", bg=config.COLORS["secondary"], 
+                                fg=config.COLORS["button_text"], padx=10, pady=3,
+                                command=self.save_camera_settings)
         save_cam_btn.pack(side=tk.LEFT, padx=5)
+        
+        # Test connection button
+        test_btn = HoverButton(btn_frame, text="Test Connections", bg=config.COLORS["button_alt"], 
+                            fg=config.COLORS["button_text"], padx=10, pady=3,
+                            command=self.test_camera_connections)
+        test_btn.pack(side=tk.LEFT, padx=5)
         
         # Status message
         ttk.Label(cam_frame, textvariable=self.cam_status_var, 
-                foreground=config.COLORS["primary"]).grid(row=3, column=0, columnspan=2, sticky=tk.W)
+                foreground=config.COLORS["primary"]).pack(pady=5)
+
+
+    def test_camera_connections(self):
+        """Test both camera connections"""
+        try:
+            import cv2
+            import threading
+            
+            def test_camera(position, camera_type, connection_info):
+                try:
+                    if camera_type == "USB":
+                        cap = cv2.VideoCapture(connection_info)
+                    else:  # RTSP
+                        cap = cv2.VideoCapture(connection_info)
+                        cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 5000)
+                    
+                    if cap.isOpened():
+                        ret, frame = cap.read()
+                        cap.release()
+                        if ret:
+                            self.cam_status_var.set(f"{position.title()} camera: Connection successful")
+                        else:
+                            self.cam_status_var.set(f"{position.title()} camera: Connected but no video")
+                    else:
+                        self.cam_status_var.set(f"{position.title()} camera: Connection failed")
+                except Exception as e:
+                    self.cam_status_var.set(f"{position.title()} camera error: {str(e)}")
+            
+            # Test front camera
+            if self.front_camera_type_var.get() == "USB":
+                front_info = self.front_usb_index_var.get()
+            else:
+                front_info = self.settings_storage.get_rtsp_url("front")
+                if not front_info:
+                    self.cam_status_var.set("Front camera: Please configure RTSP settings")
+                    return
+            
+            # Test back camera
+            if self.back_camera_type_var.get() == "USB":
+                back_info = self.back_usb_index_var.get()
+            else:
+                back_info = self.settings_storage.get_rtsp_url("back")
+                if not back_info:
+                    self.cam_status_var.set("Back camera: Please configure RTSP settings")
+                    return
+            
+            self.cam_status_var.set("Testing camera connections...")
+            
+            # Test cameras in separate threads
+            front_thread = threading.Thread(target=test_camera, args=("front", self.front_camera_type_var.get(), front_info))
+            back_thread = threading.Thread(target=test_camera, args=("back", self.back_camera_type_var.get(), back_info))
+            
+            front_thread.start()
+            back_thread.start()
+            
+        except Exception as e:
+            self.cam_status_var.set(f"Test error: {str(e)}")
+
+
+
+
+    def create_camera_config_tab(self, parent, position):
+        """Create configuration tab for a single camera (front or back)
+        
+        Args:
+            parent: Parent widget
+            position: "front" or "back"
+        """
+        # Create variables for this camera
+        if position == "front":
+            self.front_camera_type_var = tk.StringVar(value="USB")
+            self.front_usb_index_var = tk.IntVar(value=0)
+            self.front_rtsp_username_var = tk.StringVar()
+            self.front_rtsp_password_var = tk.StringVar()
+            self.front_rtsp_ip_var = tk.StringVar()
+            self.front_rtsp_port_var = tk.StringVar(value="554")
+            self.front_rtsp_endpoint_var = tk.StringVar(value="/stream1")
+            
+            camera_type_var = self.front_camera_type_var
+            usb_index_var = self.front_usb_index_var
+            rtsp_username_var = self.front_rtsp_username_var
+            rtsp_password_var = self.front_rtsp_password_var
+            rtsp_ip_var = self.front_rtsp_ip_var
+            rtsp_port_var = self.front_rtsp_port_var
+            rtsp_endpoint_var = self.front_rtsp_endpoint_var
+        else:
+            self.back_camera_type_var = tk.StringVar(value="USB")
+            self.back_usb_index_var = tk.IntVar(value=1)
+            self.back_rtsp_username_var = tk.StringVar()
+            self.back_rtsp_password_var = tk.StringVar()
+            self.back_rtsp_ip_var = tk.StringVar()
+            self.back_rtsp_port_var = tk.StringVar(value="554")
+            self.back_rtsp_endpoint_var = tk.StringVar(value="/stream1")
+            
+            camera_type_var = self.back_camera_type_var
+            usb_index_var = self.back_usb_index_var
+            rtsp_username_var = self.back_rtsp_username_var
+            rtsp_password_var = self.back_rtsp_password_var
+            rtsp_ip_var = self.back_rtsp_ip_var
+            rtsp_port_var = self.back_rtsp_port_var
+            rtsp_endpoint_var = self.back_rtsp_endpoint_var
+        
+        # Camera type selection
+        type_frame = ttk.LabelFrame(parent, text="Camera Type")
+        type_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        ttk.Radiobutton(type_frame, text="USB Camera", variable=camera_type_var, 
+                    value="USB", command=lambda: self.on_camera_type_change(position)).pack(anchor=tk.W, padx=5, pady=2)
+        ttk.Radiobutton(type_frame, text="RTSP IP Camera", variable=camera_type_var, 
+                    value="RTSP", command=lambda: self.on_camera_type_change(position)).pack(anchor=tk.W, padx=5, pady=2)
+        
+        # USB Camera Settings
+        usb_frame = ttk.LabelFrame(parent, text="USB Camera Settings")
+        usb_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        ttk.Label(usb_frame, text="Camera Index:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Combobox(usb_frame, textvariable=usb_index_var, values=[0, 1, 2, 3], 
+                    state="readonly", width=10).grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
+        
+        # Store reference to USB frame for enabling/disabling
+        if position == "front":
+            self.front_usb_frame = usb_frame
+        else:
+            self.back_usb_frame = usb_frame
+        
+        # RTSP Camera Settings
+        rtsp_frame = ttk.LabelFrame(parent, text="RTSP Camera Settings")
+        rtsp_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        # Configure grid weights
+        rtsp_frame.columnconfigure(1, weight=1)
+        
+        # RTSP settings fields
+        ttk.Label(rtsp_frame, text="Username:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Entry(rtsp_frame, textvariable=rtsp_username_var, width=20).grid(row=0, column=1, sticky=tk.EW, padx=5, pady=2)
+        
+        ttk.Label(rtsp_frame, text="Password:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Entry(rtsp_frame, textvariable=rtsp_password_var, show="*", width=20).grid(row=1, column=1, sticky=tk.EW, padx=5, pady=2)
+        
+        ttk.Label(rtsp_frame, text="IP Address:").grid(row=2, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Entry(rtsp_frame, textvariable=rtsp_ip_var, width=20).grid(row=2, column=1, sticky=tk.EW, padx=5, pady=2)
+        
+        ttk.Label(rtsp_frame, text="Port:").grid(row=3, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Entry(rtsp_frame, textvariable=rtsp_port_var, width=20).grid(row=3, column=1, sticky=tk.EW, padx=5, pady=2)
+        
+        ttk.Label(rtsp_frame, text="Endpoint:").grid(row=4, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Entry(rtsp_frame, textvariable=rtsp_endpoint_var, width=20).grid(row=4, column=1, sticky=tk.EW, padx=5, pady=2)
+        
+        # URL Preview
+        ttk.Label(rtsp_frame, text="Preview URL:").grid(row=5, column=0, sticky=tk.W, padx=5, pady=2)
+        
+        if position == "front":
+            self.front_rtsp_preview_var = tk.StringVar()
+            preview_label = ttk.Label(rtsp_frame, textvariable=self.front_rtsp_preview_var, 
+                                    foreground="blue", font=("Segoe UI", 8))
+            self.front_rtsp_preview_label = preview_label
+            # Bind events to update preview
+            for var in [rtsp_username_var, rtsp_password_var, rtsp_ip_var, rtsp_port_var, rtsp_endpoint_var]:
+                var.trace_add("write", lambda *args: self.update_rtsp_preview("front"))
+        else:
+            self.back_rtsp_preview_var = tk.StringVar()
+            preview_label = ttk.Label(rtsp_frame, textvariable=self.back_rtsp_preview_var, 
+                                    foreground="blue", font=("Segoe UI", 8))
+            self.back_rtsp_preview_label = preview_label
+            # Bind events to update preview
+            for var in [rtsp_username_var, rtsp_password_var, rtsp_ip_var, rtsp_port_var, rtsp_endpoint_var]:
+                var.trace_add("write", lambda *args: self.update_rtsp_preview("back"))
+        
+        preview_label.grid(row=5, column=1, sticky=tk.EW, padx=5, pady=2)
+        
+        # Store reference to RTSP frame for enabling/disabling
+        if position == "front":
+            self.front_rtsp_frame = rtsp_frame
+        else:
+            self.back_rtsp_frame = rtsp_frame
+        
+        # Initialize the frame states
+        self.on_camera_type_change(position)
+
+
+    def update_rtsp_preview(self, position):
+        """Update RTSP URL preview
+        
+        Args:
+            position: "front" or "back"
+        """
+        try:
+            if position == "front":
+                if self.front_camera_type_var.get() != "RTSP":
+                    self.front_rtsp_preview_var.set("")
+                    return
+                    
+                username = self.front_rtsp_username_var.get()
+                password = self.front_rtsp_password_var.get()
+                ip = self.front_rtsp_ip_var.get()
+                port = self.front_rtsp_port_var.get()
+                endpoint = self.front_rtsp_endpoint_var.get()
+                preview_var = self.front_rtsp_preview_var
+            else:
+                if self.back_camera_type_var.get() != "RTSP":
+                    self.back_rtsp_preview_var.set("")
+                    return
+                    
+                username = self.back_rtsp_username_var.get()
+                password = self.back_rtsp_password_var.get()
+                ip = self.back_rtsp_ip_var.get()
+                port = self.back_rtsp_port_var.get()
+                endpoint = self.back_rtsp_endpoint_var.get()
+                preview_var = self.back_rtsp_preview_var
+            
+            if not ip:
+                preview_var.set("Please enter IP address")
+                return
+            
+            # Build preview URL
+            if username and password:
+                url = f"rtsp://{username}:***@{ip}:{port}{endpoint}"
+            else:
+                url = f"rtsp://{ip}:{port}{endpoint}"
+            
+            preview_var.set(url)
+            
+        except Exception as e:
+            print(f"Error updating RTSP preview: {e}")
+
+
+    def test_camera_connections(self):
+        """Test both camera connections"""
+        try:
+            import cv2
+            import threading
+            
+            def test_camera(position, camera_type, connection_info):
+                try:
+                    if camera_type == "USB":
+                        cap = cv2.VideoCapture(connection_info)
+                    else:  # RTSP
+                        cap = cv2.VideoCapture(connection_info)
+                        cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 5000)
+                    
+                    if cap.isOpened():
+                        ret, frame = cap.read()
+                        cap.release()
+                        if ret:
+                            self.cam_status_var.set(f"{position.title()} camera: Connection successful")
+                        else:
+                            self.cam_status_var.set(f"{position.title()} camera: Connected but no video")
+                    else:
+                        self.cam_status_var.set(f"{position.title()} camera: Connection failed")
+                except Exception as e:
+                    self.cam_status_var.set(f"{position.title()} camera error: {str(e)}")
+            
+            # Test front camera
+            if self.front_camera_type_var.get() == "USB":
+                front_info = self.front_usb_index_var.get()
+            else:
+                front_info = self.settings_storage.get_rtsp_url("front")
+                if not front_info:
+                    self.cam_status_var.set("Front camera: Please configure RTSP settings")
+                    return
+            
+            # Test back camera
+            if self.back_camera_type_var.get() == "USB":
+                back_info = self.back_usb_index_var.get()
+            else:
+                back_info = self.settings_storage.get_rtsp_url("back")
+                if not back_info:
+                    self.cam_status_var.set("Back camera: Please configure RTSP settings")
+                    return
+            
+            self.cam_status_var.set("Testing camera connections...")
+            
+            # Test cameras in separate threads
+            front_thread = threading.Thread(target=test_camera, args=("front", self.front_camera_type_var.get(), front_info))
+            back_thread = threading.Thread(target=test_camera, args=("back", self.back_camera_type_var.get(), back_info))
+            
+            front_thread.start()
+            back_thread.start()
+            
+        except Exception as e:
+            self.cam_status_var.set(f"Test error: {str(e)}")
+
+    def apply_camera_settings(self):
+        """Apply camera settings without saving"""
+        try:
+            # Get current settings
+            settings = self.get_current_camera_settings()
+            
+            # Apply to cameras through callback
+            if self.update_cameras_callback:
+                self.update_cameras_callback(settings)
+            
+            self.cam_status_var.set("Camera settings applied. Changes take effect on next capture.")
+            
+        except Exception as e:
+            self.cam_status_var.set(f"Error applying settings: {str(e)}")
+
+    def save_camera_settings(self):
+        """Save camera settings to persistent storage"""
+        try:
+            settings = self.get_current_camera_settings()
+            
+            if self.settings_storage.save_camera_settings(settings):
+                messagebox.showinfo("Success", "Camera settings saved successfully!")
+                self.cam_status_var.set("Settings saved successfully")
+            else:
+                messagebox.showerror("Error", "Failed to save camera settings.")
+                
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save camera settings: {str(e)}")
+
+    def get_current_camera_settings(self):
+        """Get current camera settings from UI
+        
+        Returns:
+            dict: Camera settings
+        """
+        return {
+            "front_camera_type": self.front_camera_type_var.get(),
+            "front_camera_index": self.front_usb_index_var.get(),
+            "front_rtsp_username": self.front_rtsp_username_var.get(),
+            "front_rtsp_password": self.front_rtsp_password_var.get(),
+            "front_rtsp_ip": self.front_rtsp_ip_var.get(),
+            "front_rtsp_port": self.front_rtsp_port_var.get(),
+            "front_rtsp_endpoint": self.front_rtsp_endpoint_var.get(),
+            "back_camera_type": self.back_camera_type_var.get(),
+            "back_camera_index": self.back_usb_index_var.get(),
+            "back_rtsp_username": self.back_rtsp_username_var.get(),
+            "back_rtsp_password": self.back_rtsp_password_var.get(),
+            "back_rtsp_ip": self.back_rtsp_ip_var.get(),
+            "back_rtsp_port": self.back_rtsp_port_var.get(),
+            "back_rtsp_endpoint": self.back_rtsp_endpoint_var.get()
+        }
+
+    def load_saved_camera_settings(self):
+        """Load camera settings from storage"""
+        try:
+            camera_settings = self.settings_storage.get_camera_settings()
+            
+            if camera_settings:
+                # Load front camera settings
+                self.front_camera_type_var.set(camera_settings.get("front_camera_type", "USB"))
+                self.front_usb_index_var.set(camera_settings.get("front_camera_index", 0))
+                self.front_rtsp_username_var.set(camera_settings.get("front_rtsp_username", ""))
+                self.front_rtsp_password_var.set(camera_settings.get("front_rtsp_password", ""))
+                self.front_rtsp_ip_var.set(camera_settings.get("front_rtsp_ip", ""))
+                self.front_rtsp_port_var.set(camera_settings.get("front_rtsp_port", "554"))
+                self.front_rtsp_endpoint_var.set(camera_settings.get("front_rtsp_endpoint", "/stream1"))
+                
+                # Load back camera settings
+                self.back_camera_type_var.set(camera_settings.get("back_camera_type", "USB"))
+                self.back_usb_index_var.set(camera_settings.get("back_camera_index", 1))
+                self.back_rtsp_username_var.set(camera_settings.get("back_rtsp_username", ""))
+                self.back_rtsp_password_var.set(camera_settings.get("back_rtsp_password", ""))
+                self.back_rtsp_ip_var.set(camera_settings.get("back_rtsp_ip", ""))
+                self.back_rtsp_port_var.set(camera_settings.get("back_rtsp_port", "554"))
+                self.back_rtsp_endpoint_var.set(camera_settings.get("back_rtsp_endpoint", "/stream1"))
+                
+                # Update UI states
+                self.on_camera_type_change("front")
+                self.on_camera_type_change("back")
+                
+        except Exception as e:
+            print(f"Error loading camera settings: {e}")
+
+
+    def on_camera_type_change(self, position):
+        """Handle camera type selection change
+        
+        Args:
+            position: "front" or "back"
+        """
+        if position == "front":
+            camera_type = self.front_camera_type_var.get()
+            usb_frame = self.front_usb_frame
+            rtsp_frame = self.front_rtsp_frame
+        else:
+            camera_type = self.back_camera_type_var.get()
+            usb_frame = self.back_usb_frame
+            rtsp_frame = self.back_rtsp_frame
+        
+        # Enable/disable frames based on camera type
+        if camera_type == "USB":
+            # Enable USB frame, disable RTSP frame
+            for child in usb_frame.winfo_children():
+                child.configure(state="normal")
+            for child in rtsp_frame.winfo_children():
+                if isinstance(child, (ttk.Entry, ttk.Combobox)):
+                    child.configure(state="disabled")
+        else:
+            # Enable RTSP frame, disable USB frame
+            for child in rtsp_frame.winfo_children():
+                if isinstance(child, (ttk.Entry, ttk.Combobox)):
+                    child.configure(state="normal")
+            for child in usb_frame.winfo_children():
+                if isinstance(child, (ttk.Entry, ttk.Combobox)):
+                    child.configure(state="disabled")
+        
+        # Update RTSP preview
+        self.update_rtsp_preview(position)
 
     def create_user_management(self, parent):
         """Create user management tab"""
@@ -987,18 +1396,9 @@ class SettingsPanel:
             self.current_weight_var.set("0 kg")
     
 
+
     
-    def apply_camera_settings(self):
-        """Apply camera index settings"""
-        front_index = self.front_cam_index_var.get()
-        back_index = self.back_cam_index_var.get()
-        
-        # Update camera indices through callback
-        if self.update_cameras_callback:
-            self.update_cameras_callback(front_index, back_index)
-        
-        self.cam_status_var.set("Camera settings applied. Changes take effect on next capture.")
-    
+  
     def save_weighbridge_settings(self):
         """Save weighbridge settings to persistent storage"""
         settings = {
@@ -1014,17 +1414,7 @@ class SettingsPanel:
         else:
             messagebox.showerror("Error", "Failed to save weighbridge settings.")
     
-    def save_camera_settings(self):
-        """Save camera settings to persistent storage"""
-        settings = {
-            "front_camera_index": self.front_cam_index_var.get(),
-            "back_camera_index": self.back_cam_index_var.get()
-        }
-        
-        if self.settings_storage.save_camera_settings(settings):
-            messagebox.showinfo("Success", "Camera settings saved successfully!")
-        else:
-            messagebox.showerror("Error", "Failed to save camera settings.")
+
     
     def load_users(self):
         """Load users into the tree view"""

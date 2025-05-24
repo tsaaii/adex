@@ -26,13 +26,66 @@ class SettingsStorage:
                     "stop_bits": 1.0
                 },
                 "cameras": {
+                    "front_camera_type": "USB",
                     "front_camera_index": 0,
-                    "back_camera_index": 1
+                    "front_rtsp_username": "",
+                    "front_rtsp_password": "",
+                    "front_rtsp_ip": "",
+                    "front_rtsp_port": "554",
+                    "front_rtsp_endpoint": "/stream1",
+                    "back_camera_type": "USB",
+                    "back_camera_index": 1,
+                    "back_rtsp_username": "",
+                    "back_rtsp_password": "",
+                    "back_rtsp_ip": "",
+                    "back_rtsp_port": "554",
+                    "back_rtsp_endpoint": "/stream1"
                 }
             }
             os.makedirs(os.path.dirname(self.settings_file), exist_ok=True)
             with open(self.settings_file, 'w') as f:
                 json.dump(default_settings, f, indent=4)
+        else:
+            # Update existing settings file to include RTSP settings if missing
+            try:
+                with open(self.settings_file, 'r') as f:
+                    settings = json.load(f)
+                
+                # Check if cameras section needs updating
+                cameras = settings.get("cameras", {})
+                updated = False
+                
+                # Add missing RTSP settings for front camera
+                if "front_camera_type" not in cameras:
+                    cameras.update({
+                        "front_camera_type": "USB",
+                        "front_rtsp_username": "",
+                        "front_rtsp_password": "",
+                        "front_rtsp_ip": "",
+                        "front_rtsp_port": "554",
+                        "front_rtsp_endpoint": "/stream1"
+                    })
+                    updated = True
+                
+                # Add missing RTSP settings for back camera
+                if "back_camera_type" not in cameras:
+                    cameras.update({
+                        "back_camera_type": "USB",
+                        "back_rtsp_username": "",
+                        "back_rtsp_password": "",
+                        "back_rtsp_ip": "",
+                        "back_rtsp_port": "554",
+                        "back_rtsp_endpoint": "/stream1"
+                    })
+                    updated = True
+                
+                if updated:
+                    settings["cameras"] = cameras
+                    with open(self.settings_file, 'w') as f:
+                        json.dump(settings, f, indent=4)
+                        
+            except Exception as e:
+                print(f"Error updating settings file: {e}")
         
         # Create users file with default admin user
         if not os.path.exists(self.users_file):
@@ -48,32 +101,32 @@ class SettingsStorage:
                 json.dump(default_users, f, indent=4)
         
         # Create sites file with default site, incharge, and transfer party
-            if not os.path.exists(self.sites_file):
-                default_sites = {
-                    "sites": ["Guntur"],
-                    "incharges": ["Site Manager"],
-                    "transfer_parties": ["Advitia Labs"],
-                    "agencies": ["Default Agency"]  # Added default agency
-                }
-                os.makedirs(os.path.dirname(self.sites_file), exist_ok=True)
+        if not os.path.exists(self.sites_file):
+            default_sites = {
+                "sites": ["Guntur"],
+                "incharges": ["Site Manager"],
+                "transfer_parties": ["Advitia Labs"],
+                "agencies": ["Default Agency"]  # Added default agency
+            }
+            os.makedirs(os.path.dirname(self.sites_file), exist_ok=True)
+            with open(self.sites_file, 'w') as f:
+                json.dump(default_sites, f, indent=4)
+        else:
+            # Update existing sites file to include agencies if missing
+            try:
+                with open(self.sites_file, 'r') as f:
+                    sites_data = json.load(f)
+                    
+                # Add missing fields
+                if 'transfer_parties' not in sites_data:
+                    sites_data['transfer_parties'] = ["Advitia Labs"]
+                if 'agencies' not in sites_data:
+                    sites_data['agencies'] = ["Default Agency"]
+                    
                 with open(self.sites_file, 'w') as f:
-                    json.dump(default_sites, f, indent=4)
-            else:
-                # Update existing sites file to include agencies if missing
-                try:
-                    with open(self.sites_file, 'r') as f:
-                        sites_data = json.load(f)
-                        
-                    # Add missing fields
-                    if 'transfer_parties' not in sites_data:
-                        sites_data['transfer_parties'] = ["Advitia Labs"]
-                    if 'agencies' not in sites_data:
-                        sites_data['agencies'] = ["Default Agency"]
-                        
-                    with open(self.sites_file, 'w') as f:
-                        json.dump(sites_data, f, indent=4)
-                except Exception as e:
-                    print(f"Error updating sites file: {e}")
+                    json.dump(sites_data, f, indent=4)
+            except Exception as e:
+                print(f"Error updating sites file: {e}")
 
     def get_sites(self):
         """Get sites, incharges, transfer parties and agencies
@@ -175,6 +228,39 @@ class SettingsStorage:
             print(f"Error saving camera settings: {e}")
             return False
     
+    def get_rtsp_url(self, camera_position):
+        """Build RTSP URL for specified camera position
+        
+        Args:
+            camera_position: "front" or "back"
+            
+        Returns:
+            str: Complete RTSP URL or None if not configured
+        """
+        try:
+            camera_settings = self.get_camera_settings()
+            
+            username = camera_settings.get(f"{camera_position}_rtsp_username", "")
+            password = camera_settings.get(f"{camera_position}_rtsp_password", "")
+            ip = camera_settings.get(f"{camera_position}_rtsp_ip", "")
+            port = camera_settings.get(f"{camera_position}_rtsp_port", "554")
+            endpoint = camera_settings.get(f"{camera_position}_rtsp_endpoint", "/stream1")
+            
+            if not ip:
+                return None
+                
+            # Build RTSP URL
+            if username and password:
+                rtsp_url = f"rtsp://{username}:{password}@{ip}:{port}{endpoint}"
+            else:
+                rtsp_url = f"rtsp://{ip}:{port}{endpoint}"
+                
+            return rtsp_url
+            
+        except Exception as e:
+            print(f"Error building RTSP URL: {e}")
+            return None
+    
     def get_users(self):
         """Get all users
         
@@ -204,29 +290,6 @@ class SettingsStorage:
         except Exception as e:
             print(f"Error saving users: {e}")
             return False
-    
-    def get_sites(self):
-        """Get sites, incharges and transfer parties
-        
-        Returns:
-            dict: Sites data with 'sites', 'incharges', and 'transfer_parties' keys
-        """
-        try:
-            with open(self.sites_file, 'r') as f:
-                sites_data = json.load(f)
-                
-                # Ensure transfer_parties exists
-                if 'transfer_parties' not in sites_data:
-                    sites_data['transfer_parties'] = ["Advitia Labs"]
-                
-                return sites_data
-        except Exception as e:
-            print(f"Error reading sites: {e}")
-            return {
-                "sites": ["Guntur"], 
-                "incharges": ["Site Manager"],
-                "transfer_parties": ["Advitia Labs"]
-            }
     
     def save_sites(self, sites_data):
         """Save sites, incharges and transfer parties to file
@@ -388,7 +451,19 @@ class SettingsStorage:
                     "stop_bits": 1.0
                 },
                 "cameras": {
+                    "front_camera_type": "USB",
                     "front_camera_index": 0,
-                    "back_camera_index": 1
+                    "front_rtsp_username": "",
+                    "front_rtsp_password": "",
+                    "front_rtsp_ip": "",
+                    "front_rtsp_port": "554",
+                    "front_rtsp_endpoint": "/stream1",
+                    "back_camera_type": "USB",
+                    "back_camera_index": 1,
+                    "back_rtsp_username": "",
+                    "back_rtsp_password": "",
+                    "back_rtsp_ip": "",
+                    "back_rtsp_port": "554",
+                    "back_rtsp_endpoint": "/stream1"
                 }
             }

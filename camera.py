@@ -11,13 +11,17 @@ import config
 from ui_components import HoverButton
 
 class CameraView:
-    """Camera view widget with simplified interface"""
-    def __init__(self, parent, camera_index=0):
+    """Camera view widget with RTSP support"""
+    def __init__(self, parent, camera_index=0, camera_type="USB"):
         self.parent = parent
         self.camera_index = camera_index
+        self.camera_type = camera_type  # "USB" or "RTSP"
+        self.rtsp_url = None
         self.is_running = False
         self.captured_image = None
         self.cap = None
+        self.connection_retry_count = 0
+        self.max_retries = 3
         
         # Create frame
         self.frame = ttk.Frame(parent)
@@ -63,6 +67,15 @@ class CameraView:
         # Save function reference - will be set by the main app
         self.save_function = None
         
+    def set_rtsp_config(self, rtsp_url):
+        """Set RTSP URL for IP camera
+        
+        Args:
+            rtsp_url: Complete RTSP URL (rtsp://username:password@ip:port/endpoint)
+        """
+        self.rtsp_url = rtsp_url
+        self.camera_type = "RTSP"
+        
     def toggle_camera(self):
         """Start or stop the camera"""
         if not self.is_running:
@@ -75,13 +88,38 @@ class CameraView:
     def start_camera(self):
         """Start the camera feed"""
         try:
-            self.cap = cv2.VideoCapture(self.camera_index)
+            # Initialize camera based on type
+            if self.camera_type == "RTSP" and self.rtsp_url:
+                self.status_var.set("Connecting to RTSP...")
+                self.cap = cv2.VideoCapture(self.rtsp_url)
+                # Set buffer size to reduce latency
+                self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                # Set timeout for RTSP connection
+                self.cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 5000)
+                self.cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 5000)
+            else:
+                # USB camera
+                self.cap = cv2.VideoCapture(self.camera_index)
+            
             if not self.cap.isOpened():
-                messagebox.showerror("Camera Error", "Failed to open camera.")
+                error_msg = "Failed to connect to RTSP camera" if self.camera_type == "RTSP" else "Failed to open USB camera"
+                messagebox.showerror("Camera Error", f"{error_msg}. Please check connection settings.")
+                return
+            
+            # Test if we can read a frame
+            ret, test_frame = self.cap.read()
+            if not ret:
+                error_msg = "RTSP stream not responding" if self.camera_type == "RTSP" else "USB camera not responding"
+                messagebox.showerror("Camera Error", f"{error_msg}. Please check camera settings.")
+                self.cap.release()
                 return
             
             # Set status
-            self.status_var.set("Camera active")
+            status_msg = "RTSP camera active" if self.camera_type == "RTSP" else "USB camera active"
+            self.status_var.set(status_msg)
+            
+            # Reset retry count on successful connection
+            self.connection_retry_count = 0
             
             # Start video thread
             self.is_running = True
@@ -90,14 +128,19 @@ class CameraView:
             self.video_thread.start()
             
         except Exception as e:
-            messagebox.showerror("Camera Error", f"Error starting camera: {str(e)}")
+            error_msg = f"Error starting {'RTSP' if self.camera_type == 'RTSP' else 'USB'} camera: {str(e)}"
+            messagebox.showerror("Camera Error", error_msg)
+            self.status_var.set("Connection failed")
     
     def update_frame(self):
-        """Update the video frame in a separate thread"""
+        """Update the video frame in a separate thread with RTSP reconnection logic"""
         while self.is_running:
             try:
                 ret, frame = self.cap.read()
                 if ret:
+                    # Reset connection retry count on successful read
+                    self.connection_retry_count = 0
+                    
                     # Capture frame
                     self.captured_image = frame.copy()
                     
@@ -118,19 +161,45 @@ class CameraView:
                         self.parent.after_idle(self._enable_save)
                     
                     # Short delay
-                    time.sleep(0.05)
+                    time.sleep(0.033)  # ~30 FPS
                 else:
-                    # Camera disconnected
+                    # Camera disconnected or stream interrupted
+                    if self.camera_type == "RTSP" and self.connection_retry_count < self.max_retries:
+                        # Try to reconnect for RTSP cameras
+                        self.connection_retry_count += 1
+                        print(f"RTSP connection lost, retrying... ({self.connection_retry_count}/{self.max_retries})")
+                        
+                        if self.parent.winfo_exists():
+                            self.parent.after_idle(lambda: self.status_var.set(f"Reconnecting... ({self.connection_retry_count}/{self.max_retries})"))
+                        
+                        # Release and reconnect
+                        self.cap.release()
+                        time.sleep(2)  # Wait before retry
+                        
+                        if self.is_running:  # Check if still supposed to be running
+                            self.cap = cv2.VideoCapture(self.rtsp_url)
+                            self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                            self.cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 5000)
+                            self.cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 5000)
+                        continue
+                    else:
+                        # Max retries reached or USB camera disconnected
+                        self.is_running = False
+                        if self.parent.winfo_exists():
+                            self.parent.after_idle(self._camera_error)
+                        break
+                        
+            except Exception as e:
+                print(f"Camera error: {str(e)}")
+                if self.camera_type == "RTSP" and self.connection_retry_count < self.max_retries:
+                    self.connection_retry_count += 1
+                    time.sleep(2)
+                    continue
+                else:
                     self.is_running = False
                     if self.parent.winfo_exists():
                         self.parent.after_idle(self._camera_error)
                     break
-            except Exception as e:
-                print(f"Camera error: {str(e)}")
-                self.is_running = False
-                if self.parent.winfo_exists():
-                    self.parent.after_idle(self._camera_error)
-                break
     
     def _enable_save(self):
         """Enable the save button from main thread"""
@@ -147,11 +216,10 @@ class CameraView:
     def _camera_error(self):
         """Handle camera errors (called from main thread)"""
         if self.parent.winfo_exists():
-            self.status_var.set("Camera error - please try again")
+            error_msg = "RTSP connection failed" if self.camera_type == "RTSP" else "USB camera error"
+            self.status_var.set(f"{error_msg} - please try again")
             self.stop_camera()
             self.capture_button.config(text="Capture")
-    
-# In camera.py, ensure save_image doesn't trigger unintended actions
 
     def save_image(self):
         """Call the save function provided by main app"""
@@ -198,6 +266,7 @@ class CameraView:
         # Update status
         self.status_var.set("Ready")
         self.save_button.config(state=tk.DISABLED)
+        self.connection_retry_count = 0
 
 def add_watermark(image, text):
     """Add a watermark to an image with sitename, vehicle number and timestamp"""
