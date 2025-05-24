@@ -560,23 +560,24 @@ class TharuniApp:
             finally:
                 self.processing_callback = False
     
-    def update_camera_indices(self, front_index, back_index):
-        """Update camera indices
+    def update_camera_indices(self, settings):
+        """Update camera settings
         
         Args:
-            front_index: Front camera index
-            back_index: Back camera index
+            settings: Camera settings dictionary
         """
         if hasattr(self, 'main_form'):
             # Stop cameras if running
             if hasattr(self.main_form, 'front_camera'):
                 self.main_form.front_camera.stop_camera()
-                self.main_form.front_camera.camera_index = front_index
-            
+                
             if hasattr(self.main_form, 'back_camera'):
                 self.main_form.back_camera.stop_camera()
-                self.main_form.back_camera.camera_index = back_index
-    
+            
+            # Update camera settings
+            if hasattr(self.main_form, 'update_camera_settings'):
+                self.main_form.update_camera_settings(settings)
+        
     def save_record(self):
         """Save current record to database"""
         # Validate form first

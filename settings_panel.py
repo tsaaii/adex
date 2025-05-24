@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import serial.tools.list_ports
-
+import json
 import config
 from ui_components import HoverButton
 from weighbridge import WeighbridgeManager
@@ -52,6 +52,13 @@ class SettingsPanel:
 
     def authenticate_settings_access(self):
         """Authenticate for settings access"""
+        # Check if settings are locked
+        if self.are_settings_locked():
+            messagebox.showinfo("Settings Locked", 
+                            "Settings have been locked by the administrator.\n"
+                            "Contact your system administrator to modify settings.")
+            return False
+        
         # If we already have a current user with admin role, allow access
         if self.current_user and self.user_role == 'admin':
             return True
@@ -59,7 +66,7 @@ class SettingsPanel:
         # Otherwise, prompt for authentication
         auth_dialog = tk.Toplevel(self.parent)
         auth_dialog.title("Settings Authentication")
-        auth_dialog.geometry("300x150")
+        auth_dialog.geometry("350x200")
         auth_dialog.resizable(False, False)
         auth_dialog.transient(self.parent)
         auth_dialog.grab_set()
@@ -68,54 +75,208 @@ class SettingsPanel:
         auth_dialog.update_idletasks()
         width = auth_dialog.winfo_width()
         height = auth_dialog.winfo_height()
-        x = (self.parent.winfo_width() // 2) - (width // 2)
-        y = (self.parent.winfo_height() // 2) - (height // 2)
+        x = (self.parent.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.parent.winfo_screenheight() // 2) - (height // 2)
         auth_dialog.geometry(f"+{x}+{y}")
         
         # Create form
-        frame = ttk.Frame(auth_dialog, padding=10)
+        frame = ttk.Frame(auth_dialog, padding=20)
         frame.pack(fill=tk.BOTH, expand=True)
         
-        ttk.Label(frame, text="Enter admin credentials:").pack(pady=(0, 10))
+        ttk.Label(frame, text="Enter admin credentials to access settings:",
+                font=("Segoe UI", 10, "bold")).pack(pady=(0, 15))
         
         # Username
         username_frame = ttk.Frame(frame)
-        username_frame.pack(fill=tk.X, pady=2)
-        ttk.Label(username_frame, text="Username:").pack(side=tk.LEFT)
+        username_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(username_frame, text="Username:", width=12).pack(side=tk.LEFT)
         username_var = tk.StringVar()
-        ttk.Entry(username_frame, textvariable=username_var).pack(side=tk.RIGHT, padx=5)
+        username_entry = ttk.Entry(username_frame, textvariable=username_var, width=20)
+        username_entry.pack(side=tk.LEFT, padx=5)
+        username_entry.focus_set()
         
         # Password
         password_frame = ttk.Frame(frame)
-        password_frame.pack(fill=tk.X, pady=2)
-        ttk.Label(password_frame, text="Password:").pack(side=tk.LEFT)
+        password_frame.pack(fill=tk.X, pady=5)
+        ttk.Label(password_frame, text="Password:", width=12).pack(side=tk.LEFT)
         password_var = tk.StringVar()
-        ttk.Entry(password_frame, textvariable=password_var, show="*").pack(side=tk.RIGHT, padx=5)
+        password_entry = ttk.Entry(password_frame, textvariable=password_var, show="*", width=20)
+        password_entry.pack(side=tk.LEFT, padx=5)
         
         # Result
         authenticated = [False]  # Using list as mutable container
         
         # Buttons
-        def on_ok():
+        def on_ok(event=None):
             if self.settings_storage.isAuthenticated(username_var.get(), password_var.get()):
-                authenticated[0] = True
-                auth_dialog.destroy()
+                if self.settings_storage.isAdminUser(username_var.get()):
+                    authenticated[0] = True
+                    auth_dialog.destroy()
+                else:
+                    messagebox.showerror("Access Denied", 
+                                    "Only administrators can access settings.", 
+                                    parent=auth_dialog)
             else:
-                messagebox.showerror("Authentication Failed", "Invalid username or password", parent=auth_dialog)
+                messagebox.showerror("Authentication Failed", 
+                                "Invalid username or password", 
+                                parent=auth_dialog)
         
         def on_cancel():
             auth_dialog.destroy()
         
+        # Bind Enter key to OK
+        auth_dialog.bind('<Return>', on_ok)
+        
         button_frame = ttk.Frame(frame)
-        button_frame.pack(fill=tk.X, pady=(10, 0))
-        ttk.Button(button_frame, text="OK", command=on_ok).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="Cancel", command=on_cancel).pack(side=tk.RIGHT, padx=5)
+        button_frame.pack(fill=tk.X, pady=(15, 0))
+        
+        ok_btn = ttk.Button(button_frame, text="OK", command=on_ok)
+        ok_btn.pack(side=tk.LEFT, padx=5)
+        
+        cancel_btn = ttk.Button(button_frame, text="Cancel", command=on_cancel)
+        cancel_btn.pack(side=tk.LEFT, padx=5)
         
         # Wait for dialog to close
         self.parent.wait_window(auth_dialog)
         
         # Return authentication result
         return authenticated[0]
+
+    def are_settings_locked(self):
+        """Check if settings are locked"""
+        try:
+            settings = self.settings_storage.get_all_settings()
+            return settings.get("locked", False)
+        except:
+            return False
+
+
+
+    def lock_settings(self):
+        """Lock all settings from being modified"""
+        try:
+            settings = self.settings_storage.get_all_settings()
+            settings["locked"] = True
+            
+            # Save the locked state using settings_storage method
+            # First, save each section properly
+            if "weighbridge" in settings:
+                self.settings_storage.save_weighbridge_settings(settings["weighbridge"])
+            if "cameras" in settings:
+                self.settings_storage.save_camera_settings(settings["cameras"])
+                
+            # Now save the complete settings with locked flag
+            import json
+            with open(self.settings_storage.settings_file, 'r') as f:
+                all_settings = json.load(f)
+            
+            all_settings["locked"] = True
+            
+            with open(self.settings_storage.settings_file, 'w') as f:
+                json.dump(all_settings, f, indent=4)
+                
+            messagebox.showinfo("Settings Locked", 
+                            "All settings have been locked.\n"
+                            "Only administrators can unlock them.")
+            
+            # Disable all input widgets
+            self.disable_all_settings()
+            
+            # Update the lock button to show unlock button
+            self.update_lock_button()
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to lock settings: {str(e)}")
+
+    def unlock_settings(self):
+        """Unlock settings for modification"""
+        try:
+            import json
+            with open(self.settings_storage.settings_file, 'r') as f:
+                settings = json.load(f)
+            
+            settings["locked"] = False
+            
+            with open(self.settings_storage.settings_file, 'w') as f:
+                json.dump(settings, f, indent=4)
+                
+            messagebox.showinfo("Settings Unlocked", 
+                            "Settings have been unlocked and can now be modified.")
+            
+            # Enable all input widgets
+            self.enable_all_settings()
+            
+            # Update the lock button
+            self.update_lock_button()
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to unlock settings: {str(e)}")
+
+    def update_lock_button(self):
+        """Update the lock/unlock button based on current state"""
+        if hasattr(self, 'lock_unlock_frame'):
+            # Clear existing buttons
+            for widget in self.lock_unlock_frame.winfo_children():
+                widget.destroy()
+                
+            # Add appropriate button
+            if self.are_settings_locked():
+                unlock_btn = HoverButton(self.lock_unlock_frame,
+                                    text="🔓 Unlock Settings",
+                                    bg=config.COLORS["warning"],
+                                    fg=config.COLORS["button_text"],
+                                    padx=10, pady=3,
+                                    command=self.unlock_settings)
+                unlock_btn.pack(side=tk.RIGHT, padx=5)
+            else:
+                lock_btn = HoverButton(self.lock_unlock_frame,
+                                    text="🔒 Lock Settings",
+                                    bg=config.COLORS["error"],
+                                    fg=config.COLORS["button_text"],
+                                    padx=10, pady=3,
+                                    command=self.lock_settings)
+                lock_btn.pack(side=tk.RIGHT, padx=5)
+
+    def disable_all_settings(self):
+        """Disable all settings input widgets"""
+        # Disable weighbridge settings
+        if hasattr(self, 'com_port_combo'):
+            self.com_port_combo.config(state="disabled")
+        if hasattr(self, 'connect_btn'):
+            self.connect_btn.config(state="disabled")
+        if hasattr(self, 'disconnect_btn'):
+            self.disconnect_btn.config(state="disabled")
+        if hasattr(self, 'save_settings_btn'):
+            self.save_settings_btn.config(state="disabled")
+            
+        # Disable camera settings
+        for widget_name in ['front_camera_type_var', 'back_camera_type_var']:
+            if hasattr(self, widget_name):
+                # Disable radio buttons
+                pass
+                
+        # Disable all notebook tabs except viewing
+        if hasattr(self, 'settings_notebook'):
+            # Still allow viewing but not editing
+            pass
+        
+    def enable_all_settings(self):
+        """Enable all settings input widgets"""
+        # Enable weighbridge settings
+        if hasattr(self, 'com_port_combo'):
+            self.com_port_combo.config(state="readonly")
+        if hasattr(self, 'connect_btn'):
+            self.connect_btn.config(state="normal")
+        if hasattr(self, 'save_settings_btn'):
+            self.save_settings_btn.config(state="normal")
+
+
+
+    def enable_all_settings(self):
+        """Enable all settings input widgets"""
+        # Enable weighbridge settings
+        if hasattr(self, 'com_port_combo'):
+            self.com_port_combo.config(state="readonly")
     
     def init_variables(self):
         """Initialize settings variables"""
@@ -253,7 +414,31 @@ class SettingsPanel:
         self.create_camera_settings(camera_tab)
         self.create_user_management(users_tab)
         self.create_site_management(sites_tab)
-    
+
+        if self.user_role == 'admin':
+            lock_frame = ttk.Frame(self.parent)
+            lock_frame.pack(fill=tk.X, padx=5, pady=5)
+            
+            if self.are_settings_locked():
+                unlock_btn = HoverButton(lock_frame,
+                                    text="🔓 Unlock Settings",
+                                    bg=config.COLORS["warning"],
+                                    fg=config.COLORS["button_text"],
+                                    padx=10, pady=3,
+                                    command=self.unlock_settings)
+                unlock_btn.pack(side=tk.RIGHT, padx=5)
+            else:
+                lock_btn = HoverButton(lock_frame,
+                                    text="🔒 Lock Settings",
+                                    bg=config.COLORS["error"],
+                                    fg=config.COLORS["button_text"],
+                                    padx=10, pady=3,
+                                    command=self.lock_settings)
+                lock_btn.pack(side=tk.RIGHT, padx=5)
+
+            if self.are_settings_locked():
+                self.disable_all_settings()
+            
 # Fix for the create_weighbridge_settings method in settings_panel.py
 
     def create_weighbridge_settings(self, parent):
