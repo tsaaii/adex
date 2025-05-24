@@ -25,7 +25,7 @@ class TharuniApp:
             root: Root Tkinter window
         """
         self.root = root
-        self.root.title("Advitia Labs")
+        self.root.title("Swaccha Andhra Corporation")
         self.root.geometry("900x580")
         self.root.minsize(900, 580)
         
@@ -214,7 +214,7 @@ class TharuniApp:
         title_box.pack(fill=tk.X)
         
         title_label = tk.Label(title_box, 
-                            text="Advitia Labs", 
+                            text="Swaccha Andhra Corporation", 
                             font=("Segoe UI", 14, "bold"),
                             fg=config.COLORS["white"],
                             bg=config.COLORS["header_bg"])

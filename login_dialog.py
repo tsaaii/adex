@@ -31,7 +31,7 @@ class LoginDialog:
         """Create login dialog UI"""
         # Create top level window
         self.window = tk.Toplevel(self.parent)
-        self.window.title("Login - Advitia Labs")
+        self.window.title("Login - Swaccha Andhra Corporation")
         self.window.geometry("450x450")  # Increased size for better visibility
         self.window.resizable(False, False)
         self.window.transient(self.parent)  # Make window modal
@@ -52,11 +52,11 @@ class LoginDialog:
         logo_frame.pack(fill=tk.X, pady=(0, 20))
         
         # Title
-        title_label = ttk.Label(logo_frame, text="Advitia Labs", font=("Segoe UI", 22, "bold"))  # Increased font size
+        title_label = ttk.Label(logo_frame, text="Swaccha Andhra Corporation", font=("Segoe UI", 22, "bold"))  # Increased font size
         title_label.pack(pady=5)
         
         # Subtitle
-        subtitle_label = ttk.Label(logo_frame, text="Weighbridge Management System", font=("Segoe UI", 14))  # Increased font size
+        subtitle_label = ttk.Label(logo_frame, text="Legacy monitor powered by Advitia Labs", font=("Segoe UI", 14))  # Increased font size
         subtitle_label.pack(pady=5)
         
         # Form fields
