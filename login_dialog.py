@@ -163,7 +163,7 @@ class LoginDialog:
         self.status_label.pack(pady=(15, 0))
         
         # Set default credentials hint
-        self.status_var.set("For new username and password, contact support")
+        self.status_var.set("For support, contact Advitia Labs at +91-6303 640 757")
         
         # Bind Enter key to login
         self.window.bind("<Return>", lambda event: self.login())

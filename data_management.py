@@ -82,8 +82,9 @@ class DataManager:
                               f"Error updating database structure: {e}\n"
                               "The application may not function correctly.")
             
+
     def save_to_cloud(self, data):
-        """Save record as JSON to Google Cloud Storage
+        """Save record as JSON to Google Cloud Storage only if both weighments are complete
         
         Args:
             data: Record data dictionary
@@ -92,6 +93,17 @@ class DataManager:
             bool: True if successful, False otherwise
         """
         try:
+            # Check if both weighments are complete before saving to cloud
+            first_weight = data.get('first_weight', '').strip()
+            first_timestamp = data.get('first_timestamp', '').strip()
+            second_weight = data.get('second_weight', '').strip()
+            second_timestamp = data.get('second_timestamp', '').strip()
+            
+            # Only save to cloud if both weighments are complete
+            if not (first_weight and first_timestamp and second_weight and second_timestamp):
+                print(f"Skipping cloud save for ticket {data.get('ticket_no', 'unknown')} - incomplete weighments")
+                return False
+            
             # Initialize cloud storage if not already initialized
             if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
                 self.cloud_storage = CloudStorageService(
@@ -104,22 +116,58 @@ class DataManager:
                 print("Not connected to cloud storage")
                 return False
             
-            # Create a filename using ticket number and timestamp
+            # Get site name and ticket number for folder structure
+            site_name = data.get('site_name', 'Unknown_Site').replace(' ', '_').replace('/', '_')
             ticket_no = data.get('ticket_no', 'unknown')
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             
-            # Create a structured filename for better organization
-            filename = f"records/{ticket_no}/{timestamp}.json"
+            # Create structured filename: site_name/ticket_number/timestamp.json
+            filename = f"{site_name}/{ticket_no}/{timestamp}.json"
+            
+            # Add some additional metadata to the JSON
+            enhanced_data = data.copy()
+            enhanced_data['cloud_upload_timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            enhanced_data['record_status'] = 'complete'  # Mark as complete record
+            enhanced_data['net_weight_calculated'] = self._calculate_net_weight_for_cloud(
+                enhanced_data.get('first_weight', ''), 
+                enhanced_data.get('second_weight', '')
+            )
             
             # Save to cloud storage
-            return self.cloud_storage.save_json(data, filename)
+            success = self.cloud_storage.save_json(enhanced_data, filename)
+            
+            if success:
+                print(f"Record {ticket_no} successfully saved to cloud at {filename}")
+            else:
+                print(f"Failed to save record {ticket_no} to cloud")
+                
+            return success
             
         except Exception as e:
             print(f"Error saving to cloud: {str(e)}")
             return False
-    
+
+    def _calculate_net_weight_for_cloud(self, first_weight_str, second_weight_str):
+        """Calculate net weight for cloud storage
+        
+        Args:
+            first_weight_str: First weight as string
+            second_weight_str: Second weight as string
+            
+        Returns:
+            float: Net weight or 0 if calculation fails
+        """
+        try:
+            if first_weight_str and second_weight_str:
+                first_weight = float(first_weight_str)
+                second_weight = float(second_weight_str)
+                return abs(first_weight - second_weight)
+            return 0.0
+        except (ValueError, TypeError):
+            return 0.0
+
     def save_record(self, data):
-        """Save record to CSV file and cloud storage
+        """Save record to CSV file and cloud storage (only for complete records)
         
         Args:
             data: Dictionary of data to save
@@ -148,23 +196,84 @@ class DataManager:
             else:
                 # Add new record
                 csv_success = self.add_new_record(data)
-                
-            # Also save to cloud storage if enabled
+            
+            # Check if this is a complete record (both weighments)
+            first_weight = data.get('first_weight', '').strip()
+            first_timestamp = data.get('first_timestamp', '').strip()
+            second_weight = data.get('second_weight', '').strip()
+            second_timestamp = data.get('second_timestamp', '').strip()
+            
+            is_complete_record = (first_weight and first_timestamp and 
+                                second_weight and second_timestamp)
+            
+            # Only save to cloud storage if enabled AND record is complete
             cloud_success = False
-            if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
+            if (hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE and 
+                is_complete_record):
                 cloud_success = self.save_to_cloud(data)
                 
                 if cloud_success:
-                    print(f"Record {ticket_no} successfully saved to cloud")
+                    print(f"Complete record {ticket_no} successfully saved to cloud")
                 else:
-                    print(f"Warning: Record {ticket_no} could not be saved to cloud")
+                    print(f"Warning: Complete record {ticket_no} could not be saved to cloud")
+            elif not is_complete_record:
+                print(f"Record {ticket_no} saved locally only - incomplete weighments")
             
-            # Return overall success
-            return csv_success or cloud_success
+            # Return overall success (CSV is the primary storage)
+            return csv_success
                     
         except Exception as e:
             print(f"Error saving record: {e}")
             return False
+
+    def backup_complete_records_to_cloud(self):
+        """Backup all complete records to cloud storage organized by site
+        
+        Returns:
+            tuple: (success_count, total_complete_records)
+        """
+        try:
+            # Initialize cloud storage if not already initialized
+            if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
+                self.cloud_storage = CloudStorageService(
+                    config.CLOUD_BUCKET_NAME,
+                    config.CLOUD_CREDENTIALS_PATH
+                )
+            
+            # Check if connected to cloud storage
+            if not self.cloud_storage.is_connected():
+                print("Not connected to cloud storage")
+                return 0, 0
+            
+            # Get all records
+            all_records = self.get_all_records()
+            
+            # Filter for complete records only
+            complete_records = []
+            for record in all_records:
+                first_weight = record.get('first_weight', '').strip()
+                first_timestamp = record.get('first_timestamp', '').strip()
+                second_weight = record.get('second_weight', '').strip()
+                second_timestamp = record.get('second_timestamp', '').strip()
+                
+                if (first_weight and first_timestamp and second_weight and second_timestamp):
+                    complete_records.append(record)
+            
+            print(f"Found {len(complete_records)} complete records out of {len(all_records)} total records")
+            
+            # Upload complete records to cloud
+            success_count = 0
+            for record in complete_records:
+                if self.save_to_cloud(record):
+                    success_count += 1
+            
+            print(f"Successfully uploaded {success_count} out of {len(complete_records)} complete records to cloud")
+            return success_count, len(complete_records)
+            
+        except Exception as e:
+            print(f"Error during cloud backup: {str(e)}")
+            return 0, 0    
+
     
     def add_new_record(self, data):
         """Add a new record to the CSV file

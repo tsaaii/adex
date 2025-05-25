@@ -545,7 +545,7 @@ class SettingsPanel:
 
 
     def backup_to_cloud(self):
-        """Backup all records to cloud storage"""
+        """Backup all complete records to cloud storage organized by site"""
         try:
             # Find data manager
             data_manager = self.find_data_manager()
@@ -554,9 +554,19 @@ class SettingsPanel:
                 self.backup_status_var.set("Error: Data manager not found")
                 return
             
-            # Check if data manager has backup_to_cloud method
-            if not hasattr(data_manager, 'save_to_cloud'):
-                # Try to import necessary modules for backup
+            # Set status to backing up
+            self.backup_status_var.set("Backing up complete records...")
+            
+            # Use the new backup method that only backs up complete records
+            if hasattr(data_manager, 'backup_complete_records_to_cloud'):
+                success_count, total_complete = data_manager.backup_complete_records_to_cloud()
+                
+                if success_count > 0:
+                    self.backup_status_var.set(f"Backup successful! {success_count}/{total_complete} records uploaded")
+                else:
+                    self.backup_status_var.set("Backup failed - no records uploaded")
+            else:
+                # Fallback to manual backup for complete records only
                 try:
                     from cloud_storage import CloudStorageService
                     import datetime
@@ -571,37 +581,62 @@ class SettingsPanel:
                         self.backup_status_var.set("Error: Cloud connection failed")
                         return
                     
-                    # Get all records
-                    records = data_manager.get_all_records()
+                    # Get all records and filter for complete ones
+                    all_records = data_manager.get_all_records()
+                    complete_records = []
                     
-                    # Create backup filename with timestamp
-                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                    filename = f"backups/all_records_{timestamp}.json"
+                    for record in all_records:
+                        first_weight = record.get('first_weight', '').strip()
+                        first_timestamp = record.get('first_timestamp', '').strip()
+                        second_weight = record.get('second_weight', '').strip()
+                        second_timestamp = record.get('second_timestamp', '').strip()
+                        
+                        # Only include records with both weighments complete
+                        if (first_weight and first_timestamp and second_weight and second_timestamp):
+                            complete_records.append(record)
                     
-                    # Save to cloud
-                    self.backup_status_var.set("Backing up...")
-                    success = cloud_storage.save_json(records, filename)
+                    if not complete_records:
+                        self.backup_status_var.set("No complete records to backup")
+                        return
+                    
+                    # Group records by site
+                    records_by_site = {}
+                    for record in complete_records:
+                        site_name = record.get('site_name', 'Unknown_Site').replace(' ', '_').replace('/', '_')
+                        if site_name not in records_by_site:
+                            records_by_site[site_name] = []
+                        records_by_site[site_name].append(record)
+                    
+                    # Upload records organized by site
+                    success_count = 0
+                    total_records = len(complete_records)
+                    
+                    for site_name, site_records in records_by_site.items():
+                        # Create a summary file for each site
+                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                        summary_filename = f"{site_name}/summary_{timestamp}.json"
+                        
+                        summary_data = {
+                            "site_name": site_name,
+                            "backup_timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            "total_complete_records": len(site_records),
+                            "records": site_records
+                        }
+                        
+                        if cloud_storage.save_json(summary_data, summary_filename):
+                            success_count += len(site_records)
+                            print(f"Uploaded {len(site_records)} records for site {site_name}")
                     
                     # Update status
-                    if success:
-                        self.backup_status_var.set("Backup successful!")
+                    if success_count > 0:
+                        self.backup_status_var.set(f"Backup successful! {success_count}/{total_records} complete records uploaded")
                     else:
                         self.backup_status_var.set("Backup failed!")
                         
                 except Exception as e:
                     print(f"Error during backup: {e}")
                     self.backup_status_var.set(f"Error: {str(e)}")
-            else:
-                # Use existing backup method
-                self.backup_status_var.set("Backing up...")
-                success = data_manager.save_to_cloud({})
-                
-                # Update status
-                if success:
-                    self.backup_status_var.set("Backup successful!")
-                else:
-                    self.backup_status_var.set("Backup failed!")
-                
+                    
         except Exception as e:
             print(f"Error during backup: {e}")
             self.backup_status_var.set(f"Error: {str(e)}")
