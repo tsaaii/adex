@@ -666,39 +666,410 @@ class MainForm:
 
 
 
+
     def update_vehicle_autocomplete(self, event=None):
-        """Update vehicle number autocomplete options based on current input"""
+        """Update dropdown continuously while keeping it visible and allowing free typing"""
         current_text = self.vehicle_var.get().strip().upper()
-        if not current_text:
-            return
-            
-        # Get all vehicle numbers
         all_vehicles = self.get_vehicle_numbers()
         
-        # Filter based on matching - checking for partial matches
-        matches = []
-        for vehicle in all_vehicles:
-            # Convert to uppercase for case-insensitive comparison
-            vehicle_upper = vehicle.upper()
+        # Always update dropdown values
+        if not current_text:
+            # Show all vehicles when empty
+            self.vehicle_entry['values'] = all_vehicles
+        else:
+            # Filter and sort matches
+            exact_matches = []
+            starts_with_matches = []
+            contains_matches = []
+            ends_with_matches = []
             
-            # Check if the current text appears anywhere in the vehicle number
-            if current_text in vehicle_upper:
-                matches.append(vehicle)
+            for vehicle in all_vehicles:
+                vehicle_upper = vehicle.upper()
+                
+                # Exact match (highest priority)
+                if vehicle_upper == current_text:
+                    exact_matches.append(vehicle)
+                # Starts with match (second priority)
+                elif vehicle_upper.startswith(current_text):
+                    starts_with_matches.append(vehicle)
+                # Ends with match (useful for vehicle numbers)
+                elif vehicle_upper.endswith(current_text):
+                    ends_with_matches.append(vehicle)
+                # Contains match (lowest priority)
+                elif current_text in vehicle_upper:
+                    contains_matches.append(vehicle)
             
-            # Special focus on the last 4 characters - if the vehicle number has at least 4 characters
-            if len(vehicle_upper) >= 4:
-                last_four = vehicle_upper[-4:]
-                # If the current text appears in the last 4 characters, add it with higher priority
-                if current_text in last_four and vehicle not in matches:
-                    matches.append(vehicle)
+            # Combine all matches in priority order
+            matches = exact_matches + starts_with_matches + ends_with_matches + contains_matches
+            
+            # Remove duplicates while preserving order
+            seen = set()
+            unique_matches = []
+            for vehicle in matches:
+                if vehicle not in seen:
+                    seen.add(vehicle)
+                    unique_matches.append(vehicle)
+            
+            # Update dropdown values - show matches or all vehicles if no matches
+            self.vehicle_entry['values'] = unique_matches if unique_matches else all_vehicles
         
-        # Update the dropdown values
-        if matches:
-            self.vehicle_entry['values'] = matches
+        # Keep dropdown open and maintain typing capability
+        self._maintain_dropdown_and_typing()
+
+    def _maintain_dropdown_and_typing(self):
+        """Maintain dropdown visibility while preserving typing capability"""
+        try:
+            if (hasattr(self, 'vehicle_entry') and 
+                self.vehicle_entry.winfo_exists() and
+                self.vehicle_entry.focus_get() == self.vehicle_entry):
+                
+                # Save current cursor position and selection
+                cursor_pos = self.vehicle_entry.index(tk.INSERT)
+                current_value = self.vehicle_var.get()
+                
+                # Force dropdown to show immediately and stay open
+                self.parent.after(1, lambda: self._force_dropdown_visible(cursor_pos, current_value))
+        except:
+            pass
+
+    def _force_dropdown_visible(self, cursor_pos, original_value):
+        """Force dropdown to be visible on screen"""
+        try:
+            if (hasattr(self, 'vehicle_entry') and 
+                self.vehicle_entry.winfo_exists()):
+                
+                # Multiple methods to ensure dropdown shows
+                if not self._is_dropdown_open():
+                    # Method 1: Use the standard combobox event
+                    self.vehicle_entry.event_generate('<<ComboboxSelected>>')
+                    
+                    # Method 2: Direct tkinter event to open dropdown
+                    self.vehicle_entry.event_generate('<Button-1>')
+                    
+                    # Method 3: Simulate click on dropdown arrow
+                    self.parent.after(5, lambda: self._open_dropdown_directly(cursor_pos, original_value))
+                else:
+                    # Dropdown is open, just restore typing state
+                    self._restore_typing_state(cursor_pos, original_value)
+        except:
+            pass
+
+    def _open_dropdown_directly(self, cursor_pos, original_value):
+        """Directly open the dropdown using tkinter internals"""
+        try:
+            if hasattr(self, 'vehicle_entry') and self.vehicle_entry.winfo_exists():
+                # Direct method to open combobox dropdown
+                self.vehicle_entry.tk.call(self.vehicle_entry._w, 'postcmd')
+                
+                # Alternative method using ttk combobox internal command
+                try:
+                    self.vehicle_entry.tk.call('ttk::combobox::Post', self.vehicle_entry._w)
+                except:
+                    pass
+                
+                # Another method - simulate down arrow key
+                self.vehicle_entry.event_generate('<KeyPress-Down>')
+                self.vehicle_entry.event_generate('<KeyRelease-Down>')
+                
+                # Restore typing state after opening
+                self.parent.after(10, lambda: self._restore_typing_state(cursor_pos, original_value))
+        except Exception as e:
+            print(f"Error opening dropdown: {e}")
+            # Fallback - restore typing state even if dropdown fails
+            self._restore_typing_state(cursor_pos, original_value)
+
+    def _is_dropdown_open(self):
+        """Check if dropdown is currently open"""
+        try:
+            # Multiple methods to check if dropdown is open
             
-            # Only drop down the list if we have a decent match and the user has typed at least 2 characters
-            if len(current_text) >= 2 and len(matches) > 0:
+            # Method 1: Check for popup window
+            popup_name = self.vehicle_entry._w + ".popdown"
+            if self.vehicle_entry.tk.call("winfo", "exists", popup_name):
+                return True
+                
+            # Method 2: Check combobox state
+            try:
+                state = self.vehicle_entry.tk.call(self.vehicle_entry._w, 'instate', 'pressed')
+                if state:
+                    return True
+            except:
+                pass
+                
+            # Method 3: Check if there are child windows
+            try:
+                children = self.vehicle_entry.tk.call('winfo', 'children', self.vehicle_entry._w)
+                if children and len(str(children).split()) > 0:
+                    return True
+            except:
+                pass
+                
+            return False
+        except:
+            return False
+
+    def _restore_typing_state(self, cursor_pos, original_value):
+        """Restore typing state after dropdown operations"""
+        try:
+            if (hasattr(self, 'vehicle_entry') and 
+                self.vehicle_entry.winfo_exists()):
+                
+                # Restore original value if it was changed
+                if self.vehicle_var.get() != original_value:
+                    self.vehicle_var.set(original_value)
+                
+                # Restore cursor position
+                self.vehicle_entry.icursor(cursor_pos)
+                
+                # Clear any selection that might interfere with typing
+                self.vehicle_entry.selection_clear()
+                
+                # Ensure focus remains on the entry field
+                self.vehicle_entry.focus_set()
+        except:
+            pass
+
+    def setup_vehicle_autocomplete(self):
+        """Setup autocomplete with always visible dropdown"""
+        # Configure combobox for optimal typing experience
+        self.vehicle_entry.configure(state='normal')
+        
+        # Bind events for continuous autocomplete
+        self.vehicle_entry.bind('<KeyRelease>', self._on_key_release_safe)
+        self.vehicle_entry.bind('<KeyPress>', self._on_key_press_safe)
+        self.vehicle_entry.bind('<Button-1>', self.on_vehicle_entry_click)
+        self.vehicle_entry.bind('<FocusIn>', self.on_vehicle_entry_focus)
+        
+        # Handle special navigation keys
+        self.vehicle_entry.bind('<Up>', self._on_up_arrow)
+        self.vehicle_entry.bind('<Down>', self._on_down_arrow)
+        self.vehicle_entry.bind('<Return>', self._on_return_key)
+        self.vehicle_entry.bind('<Tab>', self._on_tab_key)
+        self.vehicle_entry.bind('<Escape>', self._on_escape_key)
+
+    def _on_key_release_safe(self, event):
+        """Handle key release events safely without interfering with typing"""
+        # Ignore navigation keys that shouldn't trigger autocomplete
+        navigation_keys = ['Up', 'Down', 'Left', 'Right', 'Home', 'End', 'Page_Up', 'Page_Down']
+        control_keys = ['Return', 'Tab', 'Escape', 'Control_L', 'Control_R', 'Alt_L', 'Alt_R', 
+                    'Shift_L', 'Shift_R', 'Caps_Lock', 'Num_Lock', 'Scroll_Lock']
+        
+        if event.keysym in navigation_keys + control_keys:
+            return
+        
+        # Update autocomplete for regular typing
+        self.update_vehicle_autocomplete(event)
+
+    def _on_key_press_safe(self, event):
+        """Handle key press to prepare for safe autocomplete"""
+        # This ensures we capture the state before the key takes effect
+        pass
+
+    def _on_up_arrow(self, event):
+        """Handle up arrow - navigate in dropdown if open, otherwise ignore"""
+        if self._is_dropdown_open():
+            # Let default behavior handle dropdown navigation
+            return
+        else:
+            # Prevent default behavior if dropdown is not open
+            return "break"
+
+    def _on_down_arrow(self, event):
+        """Handle down arrow - show dropdown or navigate"""
+        if not self._is_dropdown_open():
+            # Show dropdown
+            self.update_vehicle_autocomplete()
+            return
+        else:
+            # Let default behavior handle dropdown navigation
+            return
+
+    def _on_return_key(self, event):
+        """Handle return key - accept selection if dropdown is open"""
+        if self._is_dropdown_open():
+            # Let default behavior handle selection
+            return
+        else:
+            # Normal return behavior
+            return
+
+    def _on_tab_key(self, event):
+        """Handle tab key - close dropdown and move focus"""
+        # Close dropdown but don't prevent tab navigation
+        try:
+            if self._is_dropdown_open():
+                self.vehicle_entry.selection_clear()
+        except:
+            pass
+        return
+
+    def _on_escape_key(self, event):
+        """Handle escape key - close dropdown"""
+        try:
+            if self._is_dropdown_open():
+                # Close dropdown
+                self.vehicle_entry.selection_clear()
+                return "break"  # Prevent further processing
+        except:
+            pass
+        return
+
+    def on_vehicle_entry_click(self, event=None):
+        """Handle click on vehicle entry - show dropdown immediately"""
+        current_text = self.vehicle_var.get().strip()
+        
+        if not current_text:
+            # Show all vehicles for empty field
+            all_vehicles = self.get_vehicle_numbers()
+            recent_vehicles = self.get_recent_vehicles(5)
+            
+            # Combine recent and all vehicles
+            combined = recent_vehicles.copy()
+            for vehicle in all_vehicles:
+                if vehicle not in combined:
+                    combined.append(vehicle)
+            
+            self.vehicle_entry['values'] = combined
+        else:
+            # Update with current filtering
+            self.update_vehicle_autocomplete()
+        
+        # Show dropdown immediately
+        self.parent.after_idle(self._show_dropdown_immediately)
+
+    def _show_dropdown_immediately(self):
+        """Show dropdown immediately after click"""
+        try:
+            if (hasattr(self, 'vehicle_entry') and 
+                self.vehicle_entry.winfo_exists()):
+                cursor_pos = self.vehicle_entry.index(tk.INSERT)
+                current_value = self.vehicle_var.get()
+                
+                # Show dropdown
                 self.vehicle_entry.event_generate('<Down>')
+                
+                # Restore state
+                self.parent.after_idle(lambda: self._restore_typing_state(cursor_pos, current_value))
+        except:
+            pass
+
+    def on_vehicle_entry_focus(self, event=None):
+        """Handle focus on vehicle entry - prepare for autocomplete"""
+        # Refresh vehicle cache
+        self.refresh_vehicle_numbers_cache()
+        
+        # Update autocomplete and show dropdown
+        self.update_vehicle_autocomplete()
+
+    # Alternative implementation with different dropdown management
+    def setup_vehicle_autocomplete_alternative(self):
+        """Alternative setup using different event handling"""
+        # Store original combobox behavior
+        self._original_set = self.vehicle_entry.set
+        self._original_get = self.vehicle_entry.get
+        
+        # Override combobox set method to maintain dropdown
+        def custom_set(value):
+            cursor_pos = self.vehicle_entry.index(tk.INSERT) if hasattr(self.vehicle_entry, 'index') else 0
+            result = self._original_set(value)
+            try:
+                self.vehicle_entry.icursor(cursor_pos)
+            except:
+                pass
+            return result
+        
+        self.vehicle_entry.set = custom_set
+        
+        # Bind events
+        self.vehicle_entry.bind('<KeyRelease>', self._update_with_dropdown_maintenance)
+        self.vehicle_entry.bind('<Button-1>', self.on_vehicle_entry_click)
+        self.vehicle_entry.bind('<FocusIn>', self.on_vehicle_entry_focus)
+
+    def _update_with_dropdown_maintenance(self, event):
+        """Update autocomplete while maintaining dropdown state"""
+        # Store current state
+        was_dropdown_open = self._is_dropdown_open()
+        cursor_pos = self.vehicle_entry.index(tk.INSERT)
+        
+        # Update autocomplete
+        self.update_vehicle_autocomplete(event)
+        
+        # If dropdown was open, keep it open
+        if was_dropdown_open or self.vehicle_var.get().strip():
+            self.parent.after_idle(lambda: self._maintain_dropdown_state(cursor_pos))
+
+    def _maintain_dropdown_state(self, cursor_pos):
+        """Maintain dropdown state after updates"""
+        try:
+            if not self._is_dropdown_open() and self.vehicle_var.get().strip():
+                # Reopen dropdown
+                self.vehicle_entry.event_generate('<Down>')
+            
+            # Restore cursor
+            self.vehicle_entry.icursor(cursor_pos)
+            self.vehicle_entry.selection_clear()
+        except:
+            pass
+
+    # Enhanced version with better performance
+    def update_vehicle_autocomplete_optimized(self, event=None):
+        """Optimized version with better performance for large vehicle lists"""
+        current_text = self.vehicle_var.get().strip().upper()
+        
+        # Use cached vehicle list for better performance
+        if not hasattr(self, '_cached_vehicles') or not self._cached_vehicles:
+            self._cached_vehicles = self.get_vehicle_numbers()
+        
+        all_vehicles = self._cached_vehicles
+        
+        if not current_text:
+            self.vehicle_entry['values'] = all_vehicles
+            self._maintain_dropdown_and_typing()
+            return
+        
+        # Optimized filtering using list comprehension
+        matches = []
+        
+        # Priority 1: Exact matches
+        exact = [v for v in all_vehicles if v.upper() == current_text]
+        matches.extend(exact)
+        
+        # Priority 2: Starts with (excluding exact matches)
+        starts = [v for v in all_vehicles if v.upper().startswith(current_text) and v.upper() != current_text]
+        matches.extend(starts)
+        
+        # Priority 3: Ends with (excluding previous matches)
+        ends = [v for v in all_vehicles if v.upper().endswith(current_text) and v not in matches]
+        matches.extend(ends)
+        
+        # Priority 4: Contains (excluding previous matches)
+        contains = [v for v in all_vehicles if current_text in v.upper() and v not in matches]
+        matches.extend(contains)
+        
+        # Update dropdown values
+        self.vehicle_entry['values'] = matches if matches else all_vehicles
+        
+        # Maintain dropdown visibility
+        self._maintain_dropdown_and_typing()
+
+    def refresh_vehicle_cache(self):
+        """Refresh the cached vehicle list"""
+        self._cached_vehicles = self.get_vehicle_numbers()
+
+    # Method to add to form initialization
+    def initialize_always_visible_autocomplete(self):
+        """Initialize the always visible autocomplete system"""
+        # Set up the autocomplete
+        self.setup_vehicle_autocomplete()
+        
+        # Show initial dropdown on focus
+        def show_initial_dropdown():
+            if hasattr(self, 'vehicle_entry') and self.vehicle_entry.winfo_exists():
+                self.on_vehicle_entry_focus()
+        
+        # Bind to show dropdown when form is ready
+        self.parent.after(100, show_initial_dropdown)
+
 
     def load_sites_and_agencies(self, settings_storage):
         """Load sites, agencies and transfer parties from settings storage"""
