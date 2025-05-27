@@ -15,24 +15,32 @@ def export_to_excel(filename=None):
         bool: True if successful, False otherwise
     """
     try:
+        # Use the current data file (dynamic filename)
+        current_data_file = config.get_current_data_file()
+        
         # Check if data file exists
-        if not os.path.exists(config.DATA_FILE):
+        if not os.path.exists(current_data_file):
             messagebox.showerror("Export Failed", "No data to export.")
             return False
             
         # If no filename provided, ask for save location
         if not filename:
+            # Generate default filename based on current context
+            base_name = os.path.splitext(os.path.basename(current_data_file))[0]
+            default_filename = f"{base_name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+            
             filename = filedialog.asksaveasfilename(
                 defaultextension=".xlsx",
                 filetypes=[("Excel files", "*.xlsx"), ("All files", "*.*")],
-                title="Save Excel File"
+                title="Save Excel File",
+                initialvalue=default_filename
             )
             
             if not filename:  # User canceled
                 return False
                 
         # Read CSV into pandas DataFrame
-        df = pd.read_csv(config.DATA_FILE)
+        df = pd.read_csv(current_data_file)
         
         # Handle column mapping issues
         # If there's a column mismatch due to schema changes, ensure we have consistent columns
@@ -86,17 +94,25 @@ def export_to_pdf(filename=None):
         except ImportError:
             reportlab_available = False
             
+        # Use the current data file (dynamic filename)
+        current_data_file = config.get_current_data_file()
+        
         # Check if data file exists
-        if not os.path.exists(config.DATA_FILE):
+        if not os.path.exists(current_data_file):
             messagebox.showerror("Export Failed", "No data to export.")
             return False
             
         # If no filename provided, ask for save location
         if not filename:
+            # Generate default filename based on current context
+            base_name = os.path.splitext(os.path.basename(current_data_file))[0]
+            default_filename = f"{base_name}_report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            
             filename = filedialog.asksaveasfilename(
                 defaultextension=".pdf",
                 filetypes=[("PDF files", "*.pdf"), ("All files", "*.*")],
-                title="Save PDF File"
+                title="Save PDF File",
+                initialvalue=default_filename
             )
             
             if not filename:  # User canceled
@@ -104,7 +120,7 @@ def export_to_pdf(filename=None):
                 
         if reportlab_available:
             # Use ReportLab for better PDF creation with images
-            with open(config.DATA_FILE, 'r') as f:
+            with open(current_data_file, 'r') as f:
                 reader = csv.reader(f)
                 header = next(reader)
                 data = list(reader)
@@ -125,8 +141,10 @@ def export_to_pdf(filename=None):
             # Create elements to add to the PDF
             elements = []
             
-            # Add title
-            title = Paragraph("ADVITIA LABS - VEHICLE ENTRY REPORT", title_style)
+            # Add title with dynamic information
+            agency_name = config.CURRENT_AGENCY or "Unknown Agency"
+            site_name = config.CURRENT_SITE or "Unknown Site"
+            title = Paragraph(f"SWACCHA ANDHRA CORPORATION - VEHICLE ENTRY REPORT<br/>{agency_name} - {site_name}", title_style)
             elements.append(title)
             elements.append(Spacer(1, 0.25*inch))
             
@@ -140,6 +158,11 @@ def export_to_pdf(filename=None):
             current_date = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
             date_text = Paragraph(f"Report generated on: {current_date}", date_style)
             elements.append(date_text)
+            elements.append(Spacer(1, 0.25*inch))
+            
+            # Add data file information
+            data_file_info = Paragraph(f"Data source: {os.path.basename(current_data_file)}", date_style)
+            elements.append(data_file_info)
             elements.append(Spacer(1, 0.25*inch))
             
             # Create a table for the data
@@ -282,7 +305,7 @@ def export_to_pdf(filename=None):
                              "Creating a basic report file instead.")
             
             # Create a text report as a placeholder
-            with open(config.DATA_FILE, 'r') as f:
+            with open(current_data_file, 'r') as f:
                 reader = csv.reader(f)
                 header = next(reader, None)
                 
@@ -291,8 +314,16 @@ def export_to_pdf(filename=None):
                 
                 # Save as text file
                 with open(filename, 'w') as text_file:
-                    text_file.write("ADVITIA LABS - VEHICLE ENTRY REPORT\n")
+                    text_file.write("SWACCHA ANDHRA CORPORATION - VEHICLE ENTRY REPORT\n")
                     text_file.write("="*50 + "\n\n")
+                    
+                    # Add context information
+                    agency_name = config.CURRENT_AGENCY or "Unknown Agency"
+                    site_name = config.CURRENT_SITE or "Unknown Site"
+                    text_file.write(f"Agency: {agency_name}\n")
+                    text_file.write(f"Site: {site_name}\n")
+                    text_file.write(f"Data file: {os.path.basename(current_data_file)}\n")
+                    text_file.write(f"Report generated: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}\n\n")
                     
                     # Write each record
                     for _, row in df.iterrows():

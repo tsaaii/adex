@@ -128,32 +128,6 @@ class SettingsStorage:
             except Exception as e:
                 print(f"Error updating sites file: {e}")
 
-    def get_sites(self):
-        """Get sites, incharges, transfer parties and agencies
-        
-        Returns:
-            dict: Sites data with 'sites', 'incharges', 'transfer_parties', and 'agencies' keys
-        """
-        try:
-            with open(self.sites_file, 'r') as f:
-                sites_data = json.load(f)
-                
-                # Ensure all fields exist
-                if 'transfer_parties' not in sites_data:
-                    sites_data['transfer_parties'] = ["Advitia Labs"]
-                if 'agencies' not in sites_data:
-                    sites_data['agencies'] = ["Default Agency"]
-                
-                return sites_data
-        except Exception as e:
-            print(f"Error reading sites: {e}")
-            return {
-                "sites": ["Guntur"], 
-                "incharges": ["Site Manager"],
-                "transfer_parties": ["Advitia Labs"],
-                "agencies": ["Default Agency"]
-            }
-
     def get_weighbridge_settings(self):
         """Get weighbridge settings from file
         
@@ -161,12 +135,21 @@ class SettingsStorage:
             dict: Weighbridge settings
         """
         try:
+            print(f"Reading weighbridge settings from: {self.settings_file}")
             with open(self.settings_file, 'r') as f:
                 settings = json.load(f)
-                return settings.get("weighbridge", {})
+                wb_settings = settings.get("weighbridge", {})
+                print(f"Loaded weighbridge settings: {wb_settings}")
+                return wb_settings
         except Exception as e:
             print(f"Error reading weighbridge settings: {e}")
-            return {}
+            return {
+                "com_port": "",
+                "baud_rate": 9600,
+                "data_bits": 8,
+                "parity": "None",
+                "stop_bits": 1.0
+            }
     
     def save_weighbridge_settings(self, settings):
         """Save weighbridge settings to file
@@ -178,15 +161,29 @@ class SettingsStorage:
             bool: True if successful, False otherwise
         """
         try:
-            with open(self.settings_file, 'r') as f:
-                all_settings = json.load(f)
+            print(f"Saving weighbridge settings to: {self.settings_file}")
+            print(f"Settings to save: {settings}")
             
+            # Read existing settings
+            if os.path.exists(self.settings_file):
+                with open(self.settings_file, 'r') as f:
+                    all_settings = json.load(f)
+            else:
+                all_settings = {}
+            
+            # Update weighbridge section
             all_settings["weighbridge"] = settings
             
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(self.settings_file), exist_ok=True)
+            
+            # Write back to file
             with open(self.settings_file, 'w') as f:
                 json.dump(all_settings, f, indent=4)
                 
+            print("Weighbridge settings saved successfully")
             return True
+            
         except Exception as e:
             print(f"Error saving weighbridge settings: {e}")
             return False
@@ -198,12 +195,30 @@ class SettingsStorage:
             dict: Camera settings
         """
         try:
+            print(f"Reading camera settings from: {self.settings_file}")
             with open(self.settings_file, 'r') as f:
                 settings = json.load(f)
-                return settings.get("cameras", {})
+                camera_settings = settings.get("cameras", {})
+                print(f"Loaded camera settings: {camera_settings}")
+                return camera_settings
         except Exception as e:
             print(f"Error reading camera settings: {e}")
-            return {}
+            return {
+                "front_camera_type": "USB",
+                "front_camera_index": 0,
+                "front_rtsp_username": "",
+                "front_rtsp_password": "",
+                "front_rtsp_ip": "",
+                "front_rtsp_port": "554",
+                "front_rtsp_endpoint": "/stream1",
+                "back_camera_type": "USB",
+                "back_camera_index": 1,
+                "back_rtsp_username": "",
+                "back_rtsp_password": "",
+                "back_rtsp_ip": "",
+                "back_rtsp_port": "554",
+                "back_rtsp_endpoint": "/stream1"
+            }
     
     def save_camera_settings(self, settings):
         """Save camera settings to file
@@ -215,15 +230,29 @@ class SettingsStorage:
             bool: True if successful, False otherwise
         """
         try:
-            with open(self.settings_file, 'r') as f:
-                all_settings = json.load(f)
+            print(f"Saving camera settings to: {self.settings_file}")
+            print(f"Camera settings to save: {settings}")
             
+            # Read existing settings
+            if os.path.exists(self.settings_file):
+                with open(self.settings_file, 'r') as f:
+                    all_settings = json.load(f)
+            else:
+                all_settings = {}
+            
+            # Update cameras section
             all_settings["cameras"] = settings
             
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(self.settings_file), exist_ok=True)
+            
+            # Write back to file
             with open(self.settings_file, 'w') as f:
                 json.dump(all_settings, f, indent=4)
                 
+            print("Camera settings saved successfully")
             return True
+            
         except Exception as e:
             print(f"Error saving camera settings: {e}")
             return False
@@ -260,7 +289,33 @@ class SettingsStorage:
         except Exception as e:
             print(f"Error building RTSP URL: {e}")
             return None
-    
+
+    def get_sites(self):
+        """Get sites, incharges, transfer parties and agencies
+        
+        Returns:
+            dict: Sites data with 'sites', 'incharges', 'transfer_parties', and 'agencies' keys
+        """
+        try:
+            with open(self.sites_file, 'r') as f:
+                sites_data = json.load(f)
+                
+                # Ensure all fields exist
+                if 'transfer_parties' not in sites_data:
+                    sites_data['transfer_parties'] = ["Advitia Labs"]
+                if 'agencies' not in sites_data:
+                    sites_data['agencies'] = ["Default Agency"]
+                
+                return sites_data
+        except Exception as e:
+            print(f"Error reading sites: {e}")
+            return {
+                "sites": ["Guntur"], 
+                "incharges": ["Site Manager"],
+                "transfer_parties": ["Advitia Labs"],
+                "agencies": ["Default Agency"]
+            }
+
     def get_users(self):
         """Get all users
         
@@ -467,3 +522,218 @@ class SettingsStorage:
                     "back_rtsp_endpoint": "/stream1"
                 }
             }
+
+    def verify_settings_integrity(self):
+        """Verify that settings files exist and are valid
+        
+        Returns:
+            bool: True if all settings are valid
+        """
+        try:
+            # Check weighbridge settings
+            wb_settings = self.get_weighbridge_settings()
+            if not isinstance(wb_settings, dict):
+                print("Invalid weighbridge settings format")
+                return False
+                
+            # Check camera settings
+            cam_settings = self.get_camera_settings()
+            if not isinstance(cam_settings, dict):
+                print("Invalid camera settings format")
+                return False
+                
+            # Check required keys exist
+            required_wb_keys = ["com_port", "baud_rate", "data_bits", "parity", "stop_bits"]
+            for key in required_wb_keys:
+                if key not in wb_settings:
+                    print(f"Missing weighbridge setting: {key}")
+                    return False
+                    
+            print("Settings integrity check passed")
+            return True
+            
+        except Exception as e:
+            print(f"Settings integrity check failed: {e}")
+            return False
+
+    def backup_settings(self, backup_filename=None):
+        """Create a backup of all settings
+        
+        Args:
+            backup_filename: Optional backup filename
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            import datetime
+            
+            if not backup_filename:
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                backup_filename = f"settings_backup_{timestamp}.json"
+            
+            backup_path = os.path.join(config.DATA_FOLDER, backup_filename)
+            
+            # Collect all settings
+            all_settings = {
+                "weighbridge": self.get_weighbridge_settings(),
+                "cameras": self.get_camera_settings(),
+                "sites": self.get_sites(),
+                "users": self.get_users(),
+                "backup_timestamp": datetime.datetime.now().isoformat()
+            }
+            
+            # Save backup
+            with open(backup_path, 'w') as f:
+                json.dump(all_settings, f, indent=4)
+                
+            print(f"Settings backup created: {backup_path}")
+            return True
+            
+        except Exception as e:
+            print(f"Error creating settings backup: {e}")
+            return False
+
+    def restore_settings(self, backup_filename):
+        """Restore settings from backup
+        
+        Args:
+            backup_filename: Backup filename to restore from
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            backup_path = os.path.join(config.DATA_FOLDER, backup_filename)
+            
+            if not os.path.exists(backup_path):
+                print(f"Backup file not found: {backup_path}")
+                return False
+            
+            # Load backup
+            with open(backup_path, 'r') as f:
+                backup_data = json.load(f)
+            
+            # Restore weighbridge settings
+            if "weighbridge" in backup_data:
+                self.save_weighbridge_settings(backup_data["weighbridge"])
+            
+            # Restore camera settings
+            if "cameras" in backup_data:
+                self.save_camera_settings(backup_data["cameras"])
+            
+            # Restore sites
+            if "sites" in backup_data:
+                self.save_sites(backup_data["sites"])
+            
+            # Restore users
+            if "users" in backup_data:
+                self.save_users(backup_data["users"])
+            
+            print(f"Settings restored from: {backup_path}")
+            return True
+            
+        except Exception as e:
+            print(f"Error restoring settings: {e}")
+            return False
+
+    def reset_to_defaults(self):
+        """Reset all settings to default values
+        
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Remove existing settings files
+            files_to_remove = [self.settings_file, self.users_file, self.sites_file]
+            
+            for file_path in files_to_remove:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    print(f"Removed: {file_path}")
+            
+            # Reinitialize with defaults
+            self.initialize_files()
+            
+            print("Settings reset to defaults")
+            return True
+            
+        except Exception as e:
+            print(f"Error resetting settings: {e}")
+            return False
+
+    def export_settings(self, export_path):
+        """Export settings to a specified path
+        
+        Args:
+            export_path: Path to export settings to
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            import datetime
+            
+            # Collect all settings
+            export_data = {
+                "weighbridge": self.get_weighbridge_settings(),
+                "cameras": self.get_camera_settings(),
+                "sites": self.get_sites(),
+                "export_timestamp": datetime.datetime.now().isoformat(),
+                "application": "Swaccha Andhra Corporation Weighbridge"
+            }
+            
+            # Don't export user passwords for security
+            sites_data = self.get_sites()
+            export_data["sites"] = sites_data
+            
+            # Save export
+            with open(export_path, 'w') as f:
+                json.dump(export_data, f, indent=4)
+                
+            print(f"Settings exported to: {export_path}")
+            return True
+            
+        except Exception as e:
+            print(f"Error exporting settings: {e}")
+            return False
+
+    def import_settings(self, import_path):
+        """Import settings from a specified path
+        
+        Args:
+            import_path: Path to import settings from
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            if not os.path.exists(import_path):
+                print(f"Import file not found: {import_path}")
+                return False
+            
+            # Load import data
+            with open(import_path, 'r') as f:
+                import_data = json.load(f)
+            
+            # Import weighbridge settings
+            if "weighbridge" in import_data:
+                self.save_weighbridge_settings(import_data["weighbridge"])
+                print("Weighbridge settings imported")
+            
+            # Import camera settings
+            if "cameras" in import_data:
+                self.save_camera_settings(import_data["cameras"])
+                print("Camera settings imported")
+            
+            # Import sites (but not users for security)
+            if "sites" in import_data:
+                self.save_sites(import_data["sites"])
+                print("Sites data imported")
+            
+            print(f"Settings imported from: {import_path}")
+            return True
+            
+        except Exception as e:
+            print(f"Error importing settings: {e}")
+            return False

@@ -144,13 +144,130 @@ class MainForm:
             messagebox.showerror("Weighbridge Error", f"Error reading weighbridge: {str(e)}")
             return None
 
+    def set_agency(self, agency_name):
+        """Set the agency name (used when agency is selected from login)
+        
+        Args:
+            agency_name: The agency name to set (NOT site incharge)
+        """
+        if agency_name and hasattr(self, 'agency_var'):
+            self.agency_var.set(agency_name)
+
+    def set_site_incharge(self, incharge_name):
+        """Set the site incharge name (separate from agency)
+        
+        Args:
+            incharge_name: The site incharge name to set
+        """
+        if incharge_name and hasattr(self, 'site_incharge_var'):
+            self.site_incharge_var.set(incharge_name)
+
+    def load_sites_and_agencies(self, settings_storage):
+        """Load sites, agencies and transfer parties from settings storage"""
+        if not settings_storage:
+            return
+            
+        # Get sites and data
+        sites_data = settings_storage.get_sites()
+        
+        # Update site combo
+        sites = sites_data.get('sites', ['Guntur'])
+        if hasattr(self, 'site_combo') and self.site_combo:
+            self.site_combo['values'] = tuple(sites)
+            
+            # If current value not in list, set to first site
+            if self.site_var.get() not in sites and sites:
+                self.site_var.set(sites[0])
+        
+        # BUG FIX: Update agency combo - use 'agencies' field instead of 'incharges'
+        agencies = sites_data.get('agencies', ['Default Agency'])  # Fixed: was using 'incharges'
+        if hasattr(self, 'agency_combo') and self.agency_combo:
+            self.agency_combo['values'] = tuple(agencies)
+            if not self.agency_var.get() and agencies:
+                self.agency_var.set(agencies[0])
+                
+        # Update transfer party combo
+        transfer_parties = sites_data.get('transfer_parties', ['Advitia Labs'])
+        if hasattr(self, 'tpt_combo') and self.tpt_combo:
+            self.tpt_combo['values'] = tuple(transfer_parties)
+            if not self.tpt_var.get() and transfer_parties:
+                self.tpt_var.set(transfer_parties[0])
+
+    def on_agency_change(self, *args):
+        """Handle agency selection change to update data file context"""
+        try:
+            if hasattr(self, 'agency_var') and hasattr(self, 'site_var'):
+                agency_name = self.agency_var.get()
+                site_name = self.site_var.get()
+                
+                if agency_name and site_name:
+                    # Find the data manager and update context
+                    if hasattr(self, 'data_manager') and self.data_manager:
+                        self.data_manager.set_agency_site_context(agency_name, site_name)
+                        print(f"Updated data context: {agency_name}_{site_name}")
+                    elif hasattr(self, 'save_callback'):
+                        # Try to find data manager through parent app
+                        app = self.find_main_app()
+                        if app and hasattr(app, 'data_manager'):
+                            app.data_manager.set_agency_site_context(agency_name, site_name)
+                            print(f"Updated data context via app: {agency_name}_{site_name}")
+        except Exception as e:
+            print(f"Error updating data context: {e}")
+
+    def on_site_change(self, *args):
+        """Handle site selection change to update data file context"""
+        self.on_agency_change()  # Same logic applies
+
+    # In the __init__ method, add these bindings after creating the variables:
+    def init_variables(self):
+        """Initialize form variables"""
+        # Create variables for form fields
+        self.site_var = tk.StringVar(value="Guntur")
+        self.agency_var = tk.StringVar()
+        self.rst_var = tk.StringVar()
+        self.vehicle_var = tk.StringVar()
+        self.tpt_var = tk.StringVar()
+        self.material_var = tk.StringVar()  # Added missing material variable
+        
+        # User and site incharge variables
+        self.user_name_var = tk.StringVar()
+        self.site_incharge_var = tk.StringVar()
+        
+        # Weighment related variables
+        self.first_weight_var = tk.StringVar()
+        self.first_timestamp_var = tk.StringVar()
+        self.second_weight_var = tk.StringVar()
+        self.second_timestamp_var = tk.StringVar()
+        self.net_weight_var = tk.StringVar()
+        self.weighment_state_var = tk.StringVar(value="First Weighment")
+        
+        # Material type tracking
+        self.material_type_var = tk.StringVar(value="Inert")
+        
+        # Saved image paths
+        self.front_image_path = None
+        self.back_image_path = None
+        
+        # Weighment state
+        self.current_weighment = "first"  # Can be "first" or "second"
+        
+        # Vehicle number autocomplete cache
+        self.vehicle_numbers_cache = []
+        
+        # IMPORTANT: Bind the agency and site variables to update data context
+        self.agency_var.trace_add("write", self.on_agency_change)
+        self.site_var.trace_add("write", self.on_site_change)
+        
+        # If data manager is available, generate the next ticket number
+        if hasattr(self, 'data_manager') and self.data_manager:
+            self.generate_next_ticket_number()
 
     def find_main_app(self):
-        """Find the main app instance to access weighbridge data"""
+        """Find the main app instance to access data manager"""
         # Try to traverse up widget hierarchy to find main app instance
         widget = self.parent
         while widget:
-            if hasattr(widget, 'settings_panel'):
+            if hasattr(widget, 'data_manager'):
                 return widget
             if hasattr(widget, 'master'):
                 widget = widget.master
@@ -328,44 +445,7 @@ class MainForm:
         # Generate new ticket number
         self.generate_next_ticket_number()
 
-    def init_variables(self):
-        """Initialize form variables"""
-        # Create variables for form fields
-        self.site_var = tk.StringVar(value="Guntur")
-        self.agency_var = tk.StringVar()
-        self.rst_var = tk.StringVar()
-        self.vehicle_var = tk.StringVar()
-        self.tpt_var = tk.StringVar()
-        self.material_var = tk.StringVar()  # Added missing material variable
-        
-        # User and site incharge variables
-        self.user_name_var = tk.StringVar()
-        self.site_incharge_var = tk.StringVar()
-        
-        # Weighment related variables
-        self.first_weight_var = tk.StringVar()
-        self.first_timestamp_var = tk.StringVar()
-        self.second_weight_var = tk.StringVar()
-        self.second_timestamp_var = tk.StringVar()
-        self.net_weight_var = tk.StringVar()
-        self.weighment_state_var = tk.StringVar(value="First Weighment")
-        
-        # Material type tracking
-        self.material_type_var = tk.StringVar(value="Inert")
-        
-        # Saved image paths
-        self.front_image_path = None
-        self.back_image_path = None
-        
-        # Weighment state
-        self.current_weighment = "first"  # Can be "first" or "second"
-        
-        # Vehicle number autocomplete cache
-        self.vehicle_numbers_cache = []
-        
-        # If data manager is available, generate the next ticket number
-        if hasattr(self, 'data_manager') and self.data_manager:
-            self.generate_next_ticket_number()
+
 
     def refresh_vehicle_numbers_cache(self):
         """Refresh the cache of vehicle numbers for autocomplete"""
@@ -1009,42 +1089,6 @@ class MainForm:
             return []
 
 
-    def load_sites_and_agencies(self, settings_storage):
-        """Load sites, agencies and transfer parties from settings storage"""
-        if not settings_storage:
-            return
-            
-        # Get sites and data
-        sites_data = settings_storage.get_sites()
-        
-        # Update site combo
-        sites = sites_data.get('sites', ['Guntur'])
-        if hasattr(self, 'site_combo') and self.site_combo:
-            self.site_combo['values'] = tuple(sites)
-            
-            # If current value not in list, set to first site
-            if self.site_var.get() not in sites and sites:
-                self.site_var.set(sites[0])
-        
-        # Update agency combo - now using 'agencies' field
-        agencies = sites_data.get('agencies', ['Default Agency'])
-        if hasattr(self, 'agency_combo') and self.agency_combo:
-            self.agency_combo['values'] = tuple(agencies)
-            if not self.agency_var.get() and agencies:
-                self.agency_var.set(agencies[0])
-                
-        # Update transfer party combo
-        transfer_parties = sites_data.get('transfer_parties', ['Advitia Labs'])
-        if hasattr(self, 'tpt_combo') and self.tpt_combo:
-            self.tpt_combo['values'] = tuple(transfer_parties)
-            if not self.tpt_var.get() and transfer_parties:
-                self.tpt_var.set(transfer_parties[0])
-
-
-    def set_agency(self, agency_name):
-        """Set the agency name (used when agency is selected from login)"""
-        if agency_name and hasattr(self, 'agency_var'):
-            self.agency_var.set(agency_name)
 
         
     def load_record_data(self, record):
@@ -1484,6 +1528,9 @@ class MainForm:
             
         if site_incharge and hasattr(self, 'site_incharge_var'):
             self.site_incharge_var.set(site_incharge)
+
+
+
 
     
     def set_site(self, site_name):

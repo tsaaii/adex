@@ -8,7 +8,6 @@ from weighbridge import WeighbridgeManager
 from settings_storage import SettingsStorage
 
 
-
 class SettingsPanel:
     """Settings panel for camera and weighbridge configuration"""
     
@@ -47,8 +46,404 @@ class SettingsPanel:
         if not self.authenticate_settings_access():
             return
         self.create_panel()
-        self.load_saved_settings()
+        
+        # IMPORTANT: Load saved settings AFTER creating the panel
+        self.load_all_saved_settings()
 
+    def load_all_saved_settings(self):
+        """Load all saved settings after panel creation"""
+        try:
+            print("Loading saved settings...")
+            
+            # Load weighbridge settings
+            self.load_saved_weighbridge_settings()
+            
+            # Load camera settings  
+            self.load_saved_camera_settings()
+            
+            # Load user management data
+            self.load_users()
+            
+            # Load site management data
+            self.load_sites()
+            
+            print("All settings loaded successfully")
+            
+        except Exception as e:
+            print(f"Error loading saved settings: {e}")
+
+    def load_saved_weighbridge_settings(self):
+        """Load weighbridge settings from storage"""
+        try:
+            wb_settings = self.settings_storage.get_weighbridge_settings()
+            if wb_settings:
+                print(f"Loading weighbridge settings: {wb_settings}")
+                
+                # Refresh COM ports first
+                self.refresh_com_ports()
+                
+                # Set COM port if it exists in the list
+                if "com_port" in wb_settings and wb_settings["com_port"]:
+                    available_ports = self.com_port_combo['values']
+                    if wb_settings["com_port"] in available_ports:
+                        self.com_port_var.set(wb_settings["com_port"])
+                        print(f"Set COM port to: {wb_settings['com_port']}")
+                    else:
+                        print(f"Saved COM port {wb_settings['com_port']} not available")
+                
+                # Set other weighbridge settings
+                if "baud_rate" in wb_settings:
+                    self.baud_rate_var.set(wb_settings["baud_rate"])
+                if "data_bits" in wb_settings:
+                    self.data_bits_var.set(wb_settings["data_bits"])
+                if "parity" in wb_settings:
+                    self.parity_var.set(wb_settings["parity"])
+                if "stop_bits" in wb_settings:
+                    self.stop_bits_var.set(wb_settings["stop_bits"])
+                    
+                print("Weighbridge settings loaded successfully")
+            else:
+                print("No saved weighbridge settings found")
+                
+        except Exception as e:
+            print(f"Error loading weighbridge settings: {e}")
+
+    def load_saved_camera_settings(self):
+        """Load camera settings from storage"""
+        try:
+            camera_settings = self.settings_storage.get_camera_settings()
+            if camera_settings:
+                print(f"Loading camera settings: {camera_settings}")
+                
+                # Load front camera settings
+                if hasattr(self, 'front_camera_type_var'):
+                    self.front_camera_type_var.set(camera_settings.get("front_camera_type", "USB"))
+                if hasattr(self, 'front_usb_index_var'):
+                    self.front_usb_index_var.set(camera_settings.get("front_camera_index", 0))
+                if hasattr(self, 'front_rtsp_username_var'):
+                    self.front_rtsp_username_var.set(camera_settings.get("front_rtsp_username", ""))
+                if hasattr(self, 'front_rtsp_password_var'):
+                    self.front_rtsp_password_var.set(camera_settings.get("front_rtsp_password", ""))
+                if hasattr(self, 'front_rtsp_ip_var'):
+                    self.front_rtsp_ip_var.set(camera_settings.get("front_rtsp_ip", ""))
+                if hasattr(self, 'front_rtsp_port_var'):
+                    self.front_rtsp_port_var.set(camera_settings.get("front_rtsp_port", "554"))
+                if hasattr(self, 'front_rtsp_endpoint_var'):
+                    self.front_rtsp_endpoint_var.set(camera_settings.get("front_rtsp_endpoint", "/stream1"))
+                
+                # Load back camera settings
+                if hasattr(self, 'back_camera_type_var'):
+                    self.back_camera_type_var.set(camera_settings.get("back_camera_type", "USB"))
+                if hasattr(self, 'back_usb_index_var'):
+                    self.back_usb_index_var.set(camera_settings.get("back_camera_index", 1))
+                if hasattr(self, 'back_rtsp_username_var'):
+                    self.back_rtsp_username_var.set(camera_settings.get("back_rtsp_username", ""))
+                if hasattr(self, 'back_rtsp_password_var'):
+                    self.back_rtsp_password_var.set(camera_settings.get("back_rtsp_password", ""))
+                if hasattr(self, 'back_rtsp_ip_var'):
+                    self.back_rtsp_ip_var.set(camera_settings.get("back_rtsp_ip", ""))
+                if hasattr(self, 'back_rtsp_port_var'):
+                    self.back_rtsp_port_var.set(camera_settings.get("back_rtsp_port", "554"))
+                if hasattr(self, 'back_rtsp_endpoint_var'):
+                    self.back_rtsp_endpoint_var.set(camera_settings.get("back_rtsp_endpoint", "/stream1"))
+                
+                # Update UI states based on loaded settings
+                if hasattr(self, 'on_camera_type_change'):
+                    self.on_camera_type_change("front")
+                    self.on_camera_type_change("back")
+                
+                # Update RTSP previews
+                if hasattr(self, 'update_rtsp_preview'):
+                    self.update_rtsp_preview("front")
+                    self.update_rtsp_preview("back")
+                
+                print("Camera settings loaded successfully")
+            else:
+                print("No saved camera settings found")
+                
+        except Exception as e:
+            print(f"Error loading camera settings: {e}")
+
+    def save_weighbridge_settings(self):
+        """Save weighbridge settings to persistent storage"""
+        try:
+            settings = {
+                "com_port": self.com_port_var.get(),
+                "baud_rate": self.baud_rate_var.get(),
+                "data_bits": self.data_bits_var.get(),
+                "parity": self.parity_var.get(),
+                "stop_bits": self.stop_bits_var.get()
+            }
+            
+            print(f"Saving weighbridge settings: {settings}")
+            
+            if self.settings_storage.save_weighbridge_settings(settings):
+                messagebox.showinfo("Success", "Weighbridge settings saved successfully!")
+                print("Weighbridge settings saved to file")
+                return True
+            else:
+                messagebox.showerror("Error", "Failed to save weighbridge settings.")
+                return False
+                
+        except Exception as e:
+            print(f"Error saving weighbridge settings: {e}")
+            messagebox.showerror("Error", f"Failed to save weighbridge settings: {str(e)}")
+            return False
+
+    def save_camera_settings(self):
+        """Save camera settings to persistent storage"""
+        try:
+            settings = self.get_current_camera_settings()
+            
+            print(f"Saving camera settings: {settings}")
+            
+            if self.settings_storage.save_camera_settings(settings):
+                messagebox.showinfo("Success", "Camera settings saved successfully!")
+                print("Camera settings saved to file")
+                
+                # Apply the settings immediately if callback available
+                if self.update_cameras_callback:
+                    self.update_cameras_callback(settings)
+                
+                self.cam_status_var.set("Settings saved successfully")
+                return True
+            else:
+                messagebox.showerror("Error", "Failed to save camera settings.")
+                return False
+                
+        except Exception as e:
+            print(f"Error saving camera settings: {e}")
+            messagebox.showerror("Error", f"Failed to save camera settings: {str(e)}")
+            return False
+
+    def apply_camera_settings(self):
+        """Apply camera settings without saving"""
+        try:
+            # Get current settings
+            settings = self.get_current_camera_settings()
+            
+            print(f"Applying camera settings: {settings}")
+            
+            # Apply to cameras through callback
+            if self.update_cameras_callback:
+                self.update_cameras_callback(settings)
+            
+            self.cam_status_var.set("Camera settings applied. Changes take effect on next capture.")
+            
+        except Exception as e:
+            print(f"Error applying camera settings: {e}")
+            self.cam_status_var.set(f"Error applying settings: {str(e)}")
+
+    def get_current_camera_settings(self):
+        """Get current camera settings from UI
+        
+        Returns:
+            dict: Camera settings
+        """
+        settings = {}
+        
+        # Get front camera settings
+        if hasattr(self, 'front_camera_type_var'):
+            settings["front_camera_type"] = self.front_camera_type_var.get()
+        if hasattr(self, 'front_usb_index_var'):
+            settings["front_camera_index"] = self.front_usb_index_var.get()
+        if hasattr(self, 'front_rtsp_username_var'):
+            settings["front_rtsp_username"] = self.front_rtsp_username_var.get()
+        if hasattr(self, 'front_rtsp_password_var'):
+            settings["front_rtsp_password"] = self.front_rtsp_password_var.get()
+        if hasattr(self, 'front_rtsp_ip_var'):
+            settings["front_rtsp_ip"] = self.front_rtsp_ip_var.get()
+        if hasattr(self, 'front_rtsp_port_var'):
+            settings["front_rtsp_port"] = self.front_rtsp_port_var.get()
+        if hasattr(self, 'front_rtsp_endpoint_var'):
+            settings["front_rtsp_endpoint"] = self.front_rtsp_endpoint_var.get()
+            
+        # Get back camera settings
+        if hasattr(self, 'back_camera_type_var'):
+            settings["back_camera_type"] = self.back_camera_type_var.get()
+        if hasattr(self, 'back_usb_index_var'):
+            settings["back_camera_index"] = self.back_usb_index_var.get()
+        if hasattr(self, 'back_rtsp_username_var'):
+            settings["back_rtsp_username"] = self.back_rtsp_username_var.get()
+        if hasattr(self, 'back_rtsp_password_var'):
+            settings["back_rtsp_password"] = self.back_rtsp_password_var.get()
+        if hasattr(self, 'back_rtsp_ip_var'):
+            settings["back_rtsp_ip"] = self.back_rtsp_ip_var.get()
+        if hasattr(self, 'back_rtsp_port_var'):
+            settings["back_rtsp_port"] = self.back_rtsp_port_var.get()
+        if hasattr(self, 'back_rtsp_endpoint_var'):
+            settings["back_rtsp_endpoint"] = self.back_rtsp_endpoint_var.get()
+        
+        return settings
+
+    def auto_connect_weighbridge(self):
+        """Automatically connect to weighbridge if settings are saved"""
+        try:
+            wb_settings = self.settings_storage.get_weighbridge_settings()
+            if wb_settings and wb_settings.get("com_port"):
+                com_port = wb_settings.get("com_port")
+                
+                # Check if the saved COM port is still available
+                available_ports = self.weighbridge.get_available_ports()
+                if com_port in available_ports:
+                    print(f"Auto-connecting to saved weighbridge on {com_port}")
+                    
+                    # Try to connect automatically
+                    try:
+                        if self.weighbridge.connect(
+                            com_port,
+                            wb_settings.get("baud_rate", 9600),
+                            wb_settings.get("data_bits", 8),
+                            wb_settings.get("parity", "None"),
+                            wb_settings.get("stop_bits", 1.0)
+                        ):
+                            self.wb_status_var.set("Status: Connected")
+                            self.weight_label.config(foreground="green")
+                            self.connect_btn.config(state=tk.DISABLED)
+                            self.disconnect_btn.config(state=tk.NORMAL)
+                            print("Auto-connection successful")
+                        else:
+                            print("Auto-connection failed")
+                    except Exception as e:
+                        print(f"Auto-connection error: {e}")
+                else:
+                    print(f"Saved COM port {com_port} not available")
+            else:
+                print("No saved weighbridge settings for auto-connection")
+                
+        except Exception as e:
+            print(f"Error in auto-connect: {e}")
+
+    def create_weighbridge_settings(self, parent):
+        """Create weighbridge configuration settings"""
+        # Initialize the weight status variable
+        self.weight_status_var = tk.StringVar(value="Ready")
+        
+        # Weighbridge settings frame
+        wb_frame = ttk.LabelFrame(parent, text="Weighbridge Configuration", padding=10)
+        wb_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # COM Port selection
+        ttk.Label(wb_frame, text="COM Port:").grid(row=0, column=0, sticky=tk.W, pady=2)
+        self.com_port_combo = ttk.Combobox(wb_frame, textvariable=self.com_port_var, state="readonly")
+        self.com_port_combo.grid(row=0, column=1, sticky=tk.EW, pady=2, padx=5)
+        self.refresh_com_ports()
+        
+        # Refresh COM ports button
+        refresh_btn = HoverButton(wb_frame, text="Refresh Ports", bg=config.COLORS["primary_light"], 
+                                fg=config.COLORS["text"], padx=5, pady=2,
+                                command=self.refresh_com_ports)
+        refresh_btn.grid(row=0, column=2, padx=5, pady=2)
+        
+        # Baud rate
+        ttk.Label(wb_frame, text="Baud Rate:").grid(row=1, column=0, sticky=tk.W, pady=2)
+        baud_rates = [600, 1200, 2400, 4800, 9600, 14400, 19200, 57600, 115200]
+        ttk.Combobox(wb_frame, textvariable=self.baud_rate_var, values=baud_rates, 
+                    state="readonly").grid(row=1, column=1, sticky=tk.EW, pady=2, padx=5)
+        
+        # Data bits
+        ttk.Label(wb_frame, text="Data Bits:").grid(row=2, column=0, sticky=tk.W, pady=2)
+        ttk.Combobox(wb_frame, textvariable=self.data_bits_var, values=[5, 6, 7, 8], 
+                    state="readonly").grid(row=2, column=1, sticky=tk.EW, pady=2, padx=5)
+        
+        # Parity
+        ttk.Label(wb_frame, text="Parity:").grid(row=3, column=0, sticky=tk.W, pady=2)
+        ttk.Combobox(wb_frame, textvariable=self.parity_var, 
+                    values=["None", "Odd", "Even", "Mark", "Space"], 
+                    state="readonly").grid(row=3, column=1, sticky=tk.EW, pady=2, padx=5)
+        
+        # Stop bits
+        ttk.Label(wb_frame, text="Stop Bits:").grid(row=4, column=0, sticky=tk.W, pady=2)
+        ttk.Combobox(wb_frame, textvariable=self.stop_bits_var, values=[1.0, 1.5, 2.0], 
+                    state="readonly").grid(row=4, column=1, sticky=tk.EW, pady=2, padx=5)
+        
+        # Connection buttons
+        btn_frame = ttk.Frame(wb_frame)
+        btn_frame.grid(row=5, column=0, columnspan=3, pady=10)
+        
+        self.connect_btn = HoverButton(btn_frame, text="Connect", bg=config.COLORS["secondary"], 
+                                    fg=config.COLORS["button_text"], padx=10, pady=3,
+                                    command=self.connect_weighbridge)
+        self.connect_btn.pack(side=tk.LEFT, padx=5)
+        
+        self.disconnect_btn = HoverButton(btn_frame, text="Disconnect", bg=config.COLORS["error"], 
+                                        fg=config.COLORS["button_text"], padx=10, pady=3,
+                                        command=self.disconnect_weighbridge, state=tk.DISABLED)
+        self.disconnect_btn.pack(side=tk.LEFT, padx=5)
+        
+        # Save settings button
+        self.save_settings_btn = HoverButton(btn_frame, text="Save Settings", bg=config.COLORS["primary"], 
+                                    fg=config.COLORS["button_text"], padx=10, pady=3,
+                                    command=self.save_weighbridge_settings)
+        self.save_settings_btn.pack(side=tk.LEFT, padx=5)
+        
+        # Auto-connect button
+        auto_connect_btn = HoverButton(btn_frame, text="Auto Connect", bg=config.COLORS["warning"], 
+                                    fg=config.COLORS["button_text"], padx=10, pady=3,
+                                    command=self.auto_connect_weighbridge)
+        auto_connect_btn.pack(side=tk.LEFT, padx=5)
+        
+        # Status indicator
+        ttk.Label(wb_frame, textvariable=self.wb_status_var, 
+                foreground="red").grid(row=6, column=0, columnspan=3, sticky=tk.W)
+        
+        # Test weight display
+        ttk.Label(wb_frame, text="Current Weight:").grid(row=7, column=0, sticky=tk.W, pady=2)
+        self.weight_label = ttk.Label(wb_frame, textvariable=self.current_weight_var, 
+                                    font=("Segoe UI", 10, "bold"))
+        self.weight_label.grid(row=7, column=1, sticky=tk.W, pady=2)
+        
+        # Add a status indicator for invalid readings
+        self.weight_status_label = ttk.Label(wb_frame, textvariable=self.weight_status_var, 
+                                        foreground="black")
+        self.weight_status_label.grid(row=8, column=0, columnspan=3, sticky=tk.W, pady=2)
+        
+        # Check if cloud storage is enabled and add backup section
+        if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
+            # Create a separator
+            ttk.Separator(wb_frame, orient=tk.HORIZONTAL).grid(
+                row=9, column=0, columnspan=3, sticky=tk.EW, pady=10)
+            
+            # Cloud backup section
+            cloud_frame = ttk.Frame(wb_frame)
+            cloud_frame.grid(row=10, column=0, columnspan=3, sticky=tk.EW, pady=5)
+            
+            ttk.Label(cloud_frame, text="Cloud Backup:").grid(row=0, column=0, sticky=tk.W)
+            
+            # Backup button
+            self.backup_btn = HoverButton(cloud_frame, 
+                                        text="Backup All Records to Cloud", 
+                                        bg=config.COLORS["primary_light"], 
+                                        fg=config.COLORS["text"], padx=5, pady=2,
+                                        command=self.backup_to_cloud)
+            self.backup_btn.grid(row=0, column=1, padx=5, pady=2)
+            
+            # Backup status
+            ttk.Label(cloud_frame, textvariable=self.backup_status_var).grid(
+                row=0, column=2, sticky=tk.W, padx=5)
+
+    def on_closing(self):
+        """Handle cleanup when closing"""
+        try:
+            # Save current settings before closing
+            print("Saving settings on close...")
+            
+            # Save weighbridge settings
+            if hasattr(self, 'com_port_var'):
+                self.save_weighbridge_settings()
+            
+            # Save camera settings
+            if hasattr(self, 'front_camera_type_var'):
+                self.save_camera_settings()
+            
+            # Disconnect weighbridge
+            if self.weighbridge:
+                self.weighbridge.disconnect()
+                
+            print("Settings saved on close")
+            
+        except Exception as e:
+            print(f"Error saving settings on close: {e}")
 
     def authenticate_settings_access(self):
         """Authenticate for settings access"""
@@ -441,107 +836,6 @@ class SettingsPanel:
             
 # Fix for the create_weighbridge_settings method in settings_panel.py
 
-    def create_weighbridge_settings(self, parent):
-        """Create weighbridge configuration settings"""
-        # Initialize the weight status variable
-        self.weight_status_var = tk.StringVar(value="Ready")
-        
-        # Weighbridge settings frame
-        wb_frame = ttk.LabelFrame(parent, text="Weighbridge Configuration", padding=10)
-        wb_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
-        # COM Port selection
-        ttk.Label(wb_frame, text="COM Port:").grid(row=0, column=0, sticky=tk.W, pady=2)
-        self.com_port_combo = ttk.Combobox(wb_frame, textvariable=self.com_port_var, state="readonly")
-        self.com_port_combo.grid(row=0, column=1, sticky=tk.EW, pady=2, padx=5)
-        self.refresh_com_ports()
-        
-        # Refresh COM ports button
-        refresh_btn = HoverButton(wb_frame, text="Refresh Ports", bg=config.COLORS["primary_light"], 
-                                fg=config.COLORS["text"], padx=5, pady=2,
-                                command=self.refresh_com_ports)
-        refresh_btn.grid(row=0, column=2, padx=5, pady=2)
-        
-        # Baud rate
-        ttk.Label(wb_frame, text="Baud Rate:").grid(row=1, column=0, sticky=tk.W, pady=2)
-        baud_rates = [600, 1200, 2400, 4800, 9600, 14400, 19200, 57600, 115200]
-        ttk.Combobox(wb_frame, textvariable=self.baud_rate_var, values=baud_rates, 
-                    state="readonly").grid(row=1, column=1, sticky=tk.EW, pady=2, padx=5)
-        
-        # Data bits
-        ttk.Label(wb_frame, text="Data Bits:").grid(row=2, column=0, sticky=tk.W, pady=2)
-        ttk.Combobox(wb_frame, textvariable=self.data_bits_var, values=[5, 6, 7, 8], 
-                    state="readonly").grid(row=2, column=1, sticky=tk.EW, pady=2, padx=5)
-        
-        # Parity
-        ttk.Label(wb_frame, text="Parity:").grid(row=3, column=0, sticky=tk.W, pady=2)
-        ttk.Combobox(wb_frame, textvariable=self.parity_var, 
-                    values=["None", "Odd", "Even", "Mark", "Space"], 
-                    state="readonly").grid(row=3, column=1, sticky=tk.EW, pady=2, padx=5)
-        
-        # Stop bits
-        ttk.Label(wb_frame, text="Stop Bits:").grid(row=4, column=0, sticky=tk.W, pady=2)
-        ttk.Combobox(wb_frame, textvariable=self.stop_bits_var, values=[1.0, 1.5, 2.0], 
-                    state="readonly").grid(row=4, column=1, sticky=tk.EW, pady=2, padx=5)
-        
-        # Connection buttons
-        btn_frame = ttk.Frame(wb_frame)
-        btn_frame.grid(row=5, column=0, columnspan=3, pady=10)
-        
-        self.connect_btn = HoverButton(btn_frame, text="Connect", bg=config.COLORS["secondary"], 
-                                    fg=config.COLORS["button_text"], padx=10, pady=3,
-                                    command=self.connect_weighbridge)
-        self.connect_btn.pack(side=tk.LEFT, padx=5)
-        
-        self.disconnect_btn = HoverButton(btn_frame, text="Disconnect", bg=config.COLORS["error"], 
-                                        fg=config.COLORS["button_text"], padx=10, pady=3,
-                                        command=self.disconnect_weighbridge, state=tk.DISABLED)
-        self.disconnect_btn.pack(side=tk.LEFT, padx=5)
-        
-        # Save settings button
-        save_settings_btn = HoverButton(btn_frame, text="Save Settings", bg=config.COLORS["primary"], 
-                                    fg=config.COLORS["button_text"], padx=10, pady=3,
-                                    command=self.save_weighbridge_settings)
-        save_settings_btn.pack(side=tk.LEFT, padx=5)
-        
-        # Status indicator
-        ttk.Label(wb_frame, textvariable=self.wb_status_var, 
-                foreground="red").grid(row=6, column=0, columnspan=3, sticky=tk.W)
-        
-        # Test weight display
-        ttk.Label(wb_frame, text="Current Weight:").grid(row=7, column=0, sticky=tk.W, pady=2)
-        self.weight_label = ttk.Label(wb_frame, textvariable=self.current_weight_var, 
-                                    font=("Segoe UI", 10, "bold"))
-        self.weight_label.grid(row=7, column=1, sticky=tk.W, pady=2)
-        
-        # Add a status indicator for invalid readings - NOW WE HAVE THE wb_frame VARIABLE
-        self.weight_status_label = ttk.Label(wb_frame, textvariable=self.weight_status_var, 
-                                        foreground="black")
-        self.weight_status_label.grid(row=8, column=0, columnspan=3, sticky=tk.W, pady=2)
-        
-        # Check if cloud storage is enabled and add backup section
-        if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
-            # Create a separator
-            ttk.Separator(wb_frame, orient=tk.HORIZONTAL).grid(
-                row=9, column=0, columnspan=3, sticky=tk.EW, pady=10)
-            
-            # Cloud backup section
-            cloud_frame = ttk.Frame(wb_frame)
-            cloud_frame.grid(row=10, column=0, columnspan=3, sticky=tk.EW, pady=5)
-            
-            ttk.Label(cloud_frame, text="Cloud Backup:").grid(row=0, column=0, sticky=tk.W)
-            
-            # Backup button
-            self.backup_btn = HoverButton(cloud_frame, 
-                                        text="Backup All Records to Cloud", 
-                                        bg=config.COLORS["primary_light"], 
-                                        fg=config.COLORS["text"], padx=5, pady=2,
-                                        command=self.backup_to_cloud)
-            self.backup_btn.grid(row=0, column=1, padx=5, pady=2)
-            
-            # Backup status
-            ttk.Label(cloud_frame, textvariable=self.backup_status_var).grid(
-                row=0, column=2, sticky=tk.W, padx=5)
 
 
     def backup_to_cloud(self):
@@ -981,88 +1275,7 @@ class SettingsPanel:
         except Exception as e:
             self.cam_status_var.set(f"Test error: {str(e)}")
 
-    def apply_camera_settings(self):
-        """Apply camera settings without saving"""
-        try:
-            # Get current settings
-            settings = self.get_current_camera_settings()
-            
-            # Apply to cameras through callback
-            if self.update_cameras_callback:
-                self.update_cameras_callback(settings)
-            
-            self.cam_status_var.set("Camera settings applied. Changes take effect on next capture.")
-            
-        except Exception as e:
-            self.cam_status_var.set(f"Error applying settings: {str(e)}")
 
-    def save_camera_settings(self):
-        """Save camera settings to persistent storage"""
-        try:
-            settings = self.get_current_camera_settings()
-            
-            if self.settings_storage.save_camera_settings(settings):
-                messagebox.showinfo("Success", "Camera settings saved successfully!")
-                self.cam_status_var.set("Settings saved successfully")
-            else:
-                messagebox.showerror("Error", "Failed to save camera settings.")
-                
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to save camera settings: {str(e)}")
-
-    def get_current_camera_settings(self):
-        """Get current camera settings from UI
-        
-        Returns:
-            dict: Camera settings
-        """
-        return {
-            "front_camera_type": self.front_camera_type_var.get(),
-            "front_camera_index": self.front_usb_index_var.get(),
-            "front_rtsp_username": self.front_rtsp_username_var.get(),
-            "front_rtsp_password": self.front_rtsp_password_var.get(),
-            "front_rtsp_ip": self.front_rtsp_ip_var.get(),
-            "front_rtsp_port": self.front_rtsp_port_var.get(),
-            "front_rtsp_endpoint": self.front_rtsp_endpoint_var.get(),
-            "back_camera_type": self.back_camera_type_var.get(),
-            "back_camera_index": self.back_usb_index_var.get(),
-            "back_rtsp_username": self.back_rtsp_username_var.get(),
-            "back_rtsp_password": self.back_rtsp_password_var.get(),
-            "back_rtsp_ip": self.back_rtsp_ip_var.get(),
-            "back_rtsp_port": self.back_rtsp_port_var.get(),
-            "back_rtsp_endpoint": self.back_rtsp_endpoint_var.get()
-        }
-
-    def load_saved_camera_settings(self):
-        """Load camera settings from storage"""
-        try:
-            camera_settings = self.settings_storage.get_camera_settings()
-            
-            if camera_settings:
-                # Load front camera settings
-                self.front_camera_type_var.set(camera_settings.get("front_camera_type", "USB"))
-                self.front_usb_index_var.set(camera_settings.get("front_camera_index", 0))
-                self.front_rtsp_username_var.set(camera_settings.get("front_rtsp_username", ""))
-                self.front_rtsp_password_var.set(camera_settings.get("front_rtsp_password", ""))
-                self.front_rtsp_ip_var.set(camera_settings.get("front_rtsp_ip", ""))
-                self.front_rtsp_port_var.set(camera_settings.get("front_rtsp_port", "554"))
-                self.front_rtsp_endpoint_var.set(camera_settings.get("front_rtsp_endpoint", "/stream1"))
-                
-                # Load back camera settings
-                self.back_camera_type_var.set(camera_settings.get("back_camera_type", "USB"))
-                self.back_usb_index_var.set(camera_settings.get("back_camera_index", 1))
-                self.back_rtsp_username_var.set(camera_settings.get("back_rtsp_username", ""))
-                self.back_rtsp_password_var.set(camera_settings.get("back_rtsp_password", ""))
-                self.back_rtsp_ip_var.set(camera_settings.get("back_rtsp_ip", ""))
-                self.back_rtsp_port_var.set(camera_settings.get("back_rtsp_port", "554"))
-                self.back_rtsp_endpoint_var.set(camera_settings.get("back_rtsp_endpoint", "/stream1"))
-                
-                # Update UI states
-                self.on_camera_type_change("front")
-                self.on_camera_type_change("back")
-                
-        except Exception as e:
-            print(f"Error loading camera settings: {e}")
 
 
     def on_camera_type_change(self, position):
@@ -1614,26 +1827,6 @@ class SettingsPanel:
             self.connect_btn.config(state=tk.NORMAL)
             self.disconnect_btn.config(state=tk.DISABLED)
             self.current_weight_var.set("0 kg")
-    
-
-
-    
-  
-    def save_weighbridge_settings(self):
-        """Save weighbridge settings to persistent storage"""
-        settings = {
-            "com_port": self.com_port_var.get(),
-            "baud_rate": self.baud_rate_var.get(),
-            "data_bits": self.data_bits_var.get(),
-            "parity": self.parity_var.get(),
-            "stop_bits": self.stop_bits_var.get()
-        }
-        
-        if self.settings_storage.save_weighbridge_settings(settings):
-            messagebox.showinfo("Success", "Weighbridge settings saved successfully!")
-        else:
-            messagebox.showerror("Error", "Failed to save weighbridge settings.")
-    
 
     
     def load_users(self):
@@ -2042,7 +2235,3 @@ class SettingsPanel:
         tree.tag_configure("evenrow", background=config.COLORS["table_row_even"])
         tree.tag_configure("oddrow", background=config.COLORS["table_row_odd"])
     
-    def on_closing(self):
-        """Handle cleanup when closing"""
-        if self.weighbridge:
-            self.weighbridge.disconnect()

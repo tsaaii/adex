@@ -9,25 +9,35 @@ from cloud_storage import CloudStorageService
 
 
 class DataManager:
-    """Class for managing data operations with the CSV file"""
+    """Class for managing data operations with dynamic CSV files"""
     
     def __init__(self):
         """Initialize data manager"""
-        self.data_file = config.DATA_FILE
+        self.data_file = config.DATA_FILE  # This will be updated when context is set
         self.initialize_new_csv_structure()
+        
+    def get_current_data_file(self):
+        """Get the current data file path
+        
+        Returns:
+            str: Current data file path
+        """
+        return config.get_current_data_file()
         
     def initialize_new_csv_structure(self):
         """Update CSV structure to include weighment fields if needed"""
-        if not os.path.exists(self.data_file):
+        current_file = self.get_current_data_file()
+        
+        if not os.path.exists(current_file):
             # Create new file with updated header
-            with open(self.data_file, 'w', newline='') as csv_file:
+            with open(current_file, 'w', newline='') as csv_file:
                 writer = csv.writer(csv_file)
                 writer.writerow(config.CSV_HEADER)
             return
             
         try:
             # Check if existing file has the new structure
-            with open(self.data_file, 'r', newline='') as csv_file:
+            with open(current_file, 'r', newline='') as csv_file:
                 reader = csv.reader(csv_file)
                 header = next(reader, None)
                 
@@ -40,11 +50,11 @@ class DataManager:
                 data = list(reader)  # Read all existing data
             
             # Create backup of old file
-            backup_file = f"{self.data_file}.backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            os.rename(self.data_file, backup_file)
+            backup_file = f"{current_file}.backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            os.rename(current_file, backup_file)
             
             # Create new file with updated structure
-            with open(self.data_file, 'w', newline='') as csv_file:
+            with open(current_file, 'w', newline='') as csv_file:
                 writer = csv.writer(csv_file)
                 
                 # Write new header
@@ -69,7 +79,9 @@ class DataManager:
                             row[10] if len(row) > 10 else "",  # Net Weight
                             row[11] if len(row) > 11 else "",  # Material Type
                             row[12] if len(row) > 12 else "",  # Front Image
-                            row[13] if len(row) > 13 else ""   # Back Image
+                            row[13] if len(row) > 13 else "",  # Back Image
+                            row[14] if len(row) > 14 else "",  # Site Incharge
+                            row[15] if len(row) > 15 else ""   # User Name
                         ]
                         writer.writerow(new_row)
                         
@@ -81,7 +93,25 @@ class DataManager:
             messagebox.showerror("Database Update Error", 
                               f"Error updating database structure: {e}\n"
                               "The application may not function correctly.")
-            
+
+    def set_agency_site_context(self, agency_name, site_name):
+        """Set the current agency and site context for file operations
+        
+        Args:
+            agency_name: Current agency name
+            site_name: Current site name
+        """
+        # Update the global context
+        config.set_current_context(agency_name, site_name)
+        
+        # Update our local reference
+        self.data_file = self.get_current_data_file()
+        
+        # Ensure the new file exists with proper structure
+        self.initialize_new_csv_structure()
+        
+        print(f"Data context set to: Agency='{agency_name}', Site='{site_name}'")
+        print(f"Data file: {self.data_file}")
 
     def save_to_cloud(self, data):
         """Save record as JSON to Google Cloud Storage only if both weighments are complete
@@ -118,11 +148,12 @@ class DataManager:
             
             # Get site name and ticket number for folder structure
             site_name = data.get('site_name', 'Unknown_Site').replace(' ', '_').replace('/', '_')
+            agency_name = data.get('agency_name', 'Unknown_Agency').replace(' ', '_').replace('/', '_')
             ticket_no = data.get('ticket_no', 'unknown')
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             
-            # Create structured filename: site_name/ticket_number/timestamp.json
-            filename = f"{site_name}/{ticket_no}/{timestamp}.json"
+            # Create structured filename: agency_name/site_name/ticket_number/timestamp.json
+            filename = f"{agency_name}/{site_name}/{ticket_no}/{timestamp}.json"
             
             # Add some additional metadata to the JSON
             enhanced_data = data.copy()
@@ -176,6 +207,9 @@ class DataManager:
             bool: True if successful, False otherwise
         """
         try:
+            # Use the current data file
+            current_file = self.get_current_data_file()
+            
             # Check if this is an update to an existing record
             ticket_no = data.get('ticket_no', '')
             is_update = False
@@ -226,55 +260,6 @@ class DataManager:
             print(f"Error saving record: {e}")
             return False
 
-    def backup_complete_records_to_cloud(self):
-        """Backup all complete records to cloud storage organized by site
-        
-        Returns:
-            tuple: (success_count, total_complete_records)
-        """
-        try:
-            # Initialize cloud storage if not already initialized
-            if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
-                self.cloud_storage = CloudStorageService(
-                    config.CLOUD_BUCKET_NAME,
-                    config.CLOUD_CREDENTIALS_PATH
-                )
-            
-            # Check if connected to cloud storage
-            if not self.cloud_storage.is_connected():
-                print("Not connected to cloud storage")
-                return 0, 0
-            
-            # Get all records
-            all_records = self.get_all_records()
-            
-            # Filter for complete records only
-            complete_records = []
-            for record in all_records:
-                first_weight = record.get('first_weight', '').strip()
-                first_timestamp = record.get('first_timestamp', '').strip()
-                second_weight = record.get('second_weight', '').strip()
-                second_timestamp = record.get('second_timestamp', '').strip()
-                
-                if (first_weight and first_timestamp and second_weight and second_timestamp):
-                    complete_records.append(record)
-            
-            print(f"Found {len(complete_records)} complete records out of {len(all_records)} total records")
-            
-            # Upload complete records to cloud
-            success_count = 0
-            for record in complete_records:
-                if self.save_to_cloud(record):
-                    success_count += 1
-            
-            print(f"Successfully uploaded {success_count} out of {len(complete_records)} complete records to cloud")
-            return success_count, len(complete_records)
-            
-        except Exception as e:
-            print(f"Error during cloud backup: {str(e)}")
-            return 0, 0    
-
-    
     def add_new_record(self, data):
         """Add a new record to the CSV file
         
@@ -307,8 +292,11 @@ class DataManager:
                 data.get('user_name', '')       # New field
             ]
             
+            # Use current data file
+            current_file = self.get_current_data_file()
+            
             # Write to CSV
-            with open(self.data_file, 'a', newline='') as csv_file:
+            with open(current_file, 'a', newline='') as csv_file:
                 writer = csv.writer(csv_file)
                 writer.writerow(record)
                 
@@ -328,9 +316,11 @@ class DataManager:
             bool: True if successful, False otherwise
         """
         try:
+            current_file = self.get_current_data_file()
+            
             # Read all records
             all_records = []
-            with open(self.data_file, 'r', newline='') as csv_file:
+            with open(current_file, 'r', newline='') as csv_file:
                 reader = csv.reader(csv_file)
                 header = next(reader)  # Skip header
                 all_records = list(reader)
@@ -377,7 +367,7 @@ class DataManager:
                 return False
                 
             # Write all records back to the file
-            with open(self.data_file, 'w', newline='') as csv_file:
+            with open(current_file, 'w', newline='') as csv_file:
                 writer = csv.writer(csv_file)
                 writer.writerow(header)  # Write header
                 writer.writerows(all_records)  # Write all records
@@ -389,18 +379,19 @@ class DataManager:
             return False
 
     def get_all_records(self):
-        """Get all records from CSV file
+        """Get all records from current CSV file
         
         Returns:
             list: List of records as dictionaries
         """
         records = []
+        current_file = self.get_current_data_file()
         
-        if not os.path.exists(self.data_file):
+        if not os.path.exists(current_file):
             return records
             
         try:
-            with open(self.data_file, 'r', newline='') as csv_file:
+            with open(current_file, 'r', newline='') as csv_file:
                 reader = csv.reader(csv_file)
                 
                 # Skip header
@@ -445,11 +436,13 @@ class DataManager:
         Returns:
             dict: Record as dictionary or None if not found
         """
-        if not os.path.exists(self.data_file):
+        current_file = self.get_current_data_file()
+        
+        if not os.path.exists(current_file):
             return None
             
         try:
-            with open(self.data_file, 'r', newline='') as csv_file:
+            with open(current_file, 'r', newline='') as csv_file:
                 reader = csv.reader(csv_file)
                 
                 # Skip header
@@ -506,6 +499,54 @@ class DataManager:
                 filtered_records.append(record)
                 
         return filtered_records
+
+    def backup_complete_records_to_cloud(self):
+        """Backup all complete records to cloud storage organized by site
+        
+        Returns:
+            tuple: (success_count, total_complete_records)
+        """
+        try:
+            # Initialize cloud storage if not already initialized
+            if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
+                self.cloud_storage = CloudStorageService(
+                    config.CLOUD_BUCKET_NAME,
+                    config.CLOUD_CREDENTIALS_PATH
+                )
+            
+            # Check if connected to cloud storage
+            if not self.cloud_storage.is_connected():
+                print("Not connected to cloud storage")
+                return 0, 0
+            
+            # Get all records
+            all_records = self.get_all_records()
+            
+            # Filter for complete records only
+            complete_records = []
+            for record in all_records:
+                first_weight = record.get('first_weight', '').strip()
+                first_timestamp = record.get('first_timestamp', '').strip()
+                second_weight = record.get('second_weight', '').strip()
+                second_timestamp = record.get('second_timestamp', '').strip()
+                
+                if (first_weight and first_timestamp and second_weight and second_timestamp):
+                    complete_records.append(record)
+            
+            print(f"Found {len(complete_records)} complete records out of {len(all_records)} total records")
+            
+            # Upload complete records to cloud
+            success_count = 0
+            for record in complete_records:
+                if self.save_to_cloud(record):
+                    success_count += 1
+            
+            print(f"Successfully uploaded {success_count} out of {len(complete_records)} complete records to cloud")
+            return success_count, len(complete_records)
+            
+        except Exception as e:
+            print(f"Error during cloud backup: {str(e)}")
+            return 0, 0
     
     def validate_record(self, data):
         """Validate record data
