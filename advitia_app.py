@@ -38,6 +38,11 @@ class TharuniApp:
         # Initialize settings storage
         self.settings_storage = SettingsStorage()
         
+        # IMPORTANT: Verify settings integrity at startup
+        if not self.settings_storage.verify_settings_integrity():
+            print("Settings integrity check failed - reinitializing settings files")
+            self.settings_storage.initialize_files()
+        
         # Initialize UI styles
         self.style = create_styles()
         
@@ -45,11 +50,14 @@ class TharuniApp:
         self.logged_in_user = None
         self.user_role = None
         self.selected_site = None
-        self.selected_incharge = None  # Added incharge selection
+        self.selected_incharge = None
         self.authenticate_user()
         
         # Initialize UI components if login successful
         if self.logged_in_user:
+            # IMPORTANT: Set the data context based on login selections
+            self.setup_data_context()
+            
             self.create_widgets()
             
             # Start time update
@@ -58,7 +66,7 @@ class TharuniApp:
             # Start periodic refresh for pending vehicles
             self.periodic_refresh()
             
-            # Add window close handler
+            # Add window close handler with settings persistence
             self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def authenticate_user(self):
@@ -73,7 +81,118 @@ class TharuniApp:
         else:
             # Exit application if login failed or canceled
             self.root.quit()
-    
+
+    def setup_data_context(self):
+        """Set up the data context based on login selections"""
+        try:
+            # Get the first agency from settings if none selected during login
+            sites_data = self.settings_storage.get_sites()
+            agencies = sites_data.get('agencies', ['Default Agency'])
+            
+            # Use the first agency if available, or fallback
+            agency_name = agencies[0] if agencies else 'Default Agency'
+            
+            # Use selected site or default
+            site_name = self.selected_site if self.selected_site else 'Guntur'
+            
+            # Set the data context for dynamic filename
+            self.data_manager.set_agency_site_context(agency_name, site_name)
+            
+            # Store context for reference
+            self.current_agency = agency_name
+            self.current_site = site_name
+            
+            print(f"Data context initialized: Agency='{agency_name}', Site='{site_name}'")
+            print(f"Data will be saved to: {self.data_manager.get_current_data_file()}")
+            
+        except Exception as e:
+            print(f"Error setting up data context: {e}")
+            # Fallback to default context
+            self.data_manager.set_agency_site_context('Default Agency', 'Guntur')
+
+    def ensure_settings_persistence(self):
+        """Ensure settings are properly loaded and persisted"""
+        try:
+            print("Ensuring settings persistence...")
+            
+            # Verify settings integrity
+            if not self.settings_storage.verify_settings_integrity():
+                print("Settings integrity check failed - reinitializing")
+                self.settings_storage.initialize_files()
+            
+            # Load and apply weighbridge settings if available
+            wb_settings = self.settings_storage.get_weighbridge_settings()
+            if wb_settings and wb_settings.get("com_port"):
+                print(f"Found saved weighbridge settings: {wb_settings}")
+                
+                # Try to auto-connect if settings are complete
+                if hasattr(self, 'settings_panel'):
+                    self.root.after(2000, self.settings_panel.auto_connect_weighbridge)
+            
+            # Load and apply camera settings if available
+            cam_settings = self.settings_storage.get_camera_settings()
+            if cam_settings:
+                print(f"Found saved camera settings: {cam_settings}")
+                
+                # Apply camera settings to main form
+                if hasattr(self, 'main_form'):
+                    self.update_camera_indices(cam_settings)
+            
+            print("Settings persistence check completed")
+            
+        except Exception as e:
+            print(f"Error ensuring settings persistence: {e}")
+
+    def create_widgets(self):
+        """Create all widgets and layout for the application"""
+        # Create main container frame
+        main_container = ttk.Frame(self.root, padding="5", style="TFrame")
+        main_container.pack(fill=tk.BOTH, expand=True)
+        
+        # Title and header section with user and site info
+        self.create_header(main_container)
+        
+        # Create notebook for tabs
+        self.notebook = ttk.Notebook(main_container)
+        self.notebook.pack(fill=tk.BOTH, expand=True, pady=(5, 0))
+        
+        # Create tabs
+        main_tab = ttk.Frame(self.notebook, style="TFrame")
+        self.notebook.add(main_tab, text="Vehicle Entry")
+        
+        summary_tab = ttk.Frame(self.notebook, style="TFrame")
+        self.notebook.add(summary_tab, text="Recent Entries")
+        
+        settings_tab = ttk.Frame(self.notebook, style="TFrame")
+        self.notebook.add(settings_tab, text="Settings")
+        
+        # Main panel with scrollable frame for small screens
+        self.create_main_panel(main_tab)
+        
+        # Create summary panel
+        self.summary_panel = SummaryPanel(summary_tab, self.data_manager)
+        
+        # Create settings panel with user info and weighbridge callback
+        self.settings_panel = SettingsPanel(
+            settings_tab, 
+            weighbridge_callback=self.update_weight_from_weighbridge,  # This is the key callback
+            update_cameras_callback=self.update_camera_indices,
+            current_user=self.logged_in_user,
+            user_role=self.user_role
+        )
+        
+        # Handle role-based access to settings tabs - with error handling
+        try:
+            if self.user_role != 'admin' and hasattr(self.settings_panel, 'settings_notebook'):
+                # Hide user and site management tabs for non-admin users
+                self.settings_panel.settings_notebook.tab(2, state=tk.HIDDEN)  # Users tab
+                self.settings_panel.settings_notebook.tab(3, state=tk.HIDDEN)  # Sites tab
+        except (AttributeError, tk.TclError) as e:
+            print(f"Error setting tab visibility: {e}")
+        
+        # IMPORTANT: Ensure settings persistence after all widgets are created
+        self.root.after(1000, self.ensure_settings_persistence)
+
     def create_main_panel(self, parent):
         """Create main panel with form and pending vehicles list"""
         # Main panel to hold everything with scrollable frame for small screens
@@ -135,9 +254,14 @@ class TharuniApp:
         if self.selected_site:
             self.main_form.set_site(self.selected_site)
 
-        # Set the agency/incharge name based on login selection if available
+        # UPDATED: Properly set agency and site incharge
+        # Set the agency based on current context
+        if hasattr(self, 'current_agency'):
+            self.main_form.set_agency(self.current_agency)
+
+        # Set the site incharge (separate from agency)
         if self.selected_incharge:
-            self.main_form.set_agency(self.selected_incharge)
+            self.main_form.set_site_incharge(self.selected_incharge)
         
         # Set user information
         self.main_form.set_user_info(
@@ -156,55 +280,8 @@ class TharuniApp:
         scrollable_frame.update_idletasks()
         canvas.configure(scrollregion=canvas.bbox("all"))
     
-    def create_widgets(self):
-        """Create all widgets and layout for the application"""
-        # Create main container frame
-        main_container = ttk.Frame(self.root, padding="5", style="TFrame")
-        main_container.pack(fill=tk.BOTH, expand=True)
-        
-        # Title and header section with user and site info
-        self.create_header(main_container)
-        
-        # Create notebook for tabs
-        self.notebook = ttk.Notebook(main_container)
-        self.notebook.pack(fill=tk.BOTH, expand=True, pady=(5, 0))
-        
-        # Create tabs
-        main_tab = ttk.Frame(self.notebook, style="TFrame")
-        self.notebook.add(main_tab, text="Vehicle Entry")
-        
-        summary_tab = ttk.Frame(self.notebook, style="TFrame")
-        self.notebook.add(summary_tab, text="Recent Entries")
-        
-        settings_tab = ttk.Frame(self.notebook, style="TFrame")
-        self.notebook.add(settings_tab, text="Settings")
-        
-        # Main panel with scrollable frame for small screens
-        self.create_main_panel(main_tab)
-        
-        # Create summary panel
-        self.summary_panel = SummaryPanel(summary_tab, self.data_manager)
-        
-        # Create settings panel with user info and weighbridge callback
-        self.settings_panel = SettingsPanel(
-            settings_tab, 
-            weighbridge_callback=self.update_weight_from_weighbridge,  # This is the key callback
-            update_cameras_callback=self.update_camera_indices,
-            current_user=self.logged_in_user,
-            user_role=self.user_role
-        )
-        
-        # Handle role-based access to settings tabs - with error handling
-        try:
-            if self.user_role != 'admin' and hasattr(self.settings_panel, 'settings_notebook'):
-                # Hide user and site management tabs for non-admin users
-                self.settings_panel.settings_notebook.tab(2, state=tk.HIDDEN)  # Users tab
-                self.settings_panel.settings_notebook.tab(3, state=tk.HIDDEN)  # Sites tab
-        except (AttributeError, tk.TclError) as e:
-            print(f"Error setting tab visibility: {e}")
-    
     def create_header(self, parent):
-        """Create header with title, user info, site info, incharge info and date/time"""
+        """Create header with title, user info, site info, incharge info, current data file and date/time"""
         # Title with company logo effect
         header_frame = ttk.Frame(parent, style="TFrame")
         header_frame.pack(fill=tk.X, pady=(0, 5))
@@ -250,6 +327,16 @@ class TharuniApp:
                                 bg=config.COLORS["header_bg"])
             incharge_label.pack(side=tk.TOP, anchor=tk.W)
         
+        # Show current data file
+        if hasattr(self, 'data_manager'):
+            current_file = os.path.basename(self.data_manager.get_current_data_file())
+            file_label = tk.Label(info_frame, 
+                                text=f"Data: {current_file}",
+                                font=("Segoe UI", 8, "italic"),
+                                fg=config.COLORS["primary_light"],
+                                bg=config.COLORS["header_bg"])
+            file_label.pack(side=tk.TOP, anchor=tk.W)
+        
         # Add logout button
         logout_btn = HoverButton(title_box, 
                             text="Logout", 
@@ -291,8 +378,6 @@ class TharuniApp:
                             fg=config.COLORS["white"],
                             bg=config.COLORS["header_bg"])
         time_label.grid(row=0, column=3, sticky="w")
-    
-# In advitia_app.py, fix load_pending_vehicle method
 
     def load_pending_vehicle(self, ticket_no):
         """Load a pending vehicle when selected from the pending vehicles panel
@@ -317,11 +402,6 @@ class TharuniApp:
                 messagebox.showinfo("Vehicle Selected", 
                                 f"Ticket {ticket_no} loaded for second weighment.\n"
                                 "Press 'Capture Weight' button when the vehicle is on the weighbridge.")
-                
-                # REMOVED: The auto-capture code
-                # weight = self.get_current_weighbridge_weight()
-                # if weight is not None:
-                #     self.main_form.handle_weighbridge_weight(weight)
     
     def is_weighbridge_connected(self):
         """Check if weighbridge is connected"""
@@ -360,41 +440,6 @@ class TharuniApp:
             # Try to reschedule even if there was an error
             self._refresh_job = self.root.after(60000, self.periodic_refresh)
 
-
-    # Fix for TharuniApp.update_weight_from_weighbridge in advitia_app.py
-    # Fix for TharuniApp.update_weight_from_weighbridge in advitia_app.py
-
-
-
-    # Update main_form.py with a new validation method to avoid changing the signature of existing methods
-
-    def validate_basic_fields(self):
-        """Validate that basic required fields are filled"""
-        return self._validate_basic_fields_internal(show_error=True)
-
-    def _validate_basic_fields_internal(self, show_error=True):
-        """Internal validation method with error display control
-        
-        Args:
-            show_error: Whether to show error message boxes
-        """
-        required_fields = {
-            "Ticket No": self.rst_var.get(),
-            "Vehicle No": self.vehicle_var.get(),
-            "Agency Name": self.agency_var.get()
-        }
-        
-        missing_fields = [field for field, value in required_fields.items() if not value.strip()]
-        
-        if missing_fields:
-            if show_error:
-                messagebox.showerror("Validation Error", 
-                                f"Please fill in the following required fields: {', '.join(missing_fields)}")
-            return False
-            
-        return True
-    # In advitia_app.py, modify update_weight_from_weighbridge
-
     def update_weight_from_weighbridge(self, weight):
         """Update weight from weighbridge - this is the key callback function
         
@@ -413,10 +458,6 @@ class TharuniApp:
             if hasattr(self, 'settings_panel'):
                 self.settings_panel.current_weight_var.set(f"{weight} kg")
                 
-            # Remove callback to settings_panel to prevent circular reference
-            # if hasattr(self, 'settings_panel'):
-            #     self.settings_panel.update_weight_display(weight)
-                
             # Only update UI, don't perform automatic actions
             # Just update the weight display in the UI
             if self.notebook.index("current") == 0 and hasattr(self, 'main_form'):
@@ -434,149 +475,38 @@ class TharuniApp:
             # Clear processing flag
             self._processing_weight_update = False
 
-        # Add a method to request auto capture when user explicitly asks for it
     def request_auto_capture(self):
         """Request that the next weighbridge update auto-captures the weight"""
         self._auto_capture_requested = True
-
-    # In main_form.py, modify the handle_weighbridge_weight method
-    def handle_weighbridge_weight(self, weight):
-        """Handle weight from weighbridge based on current state
-        
-        Args:
-            weight: Current weight from weighbridge
-        """
-        # Add a guard flag
-        if hasattr(self, '_processing_weight') and self._processing_weight:
-            return
-            
-        try:
-            # Set processing flag
-            self._processing_weight = True
-            
-            if not self.validate_basic_fields():
-                return
-                
-            # Format weight to 2 decimal places
-            formatted_weight = f"{weight:.2f}"
-            
-            # Set current timestamp
-            now = datetime.datetime.now()
-            timestamp = now.strftime("%d-%m-%Y %H:%M:%S")
-            
-            # Check if this is a first or second weighment
-            if self.current_weighment == "first":
-                # This is a new entry - set first weighment
-                self.first_weight_var.set(formatted_weight)
-                self.first_timestamp_var.set(timestamp)
-                
-                # Change current state to second weighment
-                self.current_weighment = "second"
-                self.weighment_state_var.set("Second Weighment")
-                
-                # DON'T auto-save unless user explicitly requested it
-                user_requested_save = getattr(self, '_user_requested_save', False)
-                if self.save_callback and user_requested_save:
-                    self._user_requested_save = False  # Reset the flag
-                    self.save_callback()
-                    
-                # Display confirmation
-                messagebox.showinfo("First Weighment", 
-                                f"First weighment recorded: {formatted_weight} kg\n"
-                                f"Click Save Record to add to pending queue")
-                    
-            elif self.current_weighment == "second":
-                # Similar changes for second weighment
-                self.second_weight_var.set(formatted_weight)
-                self.second_timestamp_var.set(timestamp)
-                
-                # Calculate net weight
-                self.calculate_net_weight()
-                
-                # Update state
-                self.weighment_state_var.set("Weighment Complete")
-                
-                # DON'T auto-save unless user explicitly requested it
-                user_requested_save = getattr(self, '_user_requested_save', False)
-                if self.save_callback and user_requested_save:
-                    self._user_requested_save = False  # Reset the flag
-                    self.save_callback()
-                    
-                # Display confirmation
-                messagebox.showinfo("Second Weighment", 
-                                f"Second weighment recorded: {formatted_weight} kg\n"
-                                f"Net weight: {self.net_weight_var.get()} kg\n"
-                                f"Click Save Record to complete the record")
-        finally:
-            # Clear processing flag
-            self._processing_weight = False
-
-    # Add a method to request user-initiated save
-    def request_save(self):
-        """Mark that the user has explicitly requested a save"""
-        self._user_requested_save = True
-
-        # Update settings_panel.py update_weight_display to avoid double callbacks
-
-        def update_weight_display(self, weight):
-            """Update weight display (callback for weighbridge)
-            
-            Args:
-                weight: Weight value to display
-            """
-            # Guard against recursive callbacks
-            if self.processing_callback:
-                return
-                
-            try:
-                self.processing_callback = True
-                
-                # Update the weight variable
-                self.current_weight_var.set(f"{weight:.2f} kg")
-                
-                # Update weight label color based on connection status
-                if hasattr(self, 'weight_label'):
-                    if self.wb_status_var.get() == "Status: Connected":
-                        self.weight_label.config(foreground="green")
-                    else:
-                        self.weight_label.config(foreground="red")
-                
-                # Only propagate the callback if this is a direct weighbridge update,
-                # not if we're being called from TharuniApp.update_weight_from_weighbridge
-                if self.weighbridge_callback and not hasattr(self, '_from_app_update'):
-                    try:
-                        # Set a flag so we know this is from TharuniApp
-                        self._from_app_update = True
-                        self.weighbridge_callback(weight)
-                    except Exception as e:
-                        print(f"Error in weighbridge_callback: {e}")
-                    finally:
-                        # Clear the flag
-                        if hasattr(self, '_from_app_update'):
-                            delattr(self, '_from_app_update')
-                        
-            except Exception as e:
-                print(f"Error in update_weight_display: {e}")
-            finally:
-                self.processing_callback = False
     
     def update_camera_indices(self, settings):
-        """Update camera settings
+        """Update camera settings and ensure they persist
         
         Args:
             settings: Camera settings dictionary
         """
-        if hasattr(self, 'main_form'):
-            # Stop cameras if running
-            if hasattr(self.main_form, 'front_camera'):
-                self.main_form.front_camera.stop_camera()
-                
-            if hasattr(self.main_form, 'back_camera'):
-                self.main_form.back_camera.stop_camera()
+        try:
+            print(f"Updating camera settings: {settings}")
             
-            # Update camera settings
-            if hasattr(self.main_form, 'update_camera_settings'):
-                self.main_form.update_camera_settings(settings)
+            if hasattr(self, 'main_form'):
+                # Stop cameras if running
+                if hasattr(self.main_form, 'front_camera'):
+                    self.main_form.front_camera.stop_camera()
+                    
+                if hasattr(self.main_form, 'back_camera'):
+                    self.main_form.back_camera.stop_camera()
+                
+                # Update camera settings
+                if hasattr(self.main_form, 'update_camera_settings'):
+                    self.main_form.update_camera_settings(settings)
+            
+            # Save settings to ensure persistence
+            if hasattr(self, 'settings_storage'):
+                self.settings_storage.save_camera_settings(settings)
+                print("Camera settings saved for persistence")
+                
+        except Exception as e:
+            print(f"Error updating camera settings: {e}")
         
     def save_record(self):
         """Save current record to database"""
@@ -687,17 +617,23 @@ class TharuniApp:
         sys.exit(0)
     
     def on_closing(self):
-        """Handle application closing"""
+        """Handle application closing with settings persistence"""
         try:
+            print("Application closing - saving settings...")
+            
+            # Save settings through settings panel
+            if hasattr(self, 'settings_panel'):
+                self.settings_panel.on_closing()
+            
             # Clean up resources
             if hasattr(self, 'main_form'):
                 self.main_form.on_closing()
             
-            if hasattr(self, 'settings_panel'):
-                self.settings_panel.on_closing()
+            print("Settings saved on application close")
             
             # Close the application
             self.root.destroy()
+            
         except Exception as e:
             print(f"Error during shutdown: {e}")
             self.root.destroy()
