@@ -665,13 +665,6 @@ class SettingsPanel:
         if hasattr(self, 'save_settings_btn'):
             self.save_settings_btn.config(state="normal")
 
-
-
-    def enable_all_settings(self):
-        """Enable all settings input widgets"""
-        # Enable weighbridge settings
-        if hasattr(self, 'com_port_combo'):
-            self.com_port_combo.config(state="readonly")
     
     def init_variables(self):
         """Initialize settings variables"""
@@ -993,65 +986,6 @@ class SettingsPanel:
         # Status message
         ttk.Label(cam_frame, textvariable=self.cam_status_var, 
                 foreground=config.COLORS["primary"]).pack(pady=5)
-
-
-    def test_camera_connections(self):
-        """Test both camera connections"""
-        try:
-            import cv2
-            import threading
-            
-            def test_camera(position, camera_type, connection_info):
-                try:
-                    if camera_type == "USB":
-                        cap = cv2.VideoCapture(connection_info)
-                    else:  # RTSP
-                        cap = cv2.VideoCapture(connection_info)
-                        cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 5000)
-                    
-                    if cap.isOpened():
-                        ret, frame = cap.read()
-                        cap.release()
-                        if ret:
-                            self.cam_status_var.set(f"{position.title()} camera: Connection successful")
-                        else:
-                            self.cam_status_var.set(f"{position.title()} camera: Connected but no video")
-                    else:
-                        self.cam_status_var.set(f"{position.title()} camera: Connection failed")
-                except Exception as e:
-                    self.cam_status_var.set(f"{position.title()} camera error: {str(e)}")
-            
-            # Test front camera
-            if self.front_camera_type_var.get() == "USB":
-                front_info = self.front_usb_index_var.get()
-            else:
-                front_info = self.settings_storage.get_rtsp_url("front")
-                if not front_info:
-                    self.cam_status_var.set("Front camera: Please configure RTSP settings")
-                    return
-            
-            # Test back camera
-            if self.back_camera_type_var.get() == "USB":
-                back_info = self.back_usb_index_var.get()
-            else:
-                back_info = self.settings_storage.get_rtsp_url("back")
-                if not back_info:
-                    self.cam_status_var.set("Back camera: Please configure RTSP settings")
-                    return
-            
-            self.cam_status_var.set("Testing camera connections...")
-            
-            # Test cameras in separate threads
-            front_thread = threading.Thread(target=test_camera, args=("front", self.front_camera_type_var.get(), front_info))
-            back_thread = threading.Thread(target=test_camera, args=("back", self.back_camera_type_var.get(), back_info))
-            
-            front_thread.start()
-            back_thread.start()
-            
-        except Exception as e:
-            self.cam_status_var.set(f"Test error: {str(e)}")
-
-
 
 
     def create_camera_config_tab(self, parent, position):

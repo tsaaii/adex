@@ -1,0 +1,25 @@
+{
+    "weighbridge": {
+        "com_port": "",
+        "baud_rate": 9600,
+        "data_bits": 8,
+        "parity": "None",
+        "stop_bits": 1.0
+    },
+    "cameras": {
+        "front_camera_type": "USB",
+        "front_camera_index": 0,
+        "front_rtsp_username": "",
+        "front_rtsp_password": "",
+        "front_rtsp_ip": "",
+        "front_rtsp_port": "554",
+        "front_rtsp_endpoint": "/stream1",
+        "back_camera_type": "USB",
+        "back_camera_index": 1,
+        "back_rtsp_username": "",
+        "back_rtsp_password": "",
+        "back_rtsp_ip": "",
+        "back_rtsp_port": "554",
+        "back_rtsp_endpoint": "/stream1"
+    }
+}
