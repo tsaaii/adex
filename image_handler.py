@@ -81,7 +81,7 @@ class ImageHandler:
             self.main_form.front_image_status_var.set("Front: ✓")
             self.main_form.front_image_status.config(foreground="green")
             
-            messagebox.showinfo("Success", "Front image saved!")
+            # messagebox.showinfo("Success", "Front image saved!")
             return True
             
         return False
@@ -118,7 +118,7 @@ class ImageHandler:
             self.main_form.back_image_status_var.set("Back: ✓")
             self.main_form.back_image_status.config(foreground="green")
             
-            messagebox.showinfo("Success", "Back image saved!")
+            # messagebox.showinfo("Success", "Back image saved!")
             return True
             
         return False

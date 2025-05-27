@@ -181,8 +181,8 @@ class MainForm:
             for record in records:
                 if record.get('ticket_no') == ticket_no:
                     if record.get('second_weight') and record.get('second_timestamp'):
-                        messagebox.showinfo("Completed Record", 
-                                        "This ticket already has both weighments completed.")
+                        # messagebox.showinfo("Completed Record", 
+                        #                 "This ticket already has both weighments completed.")
                         self.load_record_data(record)
                         self.current_weighment = "second"
                         self.weighment_state_var.set("Weighment Complete")
@@ -191,8 +191,8 @@ class MainForm:
                         self.current_weighment = "second"
                         self.load_record_data(record)
                         self.weighment_state_var.set("Second Weighment")
-                        messagebox.showinfo("Existing Ticket", 
-                                        "This ticket already has a first weighment. Proceed with second weighment.")
+                        # messagebox.showinfo("Existing Ticket", 
+                        #                 "This ticket already has a first weighment. Proceed with second weighment.")
                         return
                         
         # New ticket - set for first weighment

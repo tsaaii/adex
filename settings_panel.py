@@ -198,7 +198,7 @@ class SettingsPanel:
             print(f"Saving camera settings: {settings}")
             
             if self.settings_storage.save_camera_settings(settings):
-                messagebox.showinfo("Success", "Camera settings saved successfully!")
+                # messagebox.showinfo("Success", "Camera settings saved successfully!")
                 print("Camera settings saved to file")
                 
                 # Apply the settings immediately if callback available
@@ -449,9 +449,9 @@ class SettingsPanel:
         """Authenticate for settings access"""
         # Check if settings are locked
         if self.are_settings_locked():
-            messagebox.showinfo("Settings Locked", 
-                            "Settings have been locked by the administrator.\n"
-                            "Contact your system administrator to modify settings.")
+            # #messagebox.showinfo("Settings Locked", 
+            #                 "Settings have been locked by the administrator.\n"
+            #                 "Contact your system administrator to modify settings.")
             return False
         
         # If we already have a current user with admin role, allow access

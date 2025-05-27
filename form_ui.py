@@ -119,9 +119,9 @@ def create_form(self, parent):
                                     bg=config.COLORS["primary"], 
                                     fg=config.COLORS["button_text"],
                                     font=("Segoe UI", 10, "bold"),
-                                    padx=15, pady=8,
+                                    padx=10, pady=10,
                                     command=self.weight_manager.capture_weight)
-    self.capture_weight_btn.grid(row=0, column=3, rowspan=3, sticky="ns", padx=5, pady=5)
+    self.capture_weight_btn.grid(row=1, column=2, rowspan=3, sticky="ns", padx=5, pady=5)
 
     # First Row - First Weighment
     ttk.Label(weighment_frame, text="First Weighment:", font=("Segoe UI", 9, "bold")).grid(
