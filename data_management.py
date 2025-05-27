@@ -113,14 +113,14 @@ class DataManager:
         print(f"Data context set to: Agency='{agency_name}', Site='{site_name}'")
         print(f"Data file: {self.data_file}")
 
-    def save_to_cloud(self, data):
-        """Save record as JSON to Google Cloud Storage only if both weighments are complete
+    def save_to_cloud_with_images(self, data):
+        """Save record with images to Google Cloud Storage only if both weighments are complete
         
         Args:
             data: Record data dictionary
             
         Returns:
-            bool: True if successful, False otherwise
+            tuple: (success, images_uploaded, total_images)
         """
         try:
             # Check if both weighments are complete before saving to cloud
@@ -132,7 +132,7 @@ class DataManager:
             # Only save to cloud if both weighments are complete
             if not (first_weight and first_timestamp and second_weight and second_timestamp):
                 print(f"Skipping cloud save for ticket {data.get('ticket_no', 'unknown')} - incomplete weighments")
-                return False
+                return False, 0, 0
             
             # Initialize cloud storage if not already initialized
             if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
@@ -144,7 +144,7 @@ class DataManager:
             # Check if connected to cloud storage
             if not self.cloud_storage.is_connected():
                 print("Not connected to cloud storage")
-                return False
+                return False, 0, 0
             
             # Get site name and ticket number for folder structure
             site_name = data.get('site_name', 'Unknown_Site').replace(' ', '_').replace('/', '_')
@@ -153,7 +153,7 @@ class DataManager:
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             
             # Create structured filename: agency_name/site_name/ticket_number/timestamp.json
-            filename = f"{agency_name}/{site_name}/{ticket_no}/{timestamp}.json"
+            json_filename = f"{agency_name}/{site_name}/{ticket_no}/{timestamp}.json"
             
             # Add some additional metadata to the JSON
             enhanced_data = data.copy()
@@ -164,19 +164,39 @@ class DataManager:
                 enhanced_data.get('second_weight', '')
             )
             
-            # Save to cloud storage
-            success = self.cloud_storage.save_json(enhanced_data, filename)
+            # Upload record with images using the new method
+            json_success, images_uploaded, total_images = self.cloud_storage.upload_record_with_images(
+                enhanced_data, 
+                json_filename, 
+                config.IMAGES_FOLDER
+            )
             
-            if success:
-                print(f"Record {ticket_no} successfully saved to cloud at {filename}")
+            if json_success:
+                print(f"Record {ticket_no} successfully saved to cloud at {json_filename}")
+                if images_uploaded > 0:
+                    print(f"Uploaded {images_uploaded}/{total_images} images for ticket {ticket_no}")
+                else:
+                    print(f"No images found to upload for ticket {ticket_no}")
             else:
                 print(f"Failed to save record {ticket_no} to cloud")
                 
-            return success
+            return json_success, images_uploaded, total_images
             
         except Exception as e:
-            print(f"Error saving to cloud: {str(e)}")
-            return False
+            print(f"Error saving to cloud with images: {str(e)}")
+            return False, 0, 0
+
+    def save_to_cloud(self, data):
+        """Legacy method - now calls the new save_to_cloud_with_images method
+        
+        Args:
+            data: Record data dictionary
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        success, _, _ = self.save_to_cloud_with_images(data)
+        return success
 
     def _calculate_net_weight_for_cloud(self, first_weight_str, second_weight_str):
         """Calculate net weight for cloud storage
@@ -242,12 +262,17 @@ class DataManager:
             
             # Only save to cloud storage if enabled AND record is complete
             cloud_success = False
+            images_uploaded = 0
+            total_images = 0
+            
             if (hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE and 
                 is_complete_record):
-                cloud_success = self.save_to_cloud(data)
+                cloud_success, images_uploaded, total_images = self.save_to_cloud_with_images(data)
                 
                 if cloud_success:
                     print(f"Complete record {ticket_no} successfully saved to cloud")
+                    if images_uploaded > 0:
+                        print(f"Images uploaded: {images_uploaded}/{total_images}")
                 else:
                     print(f"Warning: Complete record {ticket_no} could not be saved to cloud")
             elif not is_complete_record:
@@ -501,10 +526,10 @@ class DataManager:
         return filtered_records
 
     def backup_complete_records_to_cloud(self):
-        """Backup all complete records to cloud storage organized by site
+        """Backup all complete records with images to cloud storage organized by site
         
         Returns:
-            tuple: (success_count, total_complete_records)
+            tuple: (success_count, total_complete_records, images_uploaded, total_images)
         """
         try:
             # Initialize cloud storage if not already initialized
@@ -517,7 +542,7 @@ class DataManager:
             # Check if connected to cloud storage
             if not self.cloud_storage.is_connected():
                 print("Not connected to cloud storage")
-                return 0, 0
+                return 0, 0, 0, 0
             
             # Get all records
             all_records = self.get_all_records()
@@ -535,18 +560,64 @@ class DataManager:
             
             print(f"Found {len(complete_records)} complete records out of {len(all_records)} total records")
             
-            # Upload complete records to cloud
+            # Upload complete records with images to cloud
             success_count = 0
+            total_images_uploaded = 0
+            total_images_found = 0
+            
             for record in complete_records:
-                if self.save_to_cloud(record):
+                json_success, images_uploaded, total_images = self.save_to_cloud_with_images(record)
+                if json_success:
                     success_count += 1
+                    total_images_uploaded += images_uploaded
+                    total_images_found += total_images
             
             print(f"Successfully uploaded {success_count} out of {len(complete_records)} complete records to cloud")
-            return success_count, len(complete_records)
+            print(f"Images uploaded: {total_images_uploaded} out of {total_images_found} found")
+            
+            return success_count, len(complete_records), total_images_uploaded, total_images_found
             
         except Exception as e:
             print(f"Error during cloud backup: {str(e)}")
-            return 0, 0
+            return 0, 0, 0, 0
+
+    def get_cloud_upload_summary(self):
+        """Get summary of files uploaded to cloud storage
+        
+        Returns:
+            dict: Upload summary with statistics
+        """
+        try:
+            if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
+                self.cloud_storage = CloudStorageService(
+                    config.CLOUD_BUCKET_NAME,
+                    config.CLOUD_CREDENTIALS_PATH
+                )
+            
+            if not self.cloud_storage.is_connected():
+                return {"error": "Not connected to cloud storage"}
+            
+            # Get current agency and site for filtering
+            agency_name = config.CURRENT_AGENCY or "Unknown_Agency"
+            site_name = config.CURRENT_SITE or "Unknown_Site"
+            
+            # Clean names for filtering
+            clean_agency = agency_name.replace(' ', '_').replace('/', '_')
+            clean_site = site_name.replace(' ', '_').replace('/', '_')
+            
+            # Get summary for current agency/site
+            prefix = f"{clean_agency}/{clean_site}/"
+            summary = self.cloud_storage.get_upload_summary(prefix)
+            
+            # Add context information
+            summary["agency"] = agency_name
+            summary["site"] = site_name
+            summary["context"] = f"{agency_name} - {site_name}"
+            
+            return summary
+            
+        except Exception as e:
+            return {"error": f"Error getting cloud summary: {str(e)}"}
     
     def validate_record(self, data):
         """Validate record data
@@ -581,3 +652,65 @@ class DataManager:
             return False, "No images captured"
             
         return True, ""
+
+    def cleanup_orphaned_images(self):
+        """Clean up image files that are not referenced in any records
+        
+        Returns:
+            tuple: (cleaned_files, total_size_freed)
+        """
+        try:
+            # Get all records
+            all_records = self.get_all_records()
+            
+            # Collect all referenced image filenames
+            referenced_images = set()
+            for record in all_records:
+                front_image = record.get('front_image', '').strip()
+                back_image = record.get('back_image', '').strip()
+                
+                if front_image:
+                    referenced_images.add(front_image)
+                if back_image:
+                    referenced_images.add(back_image)
+            
+            # Get all image files in the images folder
+            if not os.path.exists(config.IMAGES_FOLDER):
+                return 0, 0
+            
+            all_image_files = [f for f in os.listdir(config.IMAGES_FOLDER) 
+                             if f.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp'))]
+            
+            # Find orphaned images
+            orphaned_images = []
+            for image_file in all_image_files:
+                if image_file not in referenced_images:
+                    orphaned_images.append(image_file)
+            
+            # Clean up orphaned images
+            cleaned_files = 0
+            total_size_freed = 0
+            
+            for image_file in orphaned_images:
+                image_path = os.path.join(config.IMAGES_FOLDER, image_file)
+                if os.path.exists(image_path):
+                    try:
+                        # Get file size before deletion
+                        file_size = os.path.getsize(image_path)
+                        
+                        # Delete the file
+                        os.remove(image_path)
+                        
+                        cleaned_files += 1
+                        total_size_freed += file_size
+                        
+                        print(f"Cleaned up orphaned image: {image_file}")
+                        
+                    except Exception as e:
+                        print(f"Error cleaning up {image_file}: {e}")
+            
+            return cleaned_files, total_size_freed
+            
+        except Exception as e:
+            print(f"Error during image cleanup: {e}")
+            return 0, 0

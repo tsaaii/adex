@@ -379,6 +379,8 @@ class TharuniApp:
                             bg=config.COLORS["header_bg"])
         time_label.grid(row=0, column=3, sticky="w")
 
+
+    
     def load_pending_vehicle(self, ticket_no):
         """Load a pending vehicle when selected from the pending vehicles panel
         
@@ -389,19 +391,22 @@ class TharuniApp:
             # Switch to main tab
             self.notebook.select(0)
             
-            # Set the ticket number in the form
-            self.main_form.rst_var.set(ticket_no)
+            # Load the pending ticket data into the form
+            success = self.main_form.load_pending_ticket(ticket_no)
             
-            # Trigger the ticket existence check
-            # This will load record data and set correct weighment state
-            self.main_form.check_ticket_exists()
-            
-            # CHANGED: Don't automatically capture weight when selecting a pending vehicle
-            # Instead, inform the user they need to capture weight manually
-            if self.is_weighbridge_connected():
-                messagebox.showinfo("Vehicle Selected", 
-                                f"Ticket {ticket_no} loaded for second weighment.\n"
-                                "Press 'Capture Weight' button when the vehicle is on the weighbridge.")
+            if success:
+                # CHANGED: Don't automatically capture weight when selecting a pending vehicle
+                # Instead, inform the user they need to capture weight manually
+                if self.is_weighbridge_connected():
+                    messagebox.showinfo("Vehicle Selected", 
+                                    f"Ticket {ticket_no} loaded for second weighment.\n"
+                                    "Press 'Capture Weight' button when the vehicle is on the weighbridge.")
+                else:
+                    messagebox.showinfo("Vehicle Selected", 
+                                    f"Ticket {ticket_no} loaded for second weighment.\n"
+                                    "Please connect weighbridge and capture weight when ready.")
+            else:
+                messagebox.showerror("Error", f"Could not load ticket {ticket_no}")
     
     def is_weighbridge_connected(self):
         """Check if weighbridge is connected"""

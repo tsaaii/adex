@@ -19,7 +19,7 @@ psutil>=5.8.0
 
 # PDF Generation and Reporting
 reportlab>=3.6.0
-
+openpyxl>=3.0.0
 # Cloud Storage
 google-cloud-storage>=2.0.0
 
@@ -31,7 +31,7 @@ google-api-core>=2.0.0
 numpy>=1.21.0  # Required by opencv-python and pandas
 setuptools>=40.0.0  # For package management
 wheel>=0.36.0  # For package installation
-
+tkcalendar>=1.6.0 
 # Development and Testing (optional)
 # pytest>=6.0.0  # For running tests
 # black>=21.0.0  # For code formatting

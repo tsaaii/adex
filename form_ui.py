@@ -28,16 +28,17 @@ def create_form(self, parent):
     ttk.Label(form_inner, text="Agency Name:").grid(row=0, column=2, sticky=tk.W, padx=3, pady=3)
     
     # =================== ROW 1: First row of entries ===================
-    # Ticket No Entry - Column 0
-    ticket_entry = ttk.Entry(form_inner, textvariable=self.rst_var, width=config.STD_WIDTH)
+    # Ticket No Entry - Column 0 (READ-ONLY)
+    ticket_entry = ttk.Entry(form_inner, textvariable=self.rst_var, width=config.STD_WIDTH, state="readonly")
     ticket_entry.grid(row=1, column=0, sticky=tk.W, padx=3, pady=3)
-    ticket_entry.bind("<FocusOut>", self.check_ticket_exists)
+    # Remove the FocusOut binding since it's read-only
+    # ticket_entry.bind("<FocusOut>", self.check_ticket_exists)
     
-    # Auto-generate next ticket button
-    auto_ticket_btn = HoverButton(form_inner, text="Auto", 
-                                bg=config.COLORS["primary_light"], 
-                                fg=config.COLORS["text"],
-                                padx=2, pady=1,
+    # Auto-generate next ticket button (positioned next to the ticket entry)
+    auto_ticket_btn = HoverButton(form_inner, text="New", 
+                                bg=config.COLORS["primary"], 
+                                fg=config.COLORS["button_text"],
+                                padx=4, pady=1,
                                 command=self.generate_next_ticket_number)
     auto_ticket_btn.grid(row=1, column=0, sticky=tk.E, padx=(0, 5), pady=3)
     

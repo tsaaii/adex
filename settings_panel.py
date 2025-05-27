@@ -6,6 +6,7 @@ import config
 from ui_components import HoverButton
 from weighbridge import WeighbridgeManager
 from settings_storage import SettingsStorage
+import datetime
 
 
 class SettingsPanel:
@@ -373,113 +374,7 @@ class SettingsPanel:
         except Exception as e:
             print(f"Error in auto-connect: {e}")
 
-    def create_weighbridge_settings(self, parent):
-        """Create weighbridge configuration settings"""
-        # Initialize the weight status variable
-        self.weight_status_var = tk.StringVar(value="Ready")
-        
-        # Weighbridge settings frame
-        wb_frame = ttk.LabelFrame(parent, text="Weighbridge Configuration", padding=10)
-        wb_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
-        # COM Port selection
-        ttk.Label(wb_frame, text="COM Port:").grid(row=0, column=0, sticky=tk.W, pady=2)
-        self.com_port_combo = ttk.Combobox(wb_frame, textvariable=self.com_port_var, state="readonly")
-        self.com_port_combo.grid(row=0, column=1, sticky=tk.EW, pady=2, padx=5)
-        self.refresh_com_ports()
-        
-        # Refresh COM ports button
-        refresh_btn = HoverButton(wb_frame, text="Refresh Ports", bg=config.COLORS["primary_light"], 
-                                fg=config.COLORS["text"], padx=5, pady=2,
-                                command=self.refresh_com_ports)
-        refresh_btn.grid(row=0, column=2, padx=5, pady=2)
-        
-        # Baud rate
-        ttk.Label(wb_frame, text="Baud Rate:").grid(row=1, column=0, sticky=tk.W, pady=2)
-        baud_rates = [600, 1200, 2400, 4800, 9600, 14400, 19200, 57600, 115200]
-        ttk.Combobox(wb_frame, textvariable=self.baud_rate_var, values=baud_rates, 
-                    state="readonly").grid(row=1, column=1, sticky=tk.EW, pady=2, padx=5)
-        
-        # Data bits
-        ttk.Label(wb_frame, text="Data Bits:").grid(row=2, column=0, sticky=tk.W, pady=2)
-        ttk.Combobox(wb_frame, textvariable=self.data_bits_var, values=[5, 6, 7, 8], 
-                    state="readonly").grid(row=2, column=1, sticky=tk.EW, pady=2, padx=5)
-        
-        # Parity
-        ttk.Label(wb_frame, text="Parity:").grid(row=3, column=0, sticky=tk.W, pady=2)
-        ttk.Combobox(wb_frame, textvariable=self.parity_var, 
-                    values=["None", "Odd", "Even", "Mark", "Space"], 
-                    state="readonly").grid(row=3, column=1, sticky=tk.EW, pady=2, padx=5)
-        
-        # Stop bits
-        ttk.Label(wb_frame, text="Stop Bits:").grid(row=4, column=0, sticky=tk.W, pady=2)
-        ttk.Combobox(wb_frame, textvariable=self.stop_bits_var, values=[1.0, 1.5, 2.0], 
-                    state="readonly").grid(row=4, column=1, sticky=tk.EW, pady=2, padx=5)
-        
-        # Connection buttons
-        btn_frame = ttk.Frame(wb_frame)
-        btn_frame.grid(row=5, column=0, columnspan=3, pady=10)
-        
-        self.connect_btn = HoverButton(btn_frame, text="Connect", bg=config.COLORS["secondary"], 
-                                    fg=config.COLORS["button_text"], padx=10, pady=3,
-                                    command=self.connect_weighbridge)
-        self.connect_btn.pack(side=tk.LEFT, padx=5)
-        
-        self.disconnect_btn = HoverButton(btn_frame, text="Disconnect", bg=config.COLORS["error"], 
-                                        fg=config.COLORS["button_text"], padx=10, pady=3,
-                                        command=self.disconnect_weighbridge, state=tk.DISABLED)
-        self.disconnect_btn.pack(side=tk.LEFT, padx=5)
-        
-        # Save settings button
-        self.save_settings_btn = HoverButton(btn_frame, text="Save Settings", bg=config.COLORS["primary"], 
-                                    fg=config.COLORS["button_text"], padx=10, pady=3,
-                                    command=self.save_weighbridge_settings)
-        self.save_settings_btn.pack(side=tk.LEFT, padx=5)
-        
-        # Auto-connect button
-        auto_connect_btn = HoverButton(btn_frame, text="Auto Connect", bg=config.COLORS["warning"], 
-                                    fg=config.COLORS["button_text"], padx=10, pady=3,
-                                    command=self.auto_connect_weighbridge)
-        auto_connect_btn.pack(side=tk.LEFT, padx=5)
-        
-        # Status indicator
-        ttk.Label(wb_frame, textvariable=self.wb_status_var, 
-                foreground="red").grid(row=6, column=0, columnspan=3, sticky=tk.W)
-        
-        # Test weight display
-        ttk.Label(wb_frame, text="Current Weight:").grid(row=7, column=0, sticky=tk.W, pady=2)
-        self.weight_label = ttk.Label(wb_frame, textvariable=self.current_weight_var, 
-                                    font=("Segoe UI", 10, "bold"))
-        self.weight_label.grid(row=7, column=1, sticky=tk.W, pady=2)
-        
-        # Add a status indicator for invalid readings
-        self.weight_status_label = ttk.Label(wb_frame, textvariable=self.weight_status_var, 
-                                        foreground="black")
-        self.weight_status_label.grid(row=8, column=0, columnspan=3, sticky=tk.W, pady=2)
-        
-        # Check if cloud storage is enabled and add backup section
-        if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
-            # Create a separator
-            ttk.Separator(wb_frame, orient=tk.HORIZONTAL).grid(
-                row=9, column=0, columnspan=3, sticky=tk.EW, pady=10)
-            
-            # Cloud backup section
-            cloud_frame = ttk.Frame(wb_frame)
-            cloud_frame.grid(row=10, column=0, columnspan=3, sticky=tk.EW, pady=5)
-            
-            ttk.Label(cloud_frame, text="Cloud Backup:").grid(row=0, column=0, sticky=tk.W)
-            
-            # Backup button
-            self.backup_btn = HoverButton(cloud_frame, 
-                                        text="Backup All Records to Cloud", 
-                                        bg=config.COLORS["primary_light"], 
-                                        fg=config.COLORS["text"], padx=5, pady=2,
-                                        command=self.backup_to_cloud)
-            self.backup_btn.grid(row=0, column=1, padx=5, pady=2)
-            
-            # Backup status
-            ttk.Label(cloud_frame, textvariable=self.backup_status_var).grid(
-                row=0, column=2, sticky=tk.W, padx=5)
+
 
     def on_closing(self):
         """Handle cleanup when closing"""
@@ -889,9 +784,313 @@ class SettingsPanel:
 # Fix for the create_weighbridge_settings method in settings_panel.py
 
 
+    def create_weighbridge_settings(self, parent):
+        """Create weighbridge configuration settings with enhanced cloud features"""
+        # Initialize the weight status variable
+        self.weight_status_var = tk.StringVar(value="Ready")
+        
+        # Weighbridge settings frame
+        wb_frame = ttk.LabelFrame(parent, text="Weighbridge Configuration", padding=10)
+        wb_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # COM Port selection
+        ttk.Label(wb_frame, text="COM Port:").grid(row=0, column=0, sticky=tk.W, pady=2)
+        self.com_port_combo = ttk.Combobox(wb_frame, textvariable=self.com_port_var, state="readonly")
+        self.com_port_combo.grid(row=0, column=1, sticky=tk.EW, pady=2, padx=5)
+        self.refresh_com_ports()
+        
+        # Refresh COM ports button
+        refresh_btn = HoverButton(wb_frame, text="Refresh Ports", bg=config.COLORS["primary_light"], 
+                                fg=config.COLORS["text"], padx=5, pady=2,
+                                command=self.refresh_com_ports)
+        refresh_btn.grid(row=0, column=2, padx=5, pady=2)
+        
+        # Baud rate
+        ttk.Label(wb_frame, text="Baud Rate:").grid(row=1, column=0, sticky=tk.W, pady=2)
+        baud_rates = [600, 1200, 2400, 4800, 9600, 14400, 19200, 57600, 115200]
+        ttk.Combobox(wb_frame, textvariable=self.baud_rate_var, values=baud_rates, 
+                    state="readonly").grid(row=1, column=1, sticky=tk.EW, pady=2, padx=5)
+        
+        # Data bits
+        ttk.Label(wb_frame, text="Data Bits:").grid(row=2, column=0, sticky=tk.W, pady=2)
+        ttk.Combobox(wb_frame, textvariable=self.data_bits_var, values=[5, 6, 7, 8], 
+                    state="readonly").grid(row=2, column=1, sticky=tk.EW, pady=2, padx=5)
+        
+        # Parity
+        ttk.Label(wb_frame, text="Parity:").grid(row=3, column=0, sticky=tk.W, pady=2)
+        ttk.Combobox(wb_frame, textvariable=self.parity_var, 
+                    values=["None", "Odd", "Even", "Mark", "Space"], 
+                    state="readonly").grid(row=3, column=1, sticky=tk.EW, pady=2, padx=5)
+        
+        # Stop bits
+        ttk.Label(wb_frame, text="Stop Bits:").grid(row=4, column=0, sticky=tk.W, pady=2)
+        ttk.Combobox(wb_frame, textvariable=self.stop_bits_var, values=[1.0, 1.5, 2.0], 
+                    state="readonly").grid(row=4, column=1, sticky=tk.EW, pady=2, padx=5)
+        
+        # Connection buttons
+        btn_frame = ttk.Frame(wb_frame)
+        btn_frame.grid(row=5, column=0, columnspan=3, pady=10)
+        
+        self.connect_btn = HoverButton(btn_frame, text="Connect", bg=config.COLORS["secondary"], 
+                                    fg=config.COLORS["button_text"], padx=10, pady=3,
+                                    command=self.connect_weighbridge)
+        self.connect_btn.pack(side=tk.LEFT, padx=5)
+        
+        self.disconnect_btn = HoverButton(btn_frame, text="Disconnect", bg=config.COLORS["error"], 
+                                        fg=config.COLORS["button_text"], padx=10, pady=3,
+                                        command=self.disconnect_weighbridge, state=tk.DISABLED)
+        self.disconnect_btn.pack(side=tk.LEFT, padx=5)
+        
+        # Save settings button
+        self.save_settings_btn = HoverButton(btn_frame, text="Save Settings", bg=config.COLORS["primary"], 
+                                    fg=config.COLORS["button_text"], padx=10, pady=3,
+                                    command=self.save_weighbridge_settings)
+        self.save_settings_btn.pack(side=tk.LEFT, padx=5)
+        
+        # Auto-connect button
+        auto_connect_btn = HoverButton(btn_frame, text="Auto Connect", bg=config.COLORS["warning"], 
+                                    fg=config.COLORS["button_text"], padx=10, pady=3,
+                                    command=self.auto_connect_weighbridge)
+        auto_connect_btn.pack(side=tk.LEFT, padx=5)
+        
+        # Status indicator
+        ttk.Label(wb_frame, textvariable=self.wb_status_var, 
+                foreground="red").grid(row=6, column=0, columnspan=3, sticky=tk.W)
+        
+        # Test weight display
+        ttk.Label(wb_frame, text="Current Weight:").grid(row=7, column=0, sticky=tk.W, pady=2)
+        self.weight_label = ttk.Label(wb_frame, textvariable=self.current_weight_var, 
+                                    font=("Segoe UI", 10, "bold"))
+        self.weight_label.grid(row=7, column=1, sticky=tk.W, pady=2)
+        
+        # Add a status indicator for invalid readings
+        self.weight_status_label = ttk.Label(wb_frame, textvariable=self.weight_status_var, 
+                                        foreground="black")
+        self.weight_status_label.grid(row=8, column=0, columnspan=3, sticky=tk.W, pady=2)
+        
+        # Check if cloud storage is enabled and add enhanced backup section
+        if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
+            # Create a separator
+            ttk.Separator(wb_frame, orient=tk.HORIZONTAL).grid(
+                row=9, column=0, columnspan=3, sticky=tk.EW, pady=10)
+            
+            # Enhanced cloud backup section
+            cloud_frame = ttk.LabelFrame(wb_frame, text="Cloud Storage & Backup")
+            cloud_frame.grid(row=10, column=0, columnspan=3, sticky=tk.EW, pady=5)
+            
+            # Configure cloud frame columns
+            cloud_frame.columnconfigure(0, weight=1)
+            cloud_frame.columnconfigure(1, weight=1)
+            cloud_frame.columnconfigure(2, weight=1)
+            
+            # Row 1: Main backup button and status button
+            self.backup_btn = HoverButton(cloud_frame, 
+                                        text="📤 Backup Records + Images", 
+                                        bg=config.COLORS["primary"], 
+                                        fg=config.COLORS["button_text"], 
+                                        padx=8, pady=5,
+                                        command=self.backup_to_cloud)
+            self.backup_btn.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+            
+            # Cloud status button
+            status_btn = HoverButton(cloud_frame, 
+                                   text="📊 Cloud Status", 
+                                   bg=config.COLORS["primary_light"], 
+                                   fg=config.COLORS["text"], 
+                                   padx=8, pady=5,
+                                   command=self.show_cloud_storage_status)
+            status_btn.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+            
+            # Settings button
+            cloud_settings_btn = HoverButton(cloud_frame, 
+                                           text="⚙️ Settings", 
+                                           bg=config.COLORS["button_alt"], 
+                                           fg=config.COLORS["button_text"], 
+                                           padx=8, pady=5,
+                                           command=self.show_cloud_settings)
+            cloud_settings_btn.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+            
+            # Row 2: Backup status display
+            status_frame = ttk.Frame(cloud_frame)
+            status_frame.grid(row=1, column=0, columnspan=3, sticky="ew", padx=5, pady=5)
+            
+            ttk.Label(status_frame, text="Status:", font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT)
+            self.backup_status_label = ttk.Label(status_frame, textvariable=self.backup_status_var, 
+                                               font=("Segoe UI", 9), foreground="blue")
+            self.backup_status_label.pack(side=tk.LEFT, padx=(5, 0))
+            
+            # Row 3: Information text
+            info_text = ("💡 Cloud backup uploads complete records with images.\n"
+                        "Only records with both weighments are backed up.")
+            info_label = ttk.Label(cloud_frame, text=info_text, 
+                                 font=("Segoe UI", 8), foreground="gray")
+            info_label.grid(row=2, column=0, columnspan=3, sticky="w", padx=5, pady=(0, 5))
+
+    def show_cloud_settings(self):
+        """Show cloud storage settings and configuration"""
+        try:
+            # Create settings window
+            settings_window = tk.Toplevel(self.parent)
+            settings_window.title("Cloud Storage Settings")
+            settings_window.geometry("450x350")
+            settings_window.resizable(False, False)
+            
+            # Main frame
+            main_frame = ttk.Frame(settings_window, padding=20)
+            main_frame.pack(fill=tk.BOTH, expand=True)
+            
+            # Title
+            title_label = ttk.Label(main_frame, text="Cloud Storage Configuration", 
+                                  font=("Segoe UI", 12, "bold"))
+            title_label.pack(pady=(0, 20))
+            
+            # Settings display
+            settings_frame = ttk.LabelFrame(main_frame, text="Current Settings")
+            settings_frame.pack(fill=tk.X, pady=(0, 20))
+            
+            # Display current settings
+            settings_text = f"""Bucket Name: {config.CLOUD_BUCKET_NAME}
+                Credentials: {config.CLOUD_CREDENTIALS_PATH}
+                Upload Policy: Complete records only
+                Include Images: Yes
+                Structure: Agency/Site/Ticket/files"""
+            
+            ttk.Label(settings_frame, text=settings_text, font=("Courier", 9)).pack(padx=10, pady=10)
+            
+            # Actions frame
+            actions_frame = ttk.LabelFrame(main_frame, text="Actions")
+            actions_frame.pack(fill=tk.X, pady=(0, 20))
+            
+            # Test connection button
+            test_btn = HoverButton(actions_frame, text="Test Connection", 
+                                 bg=config.COLORS["primary"], fg=config.COLORS["button_text"],
+                                 padx=10, pady=5, command=self.test_cloud_connection)
+            test_btn.pack(side=tk.LEFT, padx=5, pady=5)
+            
+            # View files button
+            view_btn = HoverButton(actions_frame, text="View Files", 
+                                 bg=config.COLORS["secondary"], fg=config.COLORS["button_text"],
+                                 padx=10, pady=5, command=self.view_cloud_files)
+            view_btn.pack(side=tk.LEFT, padx=5, pady=5)
+            
+            # Close button
+            close_btn = HoverButton(main_frame, text="Close", 
+                                  bg=config.COLORS["button_alt"], fg=config.COLORS["button_text"],
+                                  padx=20, pady=5, command=settings_window.destroy)
+            close_btn.pack(side=tk.RIGHT, pady=10)
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Error showing cloud settings: {str(e)}")
+
+    def test_cloud_connection(self):
+        """Test the cloud storage connection"""
+        try:
+            from cloud_storage import CloudStorageService
+            
+            # Create a test connection
+            cloud_storage = CloudStorageService(
+                config.CLOUD_BUCKET_NAME,
+                config.CLOUD_CREDENTIALS_PATH
+            )
+            
+            if cloud_storage.is_connected():
+                # Test by listing files
+                files = cloud_storage.list_files()
+                messagebox.showinfo("Connection Test", 
+                                  f"✅ Connection successful!\n\n"
+                                  f"Bucket: {config.CLOUD_BUCKET_NAME}\n"
+                                  f"Files found: {len(files)}")
+            else:
+                messagebox.showerror("Connection Test", 
+                                   "❌ Connection failed!\n\n"
+                                   "Please check:\n"
+                                   "• Credentials file exists\n"
+                                   "• Bucket name is correct\n"
+                                   "• Internet connectivity\n"
+                                   "• Service account permissions")
+        except Exception as e:
+            messagebox.showerror("Connection Test", f"❌ Connection error:\n\n{str(e)}")
+
+    def view_cloud_files(self):
+        """Show a list of files in cloud storage"""
+        try:
+            from cloud_storage import CloudStorageService
+            
+            # Create connection
+            cloud_storage = CloudStorageService(
+                config.CLOUD_BUCKET_NAME,
+                config.CLOUD_CREDENTIALS_PATH
+            )
+            
+            if not cloud_storage.is_connected():
+                messagebox.showerror("Error", "Not connected to cloud storage")
+                return
+            
+            # Get current context for filtering
+            agency_name = config.CURRENT_AGENCY or "Unknown_Agency"
+            site_name = config.CURRENT_SITE or "Unknown_Site"
+            clean_agency = agency_name.replace(' ', '_').replace('/', '_')
+            clean_site = site_name.replace(' ', '_').replace('/', '_')
+            prefix = f"{clean_agency}/{clean_site}/"
+            
+            # List files
+            files = cloud_storage.list_files(prefix)
+            
+            # Create files window
+            files_window = tk.Toplevel(self.parent)
+            files_window.title(f"Cloud Files - {agency_name}/{site_name}")
+            files_window.geometry("600x400")
+            
+            # Create listbox with scrollbar
+            list_frame = ttk.Frame(files_window)
+            list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            
+            listbox = tk.Listbox(list_frame, font=("Courier", 9))
+            scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=listbox.yview)
+            listbox.configure(yscrollcommand=scrollbar.set)
+            
+            # Add files to listbox
+            if files:
+                for file in sorted(files):
+                    # Show only filename, not full path
+                    display_name = file.replace(prefix, "")
+                    listbox.insert(tk.END, display_name)
+            else:
+                listbox.insert(tk.END, "No files found for this agency/site")
+            
+            # Pack widgets
+            listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            
+            # Info label
+            info_label = ttk.Label(files_window, 
+                                 text=f"Files in {config.CLOUD_BUCKET_NAME}/{prefix}",
+                                 font=("Segoe UI", 9))
+            info_label.pack(pady=5)
+            
+            # Close button
+            close_btn = ttk.Button(files_window, text="Close", command=files_window.destroy)
+            close_btn.pack(pady=5)
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Error viewing cloud files: {str(e)}")
+
+    def find_data_manager(self):
+        """Find data manager from the application"""
+        # Try to traverse widget hierarchy to find app instance
+        widget = self.parent
+        while widget:
+            if hasattr(widget, 'data_manager'):
+                return widget.data_manager
+            if hasattr(widget, 'master'):
+                widget = widget.master
+            else:
+                break
+        return None
+
 
     def backup_to_cloud(self):
-        """Backup all complete records to cloud storage organized by site"""
+        """Backup all complete records with images to cloud storage organized by site"""
         try:
             # Find data manager
             data_manager = self.find_data_manager()
@@ -901,16 +1100,33 @@ class SettingsPanel:
                 return
             
             # Set status to backing up
-            self.backup_status_var.set("Backing up complete records...")
+            self.backup_status_var.set("Backing up complete records with images...")
             
-            # Use the new backup method that only backs up complete records
+            # Use the enhanced backup method that includes images
             if hasattr(data_manager, 'backup_complete_records_to_cloud'):
-                success_count, total_complete = data_manager.backup_complete_records_to_cloud()
+                success_count, total_complete, images_uploaded, total_images = data_manager.backup_complete_records_to_cloud()
                 
                 if success_count > 0:
-                    self.backup_status_var.set(f"Backup successful! {success_count}/{total_complete} records uploaded")
+                    status_msg = f"Backup successful! {success_count}/{total_complete} records uploaded"
+                    if total_images > 0:
+                        status_msg += f", {images_uploaded}/{total_images} images uploaded"
+                    self.backup_status_var.set(status_msg)
+                    
+                    # Show detailed results in a popup
+                    messagebox.showinfo("Cloud Backup Complete", 
+                                      f"Backup Results:\n\n"
+                                      f"✓ Records uploaded: {success_count}/{total_complete}\n"
+                                      f"✓ Images uploaded: {images_uploaded}/{total_images}\n\n"
+                                      f"All complete records with their associated images\n"
+                                      f"have been uploaded to cloud storage.")
                 else:
                     self.backup_status_var.set("Backup failed - no records uploaded")
+                    messagebox.showwarning("Backup Failed", 
+                                         "No records were uploaded to cloud storage.\n\n"
+                                         "Please check:\n"
+                                         "• Cloud storage connection\n"
+                                         "• Records have both weighments completed\n"
+                                         "• Internet connectivity")
             else:
                 # Fallback to manual backup for complete records only
                 try:
@@ -953,52 +1169,196 @@ class SettingsPanel:
                             records_by_site[site_name] = []
                         records_by_site[site_name].append(record)
                     
-                    # Upload records organized by site
+                    # Upload records organized by site with images
                     success_count = 0
                     total_records = len(complete_records)
+                    total_images_uploaded = 0
+                    total_images_found = 0
                     
                     for site_name, site_records in records_by_site.items():
-                        # Create a summary file for each site
-                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                        summary_filename = f"{site_name}/summary_{timestamp}.json"
-                        
-                        summary_data = {
-                            "site_name": site_name,
-                            "backup_timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                            "total_complete_records": len(site_records),
-                            "records": site_records
-                        }
-                        
-                        if cloud_storage.save_json(summary_data, summary_filename):
-                            success_count += len(site_records)
-                            print(f"Uploaded {len(site_records)} records for site {site_name}")
+                        for record in site_records:
+                            # Use the enhanced upload method
+                            agency_name = record.get('agency_name', 'Unknown_Agency').replace(' ', '_').replace('/', '_')
+                            ticket_no = record.get('ticket_no', 'unknown')
+                            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                            
+                            json_filename = f"{agency_name}/{site_name}/{ticket_no}/{timestamp}.json"
+                            
+                            # Upload with images
+                            json_success, images_uploaded, total_images = cloud_storage.upload_record_with_images(
+                                record, json_filename, config.IMAGES_FOLDER
+                            )
+                            
+                            if json_success:
+                                success_count += 1
+                                total_images_uploaded += images_uploaded
+                                total_images_found += total_images
+                                print(f"Uploaded record {ticket_no} with {images_uploaded}/{total_images} images")
                     
                     # Update status
                     if success_count > 0:
-                        self.backup_status_var.set(f"Backup successful! {success_count}/{total_records} complete records uploaded")
+                        status_msg = f"Backup successful! {success_count}/{total_records} records uploaded"
+                        if total_images_found > 0:
+                            status_msg += f", {total_images_uploaded}/{total_images_found} images uploaded"
+                        self.backup_status_var.set(status_msg)
+                        
+                        # Show detailed results
+                        messagebox.showinfo("Cloud Backup Complete", 
+                                          f"Backup Results:\n\n"
+                                          f"✓ Records uploaded: {success_count}/{total_records}\n"
+                                          f"✓ Images uploaded: {total_images_uploaded}/{total_images_found}\n\n"
+                                          f"Complete records with images uploaded to cloud storage.")
                     else:
                         self.backup_status_var.set("Backup failed!")
+                        messagebox.showerror("Backup Failed", "No records were successfully uploaded.")
                         
                 except Exception as e:
-                    print(f"Error during backup: {e}")
+                    print(f"Error during fallback backup: {e}")
                     self.backup_status_var.set(f"Error: {str(e)}")
                     
         except Exception as e:
             print(f"Error during backup: {e}")
             self.backup_status_var.set(f"Error: {str(e)}")
 
-    def find_data_manager(self):
-        """Find data manager from the application"""
-        # Try to traverse widget hierarchy to find app instance
-        widget = self.parent
-        while widget:
-            if hasattr(widget, 'data_manager'):
-                return widget.data_manager
-            if hasattr(widget, 'master'):
-                widget = widget.master
-            else:
-                break
-        return None
+    def show_cloud_storage_status(self):
+        """Show detailed cloud storage status and statistics"""
+        try:
+            data_manager = self.find_data_manager()
+            if not data_manager:
+                messagebox.showerror("Error", "Data manager not found")
+                return
+            
+            # Get cloud upload summary
+            summary = data_manager.get_cloud_upload_summary()
+            
+            if "error" in summary:
+                messagebox.showerror("Cloud Storage Status", f"Error: {summary['error']}")
+                return
+            
+            # Create status window
+            status_window = tk.Toplevel(self.parent)
+            status_window.title("Cloud Storage Status")
+            status_window.geometry("500x400")
+            status_window.resizable(True, True)
+            
+            # Create scrollable text widget
+            text_frame = ttk.Frame(status_window)
+            text_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            
+            text_widget = tk.Text(text_frame, wrap=tk.WORD, font=("Courier", 10))
+            scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=text_widget.yview)
+            text_widget.configure(yscrollcommand=scrollbar.set)
+            
+            # Pack text widget and scrollbar
+            text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            
+            # Format status information
+            status_text = f"""CLOUD STORAGE STATUS REPORT
+                            {'=' * 50}
+
+                            Context: {summary.get('context', 'Unknown')}
+                            Agency: {summary.get('agency', 'Unknown')}
+                            Site: {summary.get('site', 'Unknown')}
+
+                            STORAGE STATISTICS:
+                            {'-' * 30}
+                            Total Files: {summary.get('total_files', 0)}
+                            JSON Records: {summary.get('json_files', 0)}
+                            Image Files: {summary.get('image_files', 0)}
+                            Total Size: {summary.get('total_size', 'Unknown')}
+
+                            UPLOAD INFORMATION:
+                            {'-' * 30}
+                            Last Upload: {summary.get('last_upload', 'Never')}
+
+                            FILE BREAKDOWN:
+                            {'-' * 30}
+                            • JSON files contain complete vehicle records
+                            • Image files include front and back vehicle photos
+                            • All files are organized by Agency/Site/Ticket structure
+
+                            CLOUD STORAGE STRUCTURE:
+                            {'-' * 30}
+                            Bucket: {config.CLOUD_BUCKET_NAME}
+                            Structure: Agency_Name/Site_Name/Ticket_Number/
+                            ├── timestamp.json (record data)
+                            └── images/
+                                ├── front_image.jpg
+                                └── back_image.jpg
+
+                            BACKUP POLICY:
+                            {'-' * 30}
+                            • Only complete records (both weighments) are uploaded
+                            • Images are uploaded with their associated records
+                            • Incremental uploads - only new complete records
+                            • Data is preserved in structured folders
+
+                            STATUS: {'Connected' if summary.get('total_files', 0) >= 0 else 'Error'}
+                            """
+            
+            # Insert text
+            text_widget.insert(tk.END, status_text)
+            text_widget.config(state=tk.DISABLED)  # Make read-only
+            
+            # Add buttons
+            button_frame = ttk.Frame(status_window)
+            button_frame.pack(fill=tk.X, padx=10, pady=5)
+            
+            refresh_btn = ttk.Button(button_frame, text="Refresh", 
+                                   command=lambda: self.refresh_cloud_status(text_widget))
+            refresh_btn.pack(side=tk.LEFT, padx=5)
+            
+            backup_btn = ttk.Button(button_frame, text="Start Backup", 
+                                  command=lambda: [status_window.destroy(), self.backup_to_cloud()])
+            backup_btn.pack(side=tk.LEFT, padx=5)
+            
+            close_btn = ttk.Button(button_frame, text="Close", command=status_window.destroy)
+            close_btn.pack(side=tk.RIGHT, padx=5)
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Error showing cloud status: {str(e)}")
+
+    def refresh_cloud_status(self, text_widget):
+        """Refresh the cloud status display"""
+        try:
+            # Re-enable text widget for updating
+            text_widget.config(state=tk.NORMAL)
+            text_widget.delete(1.0, tk.END)
+            
+            # Get updated summary
+            data_manager = self.find_data_manager()
+            if data_manager:
+                summary = data_manager.get_cloud_upload_summary()
+                
+                # Update the display (similar to show_cloud_storage_status)
+                status_text = f"""CLOUD STORAGE STATUS REPORT (Refreshed)
+                {'=' * 50}
+
+                Context: {summary.get('context', 'Unknown')}
+                Agency: {summary.get('agency', 'Unknown')}
+                Site: {summary.get('site', 'Unknown')}
+
+                STORAGE STATISTICS:
+                {'-' * 30}
+                Total Files: {summary.get('total_files', 0)}
+                JSON Records: {summary.get('json_files', 0)}
+                Image Files: {summary.get('image_files', 0)}
+                Total Size: {summary.get('total_size', 'Unknown')}
+
+                Last Updated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+                """
+                                
+                text_widget.insert(tk.END, status_text)
+            
+            # Make read-only again
+            text_widget.config(state=tk.DISABLED)
+            
+        except Exception as e:
+            text_widget.insert(tk.END, f"Error refreshing: {str(e)}")
+            text_widget.config(state=tk.DISABLED)
+
+
             
     def create_camera_settings(self, parent):
         """Create camera configuration settings with RTSP support"""

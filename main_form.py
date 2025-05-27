@@ -156,6 +156,10 @@ class MainForm:
             self.rst_var.set(next_ticket)
             print(f"Generated new ticket number: {next_ticket}")
             
+            # Reset the form to first weighment state for new ticket
+            self.current_weighment = "first"
+            self.weighment_state_var.set("First Weighment")
+            
         except Exception as e:
             print(f"Error generating ticket number: {e}")
             # Fallback to old method if new system fails
@@ -211,42 +215,32 @@ class MainForm:
         except Exception as e:
             print(f"Error getting ticket info: {e}")
             return {"current_ticket": "T0001"}
+    
+    def load_pending_ticket(self, ticket_no):
+        """Load a pending ticket for second weighment
         
-    def check_ticket_exists(self, event=None):
-        """Check if the ticket number already exists in the database"""
-        ticket_no = self.rst_var.get().strip()
-        if not ticket_no:
-            return
-            
+        Args:
+            ticket_no: Ticket number to load
+        """
         if hasattr(self, 'data_manager') and self.data_manager:
             records = self.data_manager.get_filtered_records(ticket_no)
             for record in records:
                 if record.get('ticket_no') == ticket_no:
                     if record.get('second_weight') and record.get('second_timestamp'):
-                        # messagebox.showinfo("Completed Record", 
-                        #                 "This ticket already has both weighments completed.")
+                        # Already completed
+                        messagebox.showinfo("Completed Record", 
+                                        "This ticket already has both weighments completed.")
                         self.load_record_data(record)
                         self.current_weighment = "second"
                         self.weighment_state_var.set("Weighment Complete")
-                        return
+                        return True
                     elif record.get('first_weight') and record.get('first_timestamp'):
-                        self.current_weighment = "second"
+                        # Ready for second weighment
                         self.load_record_data(record)
+                        self.current_weighment = "second"
                         self.weighment_state_var.set("Second Weighment")
-                        # messagebox.showinfo("Existing Ticket", 
-                        #                 "This ticket already has a first weighment. Proceed with second weighment.")
-                        return
-                        
-        # New ticket - set for first weighment
-        self.current_weighment = "first"
-        self.weighment_state_var.set("First Weighment")
-        
-        # Clear weight fields for new entry
-        self.first_weight_var.set("")
-        self.first_timestamp_var.set("")
-        self.second_weight_var.set("")
-        self.second_timestamp_var.set("")
-        self.net_weight_var.set("")
+                        return True
+        return False
 
     def load_record_data(self, record):
         """Load record data into the form"""
@@ -271,7 +265,6 @@ class MainForm:
     def clear_form(self):
         """Reset form fields except site and Transfer Party Name"""
         # Reset variables
-        self.rst_var.set("")
         self.vehicle_var.set("")
         self.agency_var.set("")
         self.first_weight_var.set("")
@@ -303,7 +296,7 @@ class MainForm:
             self.back_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
             self.back_camera.capture_button.config(text="Capture")
             
-        # Generate new ticket number
+        # Generate new ticket number (this will automatically set it as read-only)
         self.generate_next_ticket_number()
 
     def get_form_data(self):
