@@ -109,7 +109,7 @@ class SettingsPanel:
             print(f"Error loading weighbridge settings: {e}")
 
     def load_saved_camera_settings(self):
-        """Load camera settings from storage"""
+        """Load camera settings from storage with HTTP support"""
         try:
             camera_settings = self.settings_storage.get_camera_settings()
             if camera_settings:
@@ -120,6 +120,8 @@ class SettingsPanel:
                     self.front_camera_type_var.set(camera_settings.get("front_camera_type", "USB"))
                 if hasattr(self, 'front_usb_index_var'):
                     self.front_usb_index_var.set(camera_settings.get("front_camera_index", 0))
+                    
+                # Load front RTSP settings
                 if hasattr(self, 'front_rtsp_username_var'):
                     self.front_rtsp_username_var.set(camera_settings.get("front_rtsp_username", ""))
                 if hasattr(self, 'front_rtsp_password_var'):
@@ -130,12 +132,26 @@ class SettingsPanel:
                     self.front_rtsp_port_var.set(camera_settings.get("front_rtsp_port", "554"))
                 if hasattr(self, 'front_rtsp_endpoint_var'):
                     self.front_rtsp_endpoint_var.set(camera_settings.get("front_rtsp_endpoint", "/stream1"))
+                    
+                # Load front HTTP settings
+                if hasattr(self, 'front_http_username_var'):
+                    self.front_http_username_var.set(camera_settings.get("front_http_username", ""))
+                if hasattr(self, 'front_http_password_var'):
+                    self.front_http_password_var.set(camera_settings.get("front_http_password", ""))
+                if hasattr(self, 'front_http_ip_var'):
+                    self.front_http_ip_var.set(camera_settings.get("front_http_ip", ""))
+                if hasattr(self, 'front_http_port_var'):
+                    self.front_http_port_var.set(camera_settings.get("front_http_port", "80"))
+                if hasattr(self, 'front_http_endpoint_var'):
+                    self.front_http_endpoint_var.set(camera_settings.get("front_http_endpoint", "/mjpeg"))
                 
                 # Load back camera settings
                 if hasattr(self, 'back_camera_type_var'):
                     self.back_camera_type_var.set(camera_settings.get("back_camera_type", "USB"))
                 if hasattr(self, 'back_usb_index_var'):
                     self.back_usb_index_var.set(camera_settings.get("back_camera_index", 1))
+                    
+                # Load back RTSP settings
                 if hasattr(self, 'back_rtsp_username_var'):
                     self.back_rtsp_username_var.set(camera_settings.get("back_rtsp_username", ""))
                 if hasattr(self, 'back_rtsp_password_var'):
@@ -146,16 +162,31 @@ class SettingsPanel:
                     self.back_rtsp_port_var.set(camera_settings.get("back_rtsp_port", "554"))
                 if hasattr(self, 'back_rtsp_endpoint_var'):
                     self.back_rtsp_endpoint_var.set(camera_settings.get("back_rtsp_endpoint", "/stream1"))
+                    
+                # Load back HTTP settings
+                if hasattr(self, 'back_http_username_var'):
+                    self.back_http_username_var.set(camera_settings.get("back_http_username", ""))
+                if hasattr(self, 'back_http_password_var'):
+                    self.back_http_password_var.set(camera_settings.get("back_http_password", ""))
+                if hasattr(self, 'back_http_ip_var'):
+                    self.back_http_ip_var.set(camera_settings.get("back_http_ip", ""))
+                if hasattr(self, 'back_http_port_var'):
+                    self.back_http_port_var.set(camera_settings.get("back_http_port", "80"))
+                if hasattr(self, 'back_http_endpoint_var'):
+                    self.back_http_endpoint_var.set(camera_settings.get("back_http_endpoint", "/mjpeg"))
                 
                 # Update UI states based on loaded settings
                 if hasattr(self, 'on_camera_type_change'):
                     self.on_camera_type_change("front")
                     self.on_camera_type_change("back")
                 
-                # Update RTSP previews
+                # Update previews
                 if hasattr(self, 'update_rtsp_preview'):
                     self.update_rtsp_preview("front")
                     self.update_rtsp_preview("back")
+                if hasattr(self, 'update_http_preview'):
+                    self.update_http_preview("front")
+                    self.update_http_preview("back")
                 
                 print("Camera settings loaded successfully")
             else:
@@ -235,7 +266,7 @@ class SettingsPanel:
             self.cam_status_var.set(f"Error applying settings: {str(e)}")
 
     def get_current_camera_settings(self):
-        """Get current camera settings from UI
+        """Get current camera settings from UI with HTTP support
         
         Returns:
             dict: Camera settings
@@ -247,6 +278,8 @@ class SettingsPanel:
             settings["front_camera_type"] = self.front_camera_type_var.get()
         if hasattr(self, 'front_usb_index_var'):
             settings["front_camera_index"] = self.front_usb_index_var.get()
+            
+        # Front RTSP settings
         if hasattr(self, 'front_rtsp_username_var'):
             settings["front_rtsp_username"] = self.front_rtsp_username_var.get()
         if hasattr(self, 'front_rtsp_password_var'):
@@ -258,11 +291,25 @@ class SettingsPanel:
         if hasattr(self, 'front_rtsp_endpoint_var'):
             settings["front_rtsp_endpoint"] = self.front_rtsp_endpoint_var.get()
             
+        # Front HTTP settings
+        if hasattr(self, 'front_http_username_var'):
+            settings["front_http_username"] = self.front_http_username_var.get()
+        if hasattr(self, 'front_http_password_var'):
+            settings["front_http_password"] = self.front_http_password_var.get()
+        if hasattr(self, 'front_http_ip_var'):
+            settings["front_http_ip"] = self.front_http_ip_var.get()
+        if hasattr(self, 'front_http_port_var'):
+            settings["front_http_port"] = self.front_http_port_var.get()
+        if hasattr(self, 'front_http_endpoint_var'):
+            settings["front_http_endpoint"] = self.front_http_endpoint_var.get()
+            
         # Get back camera settings
         if hasattr(self, 'back_camera_type_var'):
             settings["back_camera_type"] = self.back_camera_type_var.get()
         if hasattr(self, 'back_usb_index_var'):
             settings["back_camera_index"] = self.back_usb_index_var.get()
+            
+        # Back RTSP settings
         if hasattr(self, 'back_rtsp_username_var'):
             settings["back_rtsp_username"] = self.back_rtsp_username_var.get()
         if hasattr(self, 'back_rtsp_password_var'):
@@ -273,6 +320,18 @@ class SettingsPanel:
             settings["back_rtsp_port"] = self.back_rtsp_port_var.get()
         if hasattr(self, 'back_rtsp_endpoint_var'):
             settings["back_rtsp_endpoint"] = self.back_rtsp_endpoint_var.get()
+            
+        # Back HTTP settings
+        if hasattr(self, 'back_http_username_var'):
+            settings["back_http_username"] = self.back_http_username_var.get()
+        if hasattr(self, 'back_http_password_var'):
+            settings["back_http_password"] = self.back_http_password_var.get()
+        if hasattr(self, 'back_http_ip_var'):
+            settings["back_http_ip"] = self.back_http_ip_var.get()
+        if hasattr(self, 'back_http_port_var'):
+            settings["back_http_port"] = self.back_http_port_var.get()
+        if hasattr(self, 'back_http_endpoint_var'):
+            settings["back_http_endpoint"] = self.back_http_endpoint_var.get()
         
         return settings
 
@@ -989,7 +1048,7 @@ class SettingsPanel:
 
 
     def create_camera_config_tab(self, parent, position):
-        """Create configuration tab for a single camera (front or back)
+        """Create configuration tab for a single camera (front or back) with USB, RTSP, and HTTP support
         
         Args:
             parent: Parent widget
@@ -1004,6 +1063,11 @@ class SettingsPanel:
             self.front_rtsp_ip_var = tk.StringVar()
             self.front_rtsp_port_var = tk.StringVar(value="554")
             self.front_rtsp_endpoint_var = tk.StringVar(value="/stream1")
+            self.front_http_username_var = tk.StringVar()
+            self.front_http_password_var = tk.StringVar()
+            self.front_http_ip_var = tk.StringVar()
+            self.front_http_port_var = tk.StringVar(value="80")
+            self.front_http_endpoint_var = tk.StringVar(value="/mjpeg")
             
             camera_type_var = self.front_camera_type_var
             usb_index_var = self.front_usb_index_var
@@ -1012,6 +1076,11 @@ class SettingsPanel:
             rtsp_ip_var = self.front_rtsp_ip_var
             rtsp_port_var = self.front_rtsp_port_var
             rtsp_endpoint_var = self.front_rtsp_endpoint_var
+            http_username_var = self.front_http_username_var
+            http_password_var = self.front_http_password_var
+            http_ip_var = self.front_http_ip_var
+            http_port_var = self.front_http_port_var
+            http_endpoint_var = self.front_http_endpoint_var
         else:
             self.back_camera_type_var = tk.StringVar(value="USB")
             self.back_usb_index_var = tk.IntVar(value=1)
@@ -1020,6 +1089,11 @@ class SettingsPanel:
             self.back_rtsp_ip_var = tk.StringVar()
             self.back_rtsp_port_var = tk.StringVar(value="554")
             self.back_rtsp_endpoint_var = tk.StringVar(value="/stream1")
+            self.back_http_username_var = tk.StringVar()
+            self.back_http_password_var = tk.StringVar()
+            self.back_http_ip_var = tk.StringVar()
+            self.back_http_port_var = tk.StringVar(value="80")
+            self.back_http_endpoint_var = tk.StringVar(value="/mjpeg")
             
             camera_type_var = self.back_camera_type_var
             usb_index_var = self.back_usb_index_var
@@ -1028,6 +1102,11 @@ class SettingsPanel:
             rtsp_ip_var = self.back_rtsp_ip_var
             rtsp_port_var = self.back_rtsp_port_var
             rtsp_endpoint_var = self.back_rtsp_endpoint_var
+            http_username_var = self.back_http_username_var
+            http_password_var = self.back_http_password_var
+            http_ip_var = self.back_http_ip_var
+            http_port_var = self.back_http_port_var
+            http_endpoint_var = self.back_http_endpoint_var
         
         # Camera type selection
         type_frame = ttk.LabelFrame(parent, text="Camera Type")
@@ -1037,6 +1116,8 @@ class SettingsPanel:
                     value="USB", command=lambda: self.on_camera_type_change(position)).pack(anchor=tk.W, padx=5, pady=2)
         ttk.Radiobutton(type_frame, text="RTSP IP Camera", variable=camera_type_var, 
                     value="RTSP", command=lambda: self.on_camera_type_change(position)).pack(anchor=tk.W, padx=5, pady=2)
+        ttk.Radiobutton(type_frame, text="HTTP IP Camera", variable=camera_type_var, 
+                    value="HTTP", command=lambda: self.on_camera_type_change(position)).pack(anchor=tk.W, padx=5, pady=2)
         
         # USB Camera Settings
         usb_frame = ttk.LabelFrame(parent, text="USB Camera Settings")
@@ -1075,27 +1156,27 @@ class SettingsPanel:
         ttk.Label(rtsp_frame, text="Endpoint:").grid(row=4, column=0, sticky=tk.W, padx=5, pady=2)
         ttk.Entry(rtsp_frame, textvariable=rtsp_endpoint_var, width=20).grid(row=4, column=1, sticky=tk.EW, padx=5, pady=2)
         
-        # URL Preview
+        # RTSP URL Preview
         ttk.Label(rtsp_frame, text="Preview URL:").grid(row=5, column=0, sticky=tk.W, padx=5, pady=2)
         
         if position == "front":
             self.front_rtsp_preview_var = tk.StringVar()
-            preview_label = ttk.Label(rtsp_frame, textvariable=self.front_rtsp_preview_var, 
+            rtsp_preview_label = ttk.Label(rtsp_frame, textvariable=self.front_rtsp_preview_var, 
                                     foreground="blue", font=("Segoe UI", 8))
-            self.front_rtsp_preview_label = preview_label
+            self.front_rtsp_preview_label = rtsp_preview_label
             # Bind events to update preview
             for var in [rtsp_username_var, rtsp_password_var, rtsp_ip_var, rtsp_port_var, rtsp_endpoint_var]:
                 var.trace_add("write", lambda *args: self.update_rtsp_preview("front"))
         else:
             self.back_rtsp_preview_var = tk.StringVar()
-            preview_label = ttk.Label(rtsp_frame, textvariable=self.back_rtsp_preview_var, 
+            rtsp_preview_label = ttk.Label(rtsp_frame, textvariable=self.back_rtsp_preview_var, 
                                     foreground="blue", font=("Segoe UI", 8))
-            self.back_rtsp_preview_label = preview_label
+            self.back_rtsp_preview_label = rtsp_preview_label
             # Bind events to update preview
             for var in [rtsp_username_var, rtsp_password_var, rtsp_ip_var, rtsp_port_var, rtsp_endpoint_var]:
                 var.trace_add("write", lambda *args: self.update_rtsp_preview("back"))
         
-        preview_label.grid(row=5, column=1, sticky=tk.EW, padx=5, pady=2)
+        rtsp_preview_label.grid(row=5, column=1, sticky=tk.EW, padx=5, pady=2)
         
         # Store reference to RTSP frame for enabling/disabling
         if position == "front":
@@ -1103,8 +1184,104 @@ class SettingsPanel:
         else:
             self.back_rtsp_frame = rtsp_frame
         
+        # HTTP Camera Settings
+        http_frame = ttk.LabelFrame(parent, text="HTTP Camera Settings")
+        http_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        # Configure grid weights
+        http_frame.columnconfigure(1, weight=1)
+        
+        # HTTP settings fields
+        ttk.Label(http_frame, text="Username:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Entry(http_frame, textvariable=http_username_var, width=20).grid(row=0, column=1, sticky=tk.EW, padx=5, pady=2)
+        
+        ttk.Label(http_frame, text="Password:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Entry(http_frame, textvariable=http_password_var, show="*", width=20).grid(row=1, column=1, sticky=tk.EW, padx=5, pady=2)
+        
+        ttk.Label(http_frame, text="IP Address:").grid(row=2, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Entry(http_frame, textvariable=http_ip_var, width=20).grid(row=2, column=1, sticky=tk.EW, padx=5, pady=2)
+        
+        ttk.Label(http_frame, text="Port:").grid(row=3, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Entry(http_frame, textvariable=http_port_var, width=20).grid(row=3, column=1, sticky=tk.EW, padx=5, pady=2)
+        
+        ttk.Label(http_frame, text="Endpoint:").grid(row=4, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Entry(http_frame, textvariable=http_endpoint_var, width=20).grid(row=4, column=1, sticky=tk.EW, padx=5, pady=2)
+        
+        # HTTP URL Preview
+        ttk.Label(http_frame, text="Preview URL:").grid(row=5, column=0, sticky=tk.W, padx=5, pady=2)
+        
+        if position == "front":
+            self.front_http_preview_var = tk.StringVar()
+            http_preview_label = ttk.Label(http_frame, textvariable=self.front_http_preview_var, 
+                                    foreground="green", font=("Segoe UI", 8))
+            self.front_http_preview_label = http_preview_label
+            # Bind events to update preview
+            for var in [http_username_var, http_password_var, http_ip_var, http_port_var, http_endpoint_var]:
+                var.trace_add("write", lambda *args: self.update_http_preview("front"))
+        else:
+            self.back_http_preview_var = tk.StringVar()
+            http_preview_label = ttk.Label(http_frame, textvariable=self.back_http_preview_var, 
+                                    foreground="green", font=("Segoe UI", 8))
+            self.back_http_preview_label = http_preview_label
+            # Bind events to update preview
+            for var in [http_username_var, http_password_var, http_ip_var, http_port_var, http_endpoint_var]:
+                var.trace_add("write", lambda *args: self.update_http_preview("back"))
+        
+        http_preview_label.grid(row=5, column=1, sticky=tk.EW, padx=5, pady=2)
+        
+        # Store reference to HTTP frame for enabling/disabling
+        if position == "front":
+            self.front_http_frame = http_frame
+        else:
+            self.back_http_frame = http_frame
+        
         # Initialize the frame states
         self.on_camera_type_change(position)
+
+    def update_http_preview(self, position):
+        """Update HTTP URL preview
+        
+        Args:
+            position: "front" or "back"
+        """
+        try:
+            if position == "front":
+                if self.front_camera_type_var.get() != "HTTP":
+                    self.front_http_preview_var.set("")
+                    return
+                    
+                username = self.front_http_username_var.get()
+                password = self.front_http_password_var.get()
+                ip = self.front_http_ip_var.get()
+                port = self.front_http_port_var.get()
+                endpoint = self.front_http_endpoint_var.get()
+                preview_var = self.front_http_preview_var
+            else:
+                if self.back_camera_type_var.get() != "HTTP":
+                    self.back_http_preview_var.set("")
+                    return
+                    
+                username = self.back_http_username_var.get()
+                password = self.back_http_password_var.get()
+                ip = self.back_http_ip_var.get()
+                port = self.back_http_port_var.get()
+                endpoint = self.back_http_endpoint_var.get()
+                preview_var = self.back_http_preview_var
+            
+            if not ip:
+                preview_var.set("Please enter IP address")
+                return
+            
+            # Build preview URL
+            if username and password:
+                url = f"http://{username}:***@{ip}:{port}{endpoint}"
+            else:
+                url = f"http://{ip}:{port}{endpoint}"
+            
+            preview_var.set(url)
+            
+        except Exception as e:
+            print(f"Error updating HTTP preview: {e}")
 
 
     def update_rtsp_preview(self, position):
@@ -1154,47 +1331,69 @@ class SettingsPanel:
 
 
     def test_camera_connections(self):
-        """Test both camera connections"""
+        """Test both camera connections with HTTP support"""
         try:
             import cv2
             import threading
+            import urllib.request
             
             def test_camera(position, camera_type, connection_info):
                 try:
                     if camera_type == "USB":
                         cap = cv2.VideoCapture(connection_info)
-                    else:  # RTSP
+                    elif camera_type == "RTSP":
                         cap = cv2.VideoCapture(connection_info)
                         cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 5000)
+                    else:  # HTTP
+                        # Test HTTP connection
+                        with urllib.request.urlopen(connection_info, timeout=5) as response:
+                            if response.getcode() == 200:
+                                self.cam_status_var.set(f"{position.title()} HTTP camera: Connection successful")
+                                return
+                            else:
+                                self.cam_status_var.set(f"{position.title()} HTTP camera: HTTP {response.getcode()}")
+                                return
                     
-                    if cap.isOpened():
-                        ret, frame = cap.read()
-                        cap.release()
-                        if ret:
-                            self.cam_status_var.set(f"{position.title()} camera: Connection successful")
+                    if camera_type in ["USB", "RTSP"]:
+                        if cap.isOpened():
+                            ret, frame = cap.read()
+                            cap.release()
+                            if ret:
+                                self.cam_status_var.set(f"{position.title()} camera: Connection successful")
+                            else:
+                                self.cam_status_var.set(f"{position.title()} camera: Connected but no video")
                         else:
-                            self.cam_status_var.set(f"{position.title()} camera: Connected but no video")
-                    else:
-                        self.cam_status_var.set(f"{position.title()} camera: Connection failed")
+                            self.cam_status_var.set(f"{position.title()} camera: Connection failed")
+                            
                 except Exception as e:
                     self.cam_status_var.set(f"{position.title()} camera error: {str(e)}")
             
             # Test front camera
             if self.front_camera_type_var.get() == "USB":
                 front_info = self.front_usb_index_var.get()
-            else:
+            elif self.front_camera_type_var.get() == "RTSP":
                 front_info = self.settings_storage.get_rtsp_url("front")
                 if not front_info:
                     self.cam_status_var.set("Front camera: Please configure RTSP settings")
+                    return
+            else:  # HTTP
+                front_info = self.settings_storage.get_http_url("front")
+                if not front_info:
+                    self.cam_status_var.set("Front camera: Please configure HTTP settings")
                     return
             
             # Test back camera
             if self.back_camera_type_var.get() == "USB":
                 back_info = self.back_usb_index_var.get()
-            else:
+            elif self.back_camera_type_var.get() == "RTSP":
                 back_info = self.settings_storage.get_rtsp_url("back")
                 if not back_info:
                     self.cam_status_var.set("Back camera: Please configure RTSP settings")
+                    return
+            else:  # HTTP
+                back_info = self.settings_storage.get_http_url("back")
+                if not back_info:
+                    self.cam_status_var.set("Back camera: Please configure HTTP settings")
                     return
             
             self.cam_status_var.set("Testing camera connections...")
@@ -1210,8 +1409,6 @@ class SettingsPanel:
             self.cam_status_var.set(f"Test error: {str(e)}")
 
 
-
-
     def on_camera_type_change(self, position):
         """Handle camera type selection change
         
@@ -1222,30 +1419,52 @@ class SettingsPanel:
             camera_type = self.front_camera_type_var.get()
             usb_frame = self.front_usb_frame
             rtsp_frame = self.front_rtsp_frame
+            http_frame = self.front_http_frame
         else:
             camera_type = self.back_camera_type_var.get()
             usb_frame = self.back_usb_frame
             rtsp_frame = self.back_rtsp_frame
+            http_frame = self.back_http_frame
         
         # Enable/disable frames based on camera type
         if camera_type == "USB":
-            # Enable USB frame, disable RTSP frame
+            # Enable USB frame, disable RTSP and HTTP frames
             for child in usb_frame.winfo_children():
                 child.configure(state="normal")
             for child in rtsp_frame.winfo_children():
                 if isinstance(child, (ttk.Entry, ttk.Combobox)):
                     child.configure(state="disabled")
-        else:
-            # Enable RTSP frame, disable USB frame
+            for child in http_frame.winfo_children():
+                if isinstance(child, (ttk.Entry, ttk.Combobox)):
+                    child.configure(state="disabled")
+        elif camera_type == "RTSP":
+            # Enable RTSP frame, disable USB and HTTP frames
             for child in rtsp_frame.winfo_children():
                 if isinstance(child, (ttk.Entry, ttk.Combobox)):
                     child.configure(state="normal")
             for child in usb_frame.winfo_children():
                 if isinstance(child, (ttk.Entry, ttk.Combobox)):
                     child.configure(state="disabled")
+            for child in http_frame.winfo_children():
+                if isinstance(child, (ttk.Entry, ttk.Combobox)):
+                    child.configure(state="disabled")
+        else:  # HTTP
+            # Enable HTTP frame, disable USB and RTSP frames
+            for child in http_frame.winfo_children():
+                if isinstance(child, (ttk.Entry, ttk.Combobox)):
+                    child.configure(state="normal")
+            for child in usb_frame.winfo_children():
+                if isinstance(child, (ttk.Entry, ttk.Combobox)):
+                    child.configure(state="disabled")
+            for child in rtsp_frame.winfo_children():
+                if isinstance(child, (ttk.Entry, ttk.Combobox)):
+                    child.configure(state="disabled")
         
-        # Update RTSP preview
+        # Update previews
         self.update_rtsp_preview(position)
+        self.update_http_preview(position)
+
+
 
     def create_user_management(self, parent):
         """Create user management tab"""

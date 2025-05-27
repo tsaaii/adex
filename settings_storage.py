@@ -15,7 +15,7 @@ class SettingsStorage:
         
     def initialize_files(self):
         """Initialize settings files if they don't exist"""
-        # Create settings file with default settings
+        # Create settings file with default settings including HTTP camera support and ticket counter
         if not os.path.exists(self.settings_file):
             default_settings = {
                 "weighbridge": {
@@ -33,20 +33,36 @@ class SettingsStorage:
                     "front_rtsp_ip": "",
                     "front_rtsp_port": "554",
                     "front_rtsp_endpoint": "/stream1",
+                    "front_http_username": "",
+                    "front_http_password": "",
+                    "front_http_ip": "",
+                    "front_http_port": "80",
+                    "front_http_endpoint": "/mjpeg",
                     "back_camera_type": "USB",
                     "back_camera_index": 1,
                     "back_rtsp_username": "",
                     "back_rtsp_password": "",
                     "back_rtsp_ip": "",
                     "back_rtsp_port": "554",
-                    "back_rtsp_endpoint": "/stream1"
+                    "back_rtsp_endpoint": "/stream1",
+                    "back_http_username": "",
+                    "back_http_password": "",
+                    "back_http_ip": "",
+                    "back_http_port": "80",
+                    "back_http_endpoint": "/mjpeg"
+                },
+                "ticket_settings": {
+                    "current_ticket_number": 1,
+                    "ticket_prefix": "T",
+                    "ticket_digits": 4,
+                    "last_reset_date": ""
                 }
             }
             os.makedirs(os.path.dirname(self.settings_file), exist_ok=True)
             with open(self.settings_file, 'w') as f:
                 json.dump(default_settings, f, indent=4)
         else:
-            # Update existing settings file to include RTSP settings if missing
+            # Update existing settings file to include HTTP and ticket settings if missing
             try:
                 with open(self.settings_file, 'r') as f:
                     settings = json.load(f)
@@ -55,7 +71,29 @@ class SettingsStorage:
                 cameras = settings.get("cameras", {})
                 updated = False
                 
-                # Add missing RTSP settings for front camera
+                # Add missing HTTP settings for front camera
+                if "front_http_username" not in cameras:
+                    cameras.update({
+                        "front_http_username": "",
+                        "front_http_password": "",
+                        "front_http_ip": "",
+                        "front_http_port": "80",
+                        "front_http_endpoint": "/mjpeg"
+                    })
+                    updated = True
+                
+                # Add missing HTTP settings for back camera
+                if "back_http_username" not in cameras:
+                    cameras.update({
+                        "back_http_username": "",
+                        "back_http_password": "",
+                        "back_http_ip": "",
+                        "back_http_port": "80",
+                        "back_http_endpoint": "/mjpeg"
+                    })
+                    updated = True
+                
+                # Add missing RTSP settings for front camera (if not exists)
                 if "front_camera_type" not in cameras:
                     cameras.update({
                         "front_camera_type": "USB",
@@ -67,7 +105,7 @@ class SettingsStorage:
                     })
                     updated = True
                 
-                # Add missing RTSP settings for back camera
+                # Add missing RTSP settings for back camera (if not exists)
                 if "back_camera_type" not in cameras:
                     cameras.update({
                         "back_camera_type": "USB",
@@ -77,6 +115,16 @@ class SettingsStorage:
                         "back_rtsp_port": "554",
                         "back_rtsp_endpoint": "/stream1"
                     })
+                    updated = True
+                
+                # Add ticket settings if missing
+                if "ticket_settings" not in settings:
+                    settings["ticket_settings"] = {
+                        "current_ticket_number": 1,
+                        "ticket_prefix": "T",
+                        "ticket_digits": 4,
+                        "last_reset_date": ""
+                    }
                     updated = True
                 
                 if updated:
@@ -127,6 +175,137 @@ class SettingsStorage:
                     json.dump(sites_data, f, indent=4)
             except Exception as e:
                 print(f"Error updating sites file: {e}")
+
+    def get_ticket_counter(self):
+        """Get the current ticket counter
+        
+        Returns:
+            int: Current ticket counter number
+        """
+        try:
+            with open(self.settings_file, 'r') as f:
+                settings = json.load(f)
+                ticket_settings = settings.get("ticket_settings", {})
+                return ticket_settings.get("current_ticket_number", 1)
+        except Exception as e:
+            print(f"Error reading ticket counter: {e}")
+            return 1
+    
+    def save_ticket_counter(self, counter_value):
+        """Save the ticket counter
+        
+        Args:
+            counter_value: New counter value to save
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Read existing settings
+            if os.path.exists(self.settings_file):
+                with open(self.settings_file, 'r') as f:
+                    all_settings = json.load(f)
+            else:
+                all_settings = {}
+            
+            # Ensure ticket_settings section exists
+            if "ticket_settings" not in all_settings:
+                all_settings["ticket_settings"] = {
+                    "current_ticket_number": 1,
+                    "ticket_prefix": "T",
+                    "ticket_digits": 4,
+                    "last_reset_date": ""
+                }
+            
+            # Update counter
+            all_settings["ticket_settings"]["current_ticket_number"] = counter_value
+            
+            # Write back to file
+            with open(self.settings_file, 'w') as f:
+                json.dump(all_settings, f, indent=4)
+                
+            return True
+            
+        except Exception as e:
+            print(f"Error saving ticket counter: {e}")
+            return False
+    
+    def get_ticket_settings(self):
+        """Get all ticket settings
+        
+        Returns:
+            dict: Ticket settings including prefix, digits, etc.
+        """
+        try:
+            with open(self.settings_file, 'r') as f:
+                settings = json.load(f)
+                return settings.get("ticket_settings", {
+                    "current_ticket_number": 1,
+                    "ticket_prefix": "T",
+                    "ticket_digits": 4,
+                    "last_reset_date": ""
+                })
+        except Exception as e:
+            print(f"Error reading ticket settings: {e}")
+            return {
+                "current_ticket_number": 1,
+                "ticket_prefix": "T",
+                "ticket_digits": 4,
+                "last_reset_date": ""
+            }
+    
+    def save_ticket_settings(self, ticket_settings):
+        """Save ticket settings
+        
+        Args:
+            ticket_settings: Dictionary with ticket configuration
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Read existing settings
+            if os.path.exists(self.settings_file):
+                with open(self.settings_file, 'r') as f:
+                    all_settings = json.load(f)
+            else:
+                all_settings = {}
+            
+            # Update ticket settings section
+            all_settings["ticket_settings"] = ticket_settings
+            
+            # Write back to file
+            with open(self.settings_file, 'w') as f:
+                json.dump(all_settings, f, indent=4)
+                
+            print(f"Ticket settings saved: {ticket_settings}")
+            return True
+            
+        except Exception as e:
+            print(f"Error saving ticket settings: {e}")
+            return False
+    
+    def reset_ticket_counter(self, start_number=1):
+        """Reset ticket counter to a specific starting number
+        
+        Args:
+            start_number: Number to start counting from
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            import datetime
+            
+            ticket_settings = self.get_ticket_settings()
+            ticket_settings["current_ticket_number"] = start_number
+            ticket_settings["last_reset_date"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            return self.save_ticket_settings(ticket_settings)
+            
+        except Exception as e:
+            print(f"Error resetting ticket counter: {e}")
+            return False
 
     def get_weighbridge_settings(self):
         """Get weighbridge settings from file
@@ -211,13 +390,23 @@ class SettingsStorage:
                 "front_rtsp_ip": "",
                 "front_rtsp_port": "554",
                 "front_rtsp_endpoint": "/stream1",
+                "front_http_username": "",
+                "front_http_password": "",
+                "front_http_ip": "",
+                "front_http_port": "80",
+                "front_http_endpoint": "/mjpeg",
                 "back_camera_type": "USB",
                 "back_camera_index": 1,
                 "back_rtsp_username": "",
                 "back_rtsp_password": "",
                 "back_rtsp_ip": "",
                 "back_rtsp_port": "554",
-                "back_rtsp_endpoint": "/stream1"
+                "back_rtsp_endpoint": "/stream1",
+                "back_http_username": "",
+                "back_http_password": "",
+                "back_http_ip": "",
+                "back_http_port": "80",
+                "back_http_endpoint": "/mjpeg"
             }
     
     def save_camera_settings(self, settings):
@@ -288,6 +477,39 @@ class SettingsStorage:
             
         except Exception as e:
             print(f"Error building RTSP URL: {e}")
+            return None
+
+    def get_http_url(self, camera_position):
+        """Build HTTP URL for specified camera position
+        
+        Args:
+            camera_position: "front" or "back"
+            
+        Returns:
+            str: Complete HTTP URL or None if not configured
+        """
+        try:
+            camera_settings = self.get_camera_settings()
+            
+            username = camera_settings.get(f"{camera_position}_http_username", "")
+            password = camera_settings.get(f"{camera_position}_http_password", "")
+            ip = camera_settings.get(f"{camera_position}_http_ip", "")
+            port = camera_settings.get(f"{camera_position}_http_port", "80")
+            endpoint = camera_settings.get(f"{camera_position}_http_endpoint", "/mjpeg")
+            
+            if not ip:
+                return None
+                
+            # Build HTTP URL
+            if username and password:
+                http_url = f"http://{username}:{password}@{ip}:{port}{endpoint}"
+            else:
+                http_url = f"http://{ip}:{port}{endpoint}"
+                
+            return http_url
+            
+        except Exception as e:
+            print(f"Error building HTTP URL: {e}")
             return None
 
     def get_sites(self):
@@ -513,13 +735,23 @@ class SettingsStorage:
                     "front_rtsp_ip": "",
                     "front_rtsp_port": "554",
                     "front_rtsp_endpoint": "/stream1",
+                    "front_http_username": "",
+                    "front_http_password": "",
+                    "front_http_ip": "",
+                    "front_http_port": "80",
+                    "front_http_endpoint": "/mjpeg",
                     "back_camera_type": "USB",
                     "back_camera_index": 1,
                     "back_rtsp_username": "",
                     "back_rtsp_password": "",
                     "back_rtsp_ip": "",
                     "back_rtsp_port": "554",
-                    "back_rtsp_endpoint": "/stream1"
+                    "back_rtsp_endpoint": "/stream1",
+                    "back_http_username": "",
+                    "back_http_password": "",
+                    "back_http_ip": "",
+                    "back_http_port": "80",
+                    "back_http_endpoint": "/mjpeg"
                 }
             }
 

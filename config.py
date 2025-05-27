@@ -17,6 +17,11 @@ GLOBAL_WEIGHBRIDGE_STATUS_VAR = None
 # Global constants
 DATA_FOLDER = 'data'
 
+# Ticket Number Configuration
+TICKET_PREFIX = "T"  # Prefix for ticket numbers (e.g., "T" for T0001, T0002, etc.)
+TICKET_START_NUMBER = 1  # Starting ticket number (will be incremented from here)
+TICKET_NUMBER_DIGITS = 4  # Number of digits in ticket number (e.g., 4 for T0001, T0002)
+
 # UPDATED: Dynamic filename generation instead of hardcoded
 def get_data_filename(agency_name=None, site_name=None):
     """Generate dynamic filename based on agency and site
@@ -71,6 +76,87 @@ def get_current_data_file():
         str: Current data file path
     """
     return get_data_filename(CURRENT_AGENCY, CURRENT_SITE)
+
+def get_next_ticket_number():
+    """Get the next ticket number and increment the counter
+    
+    Returns:
+        str: Next ticket number (e.g., "T0001", "T0002")
+    """
+    from settings_storage import SettingsStorage
+    
+    try:
+        settings_storage = SettingsStorage()
+        
+        # Get current ticket counter from settings
+        current_number = settings_storage.get_ticket_counter()
+        
+        # Generate the ticket number
+        next_ticket = f"{TICKET_PREFIX}{current_number:0{TICKET_NUMBER_DIGITS}d}"
+        
+        # Increment and save the counter for next time
+        settings_storage.save_ticket_counter(current_number + 1)
+        
+        print(f"Generated ticket number: {next_ticket}")
+        return next_ticket
+        
+    except Exception as e:
+        print(f"Error generating ticket number: {e}")
+        # Fallback to default format if settings fail
+        return f"{TICKET_PREFIX}{TICKET_START_NUMBER:0{TICKET_NUMBER_DIGITS}d}"
+
+def reset_ticket_counter(start_number=None):
+    """Reset the ticket counter to a specific number
+    
+    Args:
+        start_number: Number to reset to (if None, uses TICKET_START_NUMBER)
+    """
+    from settings_storage import SettingsStorage
+    
+    try:
+        settings_storage = SettingsStorage()
+        reset_to = start_number if start_number is not None else TICKET_START_NUMBER
+        
+        settings_storage.save_ticket_counter(reset_to)
+        print(f"Ticket counter reset to: {reset_to}")
+        return True
+        
+    except Exception as e:
+        print(f"Error resetting ticket counter: {e}")
+        return False
+
+def get_current_ticket_number():
+    """Get the current ticket number without incrementing
+    
+    Returns:
+        str: Current ticket number that would be generated next
+    """
+    from settings_storage import SettingsStorage
+    
+    try:
+        settings_storage = SettingsStorage()
+        current_number = settings_storage.get_ticket_counter()
+        return f"{TICKET_PREFIX}{current_number:0{TICKET_NUMBER_DIGITS}d}"
+        
+    except Exception as e:
+        print(f"Error getting current ticket number: {e}")
+        return f"{TICKET_PREFIX}{TICKET_START_NUMBER:0{TICKET_NUMBER_DIGITS}d}"
+
+def set_ticket_format(prefix=None, digits=None):
+    """Update ticket format settings
+    
+    Args:
+        prefix: New prefix for tickets (e.g., "WB", "TKT")
+        digits: Number of digits for ticket numbers
+    """
+    global TICKET_PREFIX, TICKET_NUMBER_DIGITS
+    
+    if prefix is not None:
+        TICKET_PREFIX = prefix
+    if digits is not None:
+        TICKET_NUMBER_DIGITS = digits
+    
+    print(f"Ticket format updated: {TICKET_PREFIX}{0:0{TICKET_NUMBER_DIGITS}d}")
 
 # CSV Header definition
 CSV_HEADER = ['Date', 'Time', 'Site Name', 'Agency Name', 'Material', 'Ticket No', 'Vehicle No', 

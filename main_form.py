@@ -149,8 +149,22 @@ class MainForm:
         self.on_agency_change()
 
     def generate_next_ticket_number(self):
-        """Generate the next ticket number based on existing records"""
+        """Generate the next ticket number using the persistent counter system"""
+        try:
+            # Use the new config function to get next ticket number
+            next_ticket = config.get_next_ticket_number()
+            self.rst_var.set(next_ticket)
+            print(f"Generated new ticket number: {next_ticket}")
+            
+        except Exception as e:
+            print(f"Error generating ticket number: {e}")
+            # Fallback to old method if new system fails
+            self._generate_fallback_ticket()
+    
+    def _generate_fallback_ticket(self):
+        """Fallback ticket generation method (legacy support)"""
         if not hasattr(self, 'data_manager') or not self.data_manager:
+            self.rst_var.set("T0001")
             return
             
         records = self.data_manager.get_all_records()
@@ -169,7 +183,35 @@ class MainForm:
         next_num = highest_num + 1
         next_ticket = f"{prefix}{next_num:04d}"
         self.rst_var.set(next_ticket)
-
+    
+    def get_current_ticket_info(self):
+        """Get information about current ticket numbering
+        
+        Returns:
+            dict: Ticket information including current number, next number, etc.
+        """
+        try:
+            current_ticket = config.get_current_ticket_number()
+            
+            # Get ticket settings for additional info
+            if hasattr(self, 'data_manager'):
+                app = self.find_main_app()
+                if app and hasattr(app, 'settings_storage'):
+                    ticket_settings = app.settings_storage.get_ticket_settings()
+                    return {
+                        "current_ticket": current_ticket,
+                        "prefix": ticket_settings.get("ticket_prefix", "T"),
+                        "digits": ticket_settings.get("ticket_digits", 4),
+                        "next_number": ticket_settings.get("current_ticket_number", 1),
+                        "last_reset": ticket_settings.get("last_reset_date", "Never")
+                    }
+            
+            return {"current_ticket": current_ticket}
+            
+        except Exception as e:
+            print(f"Error getting ticket info: {e}")
+            return {"current_ticket": "T0001"}
+        
     def check_ticket_exists(self, event=None):
         """Check if the ticket number already exists in the database"""
         ticket_no = self.rst_var.get().strip()

@@ -50,7 +50,7 @@ class ImageHandler:
         self.main_form.back_image_status.config(foreground="red")
     
     def save_front_image(self, captured_image=None):
-        """Save the front view camera image with watermark"""
+        """Save the front view camera image with watermark including ticket ID"""
         if not self.main_form.form_validator.validate_vehicle_number():
             return False
         
@@ -61,13 +61,14 @@ class ImageHandler:
             # Generate filename and watermark text
             site_name = self.main_form.site_var.get().replace(" ", "_")
             vehicle_no = self.main_form.vehicle_var.get().replace(" ", "_")
+            ticket_id = self.main_form.rst_var.get().strip()  # Get ticket ID
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             
-            # Watermark text
-            watermark_text = f"{site_name} - {vehicle_no} - {timestamp}"
+            # Main watermark text (bottom)
+            watermark_text = f"{site_name} - {vehicle_no} - {timestamp} - FRONT"
             
-            # Add watermark
-            watermarked_image = add_watermark(image, watermark_text)
+            # Add watermark with ticket ID
+            watermarked_image = add_watermark(image, watermark_text, ticket_id)
             
             # Save file path
             filename = f"{site_name}_{vehicle_no}_{timestamp}_front.jpg"
@@ -81,13 +82,13 @@ class ImageHandler:
             self.main_form.front_image_status_var.set("Front: ✓")
             self.main_form.front_image_status.config(foreground="green")
             
-            # messagebox.showinfo("Success", "Front image saved!")
+            print(f"Front image saved with ticket ID: {ticket_id}")
             return True
             
         return False
     
     def save_back_image(self, captured_image=None):
-        """Save the back view camera image with watermark"""
+        """Save the back view camera image with watermark including ticket ID"""
         if not self.main_form.form_validator.validate_vehicle_number():
             return False
         
@@ -98,13 +99,14 @@ class ImageHandler:
             # Generate filename and watermark text
             site_name = self.main_form.site_var.get().replace(" ", "_")
             vehicle_no = self.main_form.vehicle_var.get().replace(" ", "_")
+            ticket_id = self.main_form.rst_var.get().strip()  # Get ticket ID
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             
-            # Watermark text
-            watermark_text = f"{site_name} - {vehicle_no} - {timestamp}"
+            # Main watermark text (bottom)
+            watermark_text = f"{site_name} - {vehicle_no} - {timestamp} - BACK"
             
-            # Add watermark
-            watermarked_image = add_watermark(image, watermark_text)
+            # Add watermark with ticket ID
+            watermarked_image = add_watermark(image, watermark_text, ticket_id)
             
             # Save file path
             filename = f"{site_name}_{vehicle_no}_{timestamp}_back.jpg"
@@ -118,7 +120,7 @@ class ImageHandler:
             self.main_form.back_image_status_var.set("Back: ✓")
             self.main_form.back_image_status.config(foreground="green")
             
-            # messagebox.showinfo("Success", "Back image saved!")
+            print(f"Back image saved with ticket ID: {ticket_id}")
             return True
             
         return False
