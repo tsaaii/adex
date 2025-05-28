@@ -239,7 +239,6 @@ class CloudStorageService:
         except Exception as e:
             print(f"Error listing files: {str(e)}")
             return []
-    
     def get_upload_summary(self, prefix=None):
         """Get a summary of uploaded files
         

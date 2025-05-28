@@ -14,6 +14,7 @@ from data_management import DataManager
 from reports import export_to_excel, export_to_pdf
 from settings_storage import SettingsStorage
 from login_dialog import LoginDialog
+import pandas._libs.testing
 
 class TharuniApp:
     """Main application class"""
