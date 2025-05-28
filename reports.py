@@ -46,6 +46,10 @@ class ReportGenerator:
         self.address_config = self.load_address_config()
         self.all_records = []
         
+        # Ensure reports folder exists
+        self.reports_folder = os.path.join(config.DATA_FOLDER, 'reports')
+        os.makedirs(self.reports_folder, exist_ok=True)
+        
     def load_address_config(self):
         """Load address configuration from JSON file"""
         try:
@@ -512,28 +516,20 @@ class ReportGenerator:
         return selected_data
     
     def export_selected_to_excel(self):
-        """Export selected records to Excel (without images)"""
+        """Export selected records to Excel with proper filename and saved to reports folder"""
         selected_data = self.get_selected_record_data()
         
         if not selected_data:
             messagebox.showwarning("No Selection", "Please select at least one record to export.")
             return
         
-        # Generate filename
-        filename = self.generate_filename(selected_data, "xlsx")
-        
-        # Ask user for save location
-        save_path = filedialog.asksaveasfilename(
-            defaultextension=".xlsx",
-            filetypes=[("Excel files", "*.xlsx"), ("All files", "*.*")],
-            title="Save Excel Report",
-            initialvalue=filename
-        )
-        
-        if not save_path:
-            return
-        
         try:
+            # Generate filename with Agency_Site_Ticket format
+            filename = self.generate_filename(selected_data, "xlsx")
+            
+            # Save to reports folder
+            save_path = os.path.join(self.reports_folder, filename)
+            
             # Create DataFrame
             df = pd.DataFrame(selected_data)
             
@@ -551,13 +547,16 @@ class ReportGenerator:
                 worksheet['A2'] = f"Export Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
                 worksheet['A3'] = f"Records Count: {len(selected_data)}"
             
-            messagebox.showinfo("Export Successful", f"Excel report saved successfully!\n\nFile: {save_path}")
+            messagebox.showinfo("Export Successful", 
+                              f"Excel report saved successfully!\n\n"
+                              f"File: {filename}\n"
+                              f"Location: {self.reports_folder}")
             
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export to Excel:\n{str(e)}")
     
     def export_selected_to_pdf(self):
-        """Export selected records to PDF (with images)"""
+        """Export selected records to PDF with images, proper filename and saved to reports folder"""
         if not REPORTLAB_AVAILABLE:
             messagebox.showerror("PDF Export Error", 
                                "ReportLab library is not installed.\n"
@@ -570,50 +569,52 @@ class ReportGenerator:
             messagebox.showwarning("No Selection", "Please select at least one record to export.")
             return
         
-        # Generate filename
-        filename = self.generate_filename(selected_data, "pdf")
-        
-        # Ask user for save location
-        save_path = filedialog.asksaveasfilename(
-            defaultextension=".pdf",
-            filetypes=[("PDF files", "*.pdf"), ("All files", "*.*")],
-            title="Save PDF Report",
-            initialvalue=filename
-        )
-        
-        if not save_path:
-            return
-        
         try:
+            # Generate filename with Agency_Site_Ticket format
+            filename = self.generate_filename(selected_data, "pdf")
+            
+            # Save to reports folder
+            save_path = os.path.join(self.reports_folder, filename)
+            
             self.create_pdf_report(selected_data, save_path)
-            messagebox.showinfo("Export Successful", f"PDF report saved successfully!\n\nFile: {save_path}")
+            messagebox.showinfo("Export Successful", 
+                              f"PDF report saved successfully!\n\n"
+                              f"File: {filename}\n"
+                              f"Location: {self.reports_folder}")
             
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export to PDF:\n{str(e)}")
     
     def generate_filename(self, selected_data, extension):
-        """Generate filename based on selected records"""
-        if len(selected_data) == 1:
-            # Single record
-            record = selected_data[0]
-            ticket_no = record.get('ticket_no', 'Unknown')
-            site_name = record.get('site_name', 'Unknown').replace(' ', '_')
-            agency_name = record.get('agency_name', 'Unknown').replace(' ', '_')
-            return f"{ticket_no}_{site_name}_{agency_name}.{extension}"
-        else:
-            # Multiple records
+        """Generate filename based on Agency_Site_Ticket format"""
+        try:
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            # Use common site/agency if all same, otherwise use "Multiple"
-            sites = set(r.get('site_name', '') for r in selected_data)
-            agencies = set(r.get('agency_name', '') for r in selected_data)
             
-            site_part = list(sites)[0].replace(' ', '_') if len(sites) == 1 else "Multiple"
-            agency_part = list(agencies)[0].replace(' ', '_') if len(agencies) == 1 else "Multiple"
-            
-            return f"Report_{len(selected_data)}records_{site_part}_{agency_part}_{timestamp}.{extension}"
+            if len(selected_data) == 1:
+                # Single record: Agency_Site_Ticket.extension
+                record = selected_data[0]
+                ticket_no = record.get('ticket_no', 'Unknown').replace('/', '_')
+                site_name = record.get('site_name', 'Unknown').replace(' ', '_').replace('/', '_')
+                agency_name = record.get('agency_name', 'Unknown').replace(' ', '_').replace('/', '_')
+                return f"{agency_name}_{site_name}_{ticket_no}.{extension}"
+            else:
+                # Multiple records: Agency_Site_MultipleTickets_Count_Timestamp.extension
+                # Use common site/agency if all same, otherwise use "Multiple"
+                sites = set(r.get('site_name', '').replace(' ', '_').replace('/', '_') for r in selected_data)
+                agencies = set(r.get('agency_name', '').replace(' ', '_').replace('/', '_') for r in selected_data)
+                
+                site_part = list(sites)[0] if len(sites) == 1 else "Multiple"
+                agency_part = list(agencies)[0] if len(agencies) == 1 else "Multiple"
+                
+                return f"{agency_part}_{site_part}_MultipleTickets_{len(selected_data)}records_{timestamp}.{extension}"
+                
+        except Exception as e:
+            print(f"Error generating filename: {e}")
+            # Fallback filename
+            return f"Report_{len(selected_data)}records_{timestamp}.{extension}"
     
     def create_pdf_report(self, records_data, save_path):
-        """Create comprehensive PDF report with images"""
+        """Create comprehensive PDF report with images and addresses"""
         doc = SimpleDocTemplate(save_path, pagesize=A4, 
                                rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
         
@@ -726,7 +727,7 @@ class ReportGenerator:
         elements.append(Spacer(1, 0.3*inch))
     
     def add_record_images(self, elements, record, styles):
-        """Add vehicle images to the PDF report"""
+        """Add vehicle images to the PDF report with proper error handling"""
         try:
             front_image = record.get('front_image', '')
             back_image = record.get('back_image', '')
@@ -736,122 +737,74 @@ class ReportGenerator:
                 elements.append(Spacer(1, 0.2*inch))
                 return
             
-            # First weighment images section
-            if record.get('first_weight') and record.get('first_timestamp'):
-                elements.append(Paragraph("FIRST WEIGHMENT IMAGES", styles['Heading2']))
-                elements.append(Spacer(1, 0.1*inch))
-                
-                # Create table for first weighment images
-                first_images_data = [['Front View', 'Back View']]
-                first_image_row = []
-                
-                # Front image for first weighment
-                front_path = os.path.join(config.IMAGES_FOLDER, front_image) if front_image else None
-                if front_path and os.path.exists(front_path):
-                    try:
-                        # Create temporary resized image
-                        temp_front = self.prepare_image_for_pdf(front_path, "First Weighment - Front")
-                        if temp_front:
-                            first_image_row.append(RLImage(temp_front, width=2*inch, height=1.5*inch))
-                        else:
-                            first_image_row.append("Image not available")
-                    except Exception as e:
-                        print(f"Error processing front image: {e}")
-                        first_image_row.append("Image error")
-                else:
-                    first_image_row.append("No front image")
-                
-                # Back image for first weighment
-                back_path = os.path.join(config.IMAGES_FOLDER, back_image) if back_image else None
-                if back_path and os.path.exists(back_path):
-                    try:
-                        # Create temporary resized image
-                        temp_back = self.prepare_image_for_pdf(back_path, "First Weighment - Back")
-                        if temp_back:
-                            first_image_row.append(RLImage(temp_back, width=2*inch, height=1.5*inch))
-                        else:
-                            first_image_row.append("Image not available")
-                    except Exception as e:
-                        print(f"Error processing back image: {e}")
-                        first_image_row.append("Image error")
-                else:
-                    first_image_row.append("No back image")
-                
-                first_images_data.append(first_image_row)
-                
-                # Create first weighment images table
-                first_img_table = Table(first_images_data, colWidths=[2.5*inch, 2.5*inch])
-                first_img_table.setStyle(TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
-                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, 0), 10),
-                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                    ('TOPPADDING', (0, 0), (-1, -1), 6),
-                ]))
-                
-                elements.append(first_img_table)
-                elements.append(Spacer(1, 0.2*inch))
+            # Add images section
+            elements.append(Paragraph("VEHICLE IMAGES", styles['Heading2']))
+            elements.append(Spacer(1, 0.1*inch))
             
-            # Second weighment images section (if available)
-            if record.get('second_weight') and record.get('second_timestamp'):
-                elements.append(Paragraph("SECOND WEIGHMENT IMAGES", styles['Heading2']))
-                elements.append(Spacer(1, 0.1*inch))
-                
-                # For second weighment, we show the same images but with different labels
-                # (In a real scenario, you might have separate images for second weighment)
-                second_images_data = [['Front View', 'Back View']]
-                second_image_row = []
-                
-                # Front image for second weighment
-                if front_path and os.path.exists(front_path):
-                    try:
-                        temp_front = self.prepare_image_for_pdf(front_path, "Second Weighment - Front")
-                        if temp_front:
-                            second_image_row.append(RLImage(temp_front, width=2*inch, height=1.5*inch))
-                        else:
-                            second_image_row.append("Image not available")
-                    except Exception as e:
-                        print(f"Error processing front image: {e}")
-                        second_image_row.append("Image error")
-                else:
-                    second_image_row.append("No front image")
-                
-                # Back image for second weighment
-                if back_path and os.path.exists(back_path):
-                    try:
-                        temp_back = self.prepare_image_for_pdf(back_path, "Second Weighment - Back")
-                        if temp_back:
-                            second_image_row.append(RLImage(temp_back, width=2*inch, height=1.5*inch))
-                        else:
-                            second_image_row.append("Image not available")
-                    except Exception as e:
-                        print(f"Error processing back image: {e}")
-                        second_image_row.append("Image error")
-                else:
-                    second_image_row.append("No back image")
-                
-                second_images_data.append(second_image_row)
-                
-                # Create second weighment images table
-                second_img_table = Table(second_images_data, colWidths=[2.5*inch, 2.5*inch])
-                second_img_table.setStyle(TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.lightgreen),
-                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, 0), 10),
-                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                    ('TOPPADDING', (0, 0), (-1, -1), 6),
-                ]))
-                
-                elements.append(second_img_table)
-                elements.append(Spacer(1, 0.2*inch))
+            # Create table for images
+            images_data = [['Front View', 'Back View']]
+            image_row = []
+            
+            # Front image
+            front_path = os.path.join(config.IMAGES_FOLDER, front_image) if front_image else None
+            if front_path and os.path.exists(front_path):
+                try:
+                    # Create temporary resized image
+                    temp_front = self.prepare_image_for_pdf(front_path, f"Ticket: {record.get('ticket_no', '')} - Front")
+                    if temp_front:
+                        image_row.append(RLImage(temp_front, width=2*inch, height=1.5*inch))
+                        # Clean up temp file after use
+                        try:
+                            os.remove(temp_front)
+                        except:
+                            pass
+                    else:
+                        image_row.append("Image not available")
+                except Exception as e:
+                    print(f"Error processing front image: {e}")
+                    image_row.append("Image error")
+            else:
+                image_row.append("No front image")
+            
+            # Back image
+            back_path = os.path.join(config.IMAGES_FOLDER, back_image) if back_image else None
+            if back_path and os.path.exists(back_path):
+                try:
+                    # Create temporary resized image
+                    temp_back = self.prepare_image_for_pdf(back_path, f"Ticket: {record.get('ticket_no', '')} - Back")
+                    if temp_back:
+                        image_row.append(RLImage(temp_back, width=2*inch, height=1.5*inch))
+                        # Clean up temp file after use
+                        try:
+                            os.remove(temp_back)
+                        except:
+                            pass
+                    else:
+                        image_row.append("Image not available")
+                except Exception as e:
+                    print(f"Error processing back image: {e}")
+                    image_row.append("Image error")
+            else:
+                image_row.append("No back image")
+            
+            images_data.append(image_row)
+            
+            # Create images table
+            img_table = Table(images_data, colWidths=[2.5*inch, 2.5*inch])
+            img_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 10),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ]))
+            
+            elements.append(img_table)
+            elements.append(Spacer(1, 0.2*inch))
         
         except Exception as e:
             print(f"Error adding images to PDF: {e}")
@@ -1242,15 +1195,35 @@ class ReportGenerator:
 
 # Legacy export functions for backward compatibility
 def export_to_excel(filename=None, data_manager=None):
-    """Legacy export function - opens new report generator"""
+    """Export records to Excel - now saves to reports folder with proper naming"""
     if data_manager:
         generator = ReportGenerator(None, data_manager)
-        generator.show_report_dialog()
-    return True
+        
+        # Auto-select all records for quick export
+        generator.all_records = data_manager.get_all_records()
+        generator.selected_records = [record.get('ticket_no', '') for record in generator.all_records]
+        
+        if generator.selected_records:
+            generator.export_selected_to_excel()
+            return True
+        else:
+            messagebox.showwarning("No Records", "No records found to export.")
+            return False
+    return False
 
 def export_to_pdf(filename=None, data_manager=None):
-    """Legacy export function - opens new report generator"""
+    """Export records to PDF - now saves to reports folder with proper naming"""
     if data_manager:
         generator = ReportGenerator(None, data_manager)
-        generator.show_report_dialog()
-    return True
+        
+        # Auto-select all records for quick export
+        generator.all_records = data_manager.get_all_records()
+        generator.selected_records = [record.get('ticket_no', '') for record in generator.all_records]
+        
+        if generator.selected_records:
+            generator.export_selected_to_pdf()
+            return True
+        else:
+            messagebox.showwarning("No Records", "No records found to export.")
+            return False
+    return False

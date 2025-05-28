@@ -7,7 +7,7 @@ import cv2
 
 import config
 from ui_components import HoverButton
-from reports import export_to_excel, export_to_pdf
+from reports import ReportGenerator  # Import the new report generator
 
 class SummaryPanel:
     """Panel for displaying summary of recent entries"""
@@ -46,7 +46,7 @@ class SummaryPanel:
         # Export options
         ttk.Label(control_frame, text="Export:").pack(side=tk.LEFT, padx=(20, 5))
         
-        # Excel export button
+        # Excel export button - now uses new report system
         excel_btn = HoverButton(control_frame, 
                               text="Excel", 
                               bg=config.COLORS["secondary"],
@@ -55,7 +55,7 @@ class SummaryPanel:
                               command=self.export_to_excel)
         excel_btn.pack(side=tk.LEFT, padx=2)
         
-        # PDF export button
+        # PDF export button - now uses new report system
         pdf_btn = HoverButton(control_frame, 
                             text="PDF", 
                             bg=config.COLORS["primary"],
@@ -63,6 +63,15 @@ class SummaryPanel:
                             padx=5, pady=2,
                             command=self.export_to_pdf)
         pdf_btn.pack(side=tk.LEFT, padx=2)
+        
+        # Advanced Report button - opens full report dialog
+        advanced_btn = HoverButton(control_frame, 
+                                  text="Advanced Reports", 
+                                  bg=config.COLORS["button_alt"],
+                                  fg=config.COLORS["button_text"],
+                                  padx=5, pady=2,
+                                  command=self.show_advanced_reports)
+        advanced_btn.pack(side=tk.LEFT, padx=2)
         
         # Summary frame with table
         summary_frame = ttk.LabelFrame(self.parent, text="Recent Entries")
@@ -183,14 +192,72 @@ class SummaryPanel:
         self.update_summary()
     
     def export_to_excel(self):
-        """Export records to Excel"""
-        if export_to_excel():
-            messagebox.showinfo("Export Successful", "Data successfully exported to Excel file.")
+        """Export records to Excel using new report system"""
+        try:
+            if not self.data_manager:
+                messagebox.showerror("Error", "No data manager available")
+                return
+                
+            # Get all records
+            all_records = self.data_manager.get_all_records()
+            
+            if not all_records:
+                messagebox.showwarning("No Records", "No records found to export.")
+                return
+            
+            # Create report generator
+            generator = ReportGenerator(self.parent, self.data_manager)
+            
+            # Set all records as selected for quick export
+            generator.all_records = all_records
+            generator.selected_records = [record.get('ticket_no', '') for record in all_records]
+            
+            # Export to Excel
+            generator.export_selected_to_excel()
+            
+        except Exception as e:
+            messagebox.showerror("Export Error", f"Failed to export to Excel:\n{str(e)}")
     
     def export_to_pdf(self):
-        """Export records to PDF"""
-        if export_to_pdf():
-            messagebox.showinfo("Export Successful", "Data successfully exported to PDF file.")
+        """Export records to PDF using new report system"""
+        try:
+            if not self.data_manager:
+                messagebox.showerror("Error", "No data manager available")
+                return
+                
+            # Get all records
+            all_records = self.data_manager.get_all_records()
+            
+            if not all_records:
+                messagebox.showwarning("No Records", "No records found to export.")
+                return
+            
+            # Create report generator
+            generator = ReportGenerator(self.parent, self.data_manager)
+            
+            # Set all records as selected for quick export
+            generator.all_records = all_records
+            generator.selected_records = [record.get('ticket_no', '') for record in all_records]
+            
+            # Export to PDF
+            generator.export_selected_to_pdf()
+            
+        except Exception as e:
+            messagebox.showerror("Export Error", f"Failed to export to PDF:\n{str(e)}")
+    
+    def show_advanced_reports(self):
+        """Show the advanced report dialog with filtering and selection options"""
+        try:
+            if not self.data_manager:
+                messagebox.showerror("Error", "No data manager available")
+                return
+                
+            # Create and show the report generator dialog
+            generator = ReportGenerator(self.parent, self.data_manager)
+            generator.show_report_dialog()
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open advanced reports:\n{str(e)}")
     
     def view_entry_details(self):
         """View details of selected entry"""
