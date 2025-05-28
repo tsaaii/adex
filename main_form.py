@@ -248,8 +248,7 @@ class MainForm:
         self.rst_var.set(record.get('ticket_no', ''))
         self.vehicle_var.set(record.get('vehicle_no', ''))
         self.agency_var.set(record.get('agency_name', ''))
-        self.material_var.set(record.get('material', ''))
-        self.material_type_var.set(record.get('material_type', ''))
+        material_data = record.get('material', '') or record.get('material_type', '')
         self.tpt_var.set(record.get('transfer_party_name', ''))
         
         # Set weighment data
@@ -308,7 +307,7 @@ class MainForm:
             'time': now.strftime("%H:%M:%S"),
             'site_name': self.site_var.get(),
             'agency_name': self.agency_var.get(),
-            'material': self.material_var.get() if hasattr(self, 'material_var') else "",
+            'material': self.material_type_var.get(),
             'ticket_no': self.rst_var.get(),
             'vehicle_no': self.vehicle_var.get(),
             'transfer_party_name': self.tpt_var.get(),

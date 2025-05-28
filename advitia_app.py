@@ -1,3 +1,4 @@
+#pyinstaller --onedir --windowed --add-data "data;data" --collect-all=cv2 --collect-all=pandas --collect-all=PIL --hidden-import=serial --hidden-import=google.cloud --hidden-import=psutil --optimize=2 --strip --noupx --name="Swaccha_Fast" advitia_app.py
 import tkinter as tk
 import os
 import datetime
