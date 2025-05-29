@@ -8,6 +8,7 @@ import json
 import config
 import tkcalendar
 
+
 # Try to import optional dependencies
 try:
     from tkcalendar import DateEntry
@@ -614,132 +615,268 @@ class ReportGenerator:
             return f"Report_{len(selected_data)}records_{timestamp}.{extension}"
     
     def create_pdf_report(self, records_data, save_path):
-        """Create ink-friendly PDF report with consistent styling"""
+        """Create ink-friendly PDF report with agency info, organized layout and proper image display"""
         doc = SimpleDocTemplate(save_path, pagesize=A4,
-                                rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+                                rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
         
         styles = getSampleStyleSheet()
         elements = []
 
-        # Custom ink-friendly styles
-        title_style = ParagraphStyle(
-            name='Title',
-            fontSize=16,
+        # Ink-friendly styles - minimal colors, mostly black text with light borders
+        # CHANGE 1: Increased all font sizes by 2px
+        header_style = ParagraphStyle(
+            name='HeaderStyle',
+            fontSize=18,  # was 16
             alignment=TA_CENTER,
             fontName='Helvetica-Bold',
-            spaceAfter=10
+            textColor=colors.black,
+            spaceAfter=6,
+            spaceBefore=6
         )
         
-        label_style = ParagraphStyle(
-            name='Label',
-            fontSize=10,
-            alignment=TA_LEFT,
+        subheader_style = ParagraphStyle(
+            name='SubHeaderStyle',
+            fontSize=12,  # was 10
+            alignment=TA_CENTER,
+            fontName='Helvetica',
+            textColor=colors.black,
+            spaceAfter=12
+        )
+        
+        section_header_style = ParagraphStyle(
+            name='SectionHeader',
+            fontSize=13,  # was 11
+            alignment=TA_CENTER,
             fontName='Helvetica-Bold',
+            textColor=colors.black,
+            spaceAfter=6,
+            spaceBefore=6
         )
 
-        normal_style = ParagraphStyle(
-            name='Normal',
-            fontSize=10,
-            alignment=TA_LEFT,
+        label_style = ParagraphStyle(
+            name='LabelStyle',
+            fontSize=11,  # was 9
+            fontName='Helvetica-Bold',
+            textColor=colors.black
+        )
+
+        value_style = ParagraphStyle(
+            name='ValueStyle',
+            fontSize=11,  # was 9
             fontName='Helvetica',
+            textColor=colors.black
         )
 
         for i, record in enumerate(records_data):
             if i > 0:
                 elements.append(PageBreak())
 
-            # Header
-            agency = record.get('agency_name', 'Unknown Agency')
-            site = record.get('site_name', 'Unknown Site')
-            ticket = record.get('ticket_no', '000')
+            # Get agency information from address config
+            agency_name = record.get('agency_name', 'Unknown Agency')
+            agency_info = self.address_config.get('agencies', {}).get(agency_name, {})
             
-            elements.append(Paragraph(f"{agency}", title_style))
-            elements.append(Paragraph(f"{site}", normal_style))
-            elements.append(Paragraph(f"Ticket No: {ticket}", normal_style))
+            # Header Section with Agency Info
+            elements.append(Paragraph(agency_info.get('name', agency_name), header_style))
+            
+            if agency_info.get('address'):
+                # Replace line breaks with proper formatting
+                address_text = agency_info.get('address', '').replace('\n', '<br/>')
+                elements.append(Paragraph(address_text, subheader_style))
+            
+            # Contact information in a single line
+            contact_info = []
+            if agency_info.get('contact'):
+                contact_info.append(f"Phone: {agency_info.get('contact')}")
+            if agency_info.get('email'):
+                contact_info.append(f"Email: {agency_info.get('email')}")
+            
+            if contact_info:
+                elements.append(Paragraph(" | ".join(contact_info), subheader_style))
+            
             elements.append(Spacer(1, 0.2*inch))
 
-            # Info table
-            info = [
-                ["Date", record.get('date', ''), "Time", record.get('time', '')],
-                ["Vehicle No", record.get('vehicle_no', ''), "Transfer Party", record.get('transfer_party_name', '')],
-                ["Material", record.get('material', ''), "Material Type", record.get('material_type', '')],
-                ["First Weight", record.get('first_weight', ''), "Time", record.get('first_timestamp', '')],
-                ["Second Weight", record.get('second_weight', ''), "Time", record.get('second_timestamp', '')],
-                ["Net Weight", record.get('net_weight', ''), "User", record.get('user_name', '')],
+            # Print date and ticket information
+            print_date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            ticket_no = record.get('ticket_no', '000')
+            
+            elements.append(Paragraph(f"Print Date: {print_date}", value_style))
+            elements.append(Paragraph(f"Ticket No: {ticket_no}", header_style))
+            elements.append(Spacer(1, 0.15*inch))
+
+            # Vehicle Information in a single bordered box with proper alignment
+            elements.append(Paragraph("VEHICLE INFORMATION", section_header_style))
+            
+            # Create vehicle information using table structure for perfect alignment
+            vehicle_data = [
+                [Paragraph("<b>Vehicle No:</b>", label_style), Paragraph(record.get('vehicle_no', ''), value_style), 
+                Paragraph("<b>Date:</b>", label_style), Paragraph(record.get('date', ''), value_style), 
+                Paragraph("<b>Time:</b>", label_style), Paragraph(record.get('time', ''), value_style)],
+                [Paragraph("<b>Material:</b>", label_style), Paragraph(record.get('material', ''), value_style), 
+                Paragraph("<b>Site Name:</b>", label_style), Paragraph(record.get('site_name', ''), value_style), 
+                Paragraph("<b>Transfer Party:</b>", label_style), Paragraph(record.get('transfer_party_name', ''), value_style)],
+                [Paragraph("<b>Agency Name:</b>", label_style), Paragraph(record.get('agency_name', ''), value_style), 
+                Paragraph("<b>User Name:</b>", label_style), Paragraph(record.get('user_name', ''), value_style), 
+                Paragraph("<b>Site Incharge:</b>", label_style), Paragraph(record.get('site_incharge', ''), value_style)]
             ]
-
-            table = Table(info, colWidths=[1.5*inch, 2*inch, 1.5*inch, 2*inch])
-            table.setStyle(TableStyle([
-                ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+            
+            # Create nested table for vehicle information with perfect alignment
+            vehicle_inner_table = Table(vehicle_data, colWidths=[1.2*inch, 1.3*inch, 1.0*inch, 1.3*inch, 1.2*inch, 1.5*inch])
+            vehicle_inner_table.setStyle(TableStyle([
                 ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
-                ('FONTSIZE', (0,0), (-1,-1), 9),
-                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0,0), (-1,-1), 13),  # was 11
+                ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('LEFTPADDING', (0,0), (-1,-1), 2),
+                ('RIGHTPADDING', (0,0), (-1,-1), 2),
+                ('TOPPADDING', (0,0), (-1,-1), 4),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 4),
             ]))
-            elements.append(table)
-            elements.append(Spacer(1, 0.3*inch))
+            
+            # Wrap the inner table in the main bordered box
+            vehicle_table = Table([[vehicle_inner_table]], colWidths=[7.5*inch])
+            vehicle_table.setStyle(TableStyle([
+                ('GRID', (0,0), (-1,-1), 1, colors.black),
+                ('LEFTPADDING', (0,0), (-1,-1), 12),
+                ('RIGHTPADDING', (0,0), (-1,-1), 12),
+                ('TOPPADDING', (0,0), (-1,-1), 8),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+                ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ]))
+            elements.append(vehicle_table)
+            elements.append(Spacer(1, 0.15*inch))
 
-            # Section Title - Centered & Underlined
-            elements.append(Paragraph("VEHICLE IMAGES", ParagraphStyle(
-                name='SectionHeader',
-                fontSize=12,
-                alignment=TA_CENTER,
-                fontName='Helvetica-Bold',
-                underline=True,
-                spaceAfter=12
-            )))
+            # CHANGE 2: Modified Weighment Information to include Net Weight in corner
+            elements.append(Paragraph("WEIGHMENT DETAILS", section_header_style))
+            
+            # Create weighment information with Net Weight in corner
+            weighment_data = [
+                [Paragraph("<b>First Weight:</b>", label_style), Paragraph(f"{record.get('first_weight', '')} kg", value_style), 
+                Paragraph("<b>First Time:</b>", label_style), Paragraph(record.get('first_timestamp', ''), value_style)],
+                [Paragraph("<b>Second Weight:</b>", label_style), Paragraph(f"{record.get('second_weight', '')} kg", value_style), 
+                Paragraph("<b>Second Time:</b>", label_style), Paragraph(record.get('second_timestamp', ''), value_style)],
+                # Add Net Weight in the corner (bottom right)
+                ["", "", Paragraph("<b>Net Weight:</b>", label_style), Paragraph(f"{record.get('net_weight', '')} Kgs", 
+                                ParagraphStyle(name='NetWeightCorner', fontSize=14, fontName='Helvetica-Bold', textColor=colors.black))]
+            ]
+            
+            # Create nested table for weighment information including net weight
+            weighment_inner_table = Table(weighment_data, colWidths=[1.5*inch, 1.5*inch, 1.2*inch, 2.8*inch])
+            weighment_inner_table.setStyle(TableStyle([
+                ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+                ('FONTSIZE', (0,0), (-1,-1), 14),  # was 12
+                ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('LEFTPADDING', (0,0), (-1,-1), 2),
+                ('RIGHTPADDING', (0,0), (-1,-1), 2),
+                ('TOPPADDING', (0,0), (-1,-1), 4),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+                # Special formatting for net weight row
+                ('SPAN', (2,2), (3,2)),  # Merge cells for net weight
+                ('ALIGN', (2,2), (3,2), 'RIGHT'),  # Right align net weight
+            ]))
+            
+            # Wrap the inner table in the main bordered box
+            weighment_table = Table([[weighment_inner_table]], colWidths=[7.5*inch])
+            weighment_table.setStyle(TableStyle([
+                ('GRID', (0,0), (-1,-1), 1, colors.black),
+                ('LEFTPADDING', (0,0), (-1,-1), 12),
+                ('RIGHTPADDING', (0,0), (-1,-1), 12),
+                ('TOPPADDING', (0,0), (-1,-1), 8),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+                ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ]))
+            elements.append(weighment_table)
+            elements.append(Spacer(1, 0.15*inch))
 
-            # Images (front & back)
+            # Vehicle Images Section - 2x2 Grid
+            elements.append(Paragraph("VEHICLE IMAGES", section_header_style))
+            
+            # Get image paths
             front_img_path = os.path.join(config.IMAGES_FOLDER, record.get('front_image', ''))
             back_img_path = os.path.join(config.IMAGES_FOLDER, record.get('back_image', ''))
 
-            img_data = [["Front View", "Back View"]]
-            row = []
+            # Create 2x2 image grid
+            img_data = [
+                ["1ST WEIGHMENT", "2ND WEIGHMENT"],
+                [None, None],  # Will be filled with images
+                [None, None]   # Will be filled with images
+            ]
 
-            for path in [front_img_path, back_img_path]:
-                if os.path.exists(path):
-                    try:
-                        temp_img = self.prepare_image_for_pdf(path, "Vehicle")
-                        if temp_img:
-                            row.append(RLImage(temp_img, width=2.5*inch, height=1.5*inch))
-                            os.remove(temp_img)
-                        else:
-                            row.append("Image error")
-                    except Exception:
-                        row.append("Image error")
-                else:
-                    row.append("Not available")
+            # Process first weighment images (same image for both positions in first weighment)
+            first_weighment_img = None
+            if os.path.exists(front_img_path):
+                try:
+                    temp_img = self.prepare_image_for_pdf(front_img_path, f"Ticket: {ticket_no} - 1st Weighment")
+                    if temp_img:
+                        first_weighment_img = RLImage(temp_img, width=3.5*inch, height=2.2*inch)
+                        os.remove(temp_img)
+                except Exception as e:
+                    print(f"Error processing front image: {e}")
+            
+            if first_weighment_img is None:
+                first_weighment_img = "Image not available"
 
-            img_data.append(row)
+            # Process second weighment images (same image for both positions in second weighment)
+            second_weighment_img = None
+            if os.path.exists(back_img_path):
+                try:
+                    temp_img = self.prepare_image_for_pdf(back_img_path, f"Ticket: {ticket_no} - 2nd Weighment")
+                    if temp_img:
+                        second_weighment_img = RLImage(temp_img, width=3.5*inch, height=2.2*inch)
+                        os.remove(temp_img)
+                except Exception as e:
+                    print(f"Error processing back image: {e}")
+            
+            if second_weighment_img is None:
+                second_weighment_img = "Image not available"
 
-            img_table = Table(img_data, colWidths=[2.75*inch, 2.75*inch])
+            # Fill the image grid - 2 images for 1st weighment, 2 images for 2nd weighment
+            img_data[1] = [first_weighment_img, second_weighment_img]
+            img_data[2] = [first_weighment_img, second_weighment_img]
+
+            # Create images table with 2x2 grid
+            img_table = Table(img_data, colWidths=[3.75*inch, 3.75*inch])
             img_table.setStyle(TableStyle([
                 ('GRID', (0,0), (-1,-1), 0.5, colors.black),
                 ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0,0), (-1,0), 12),  # was 10
                 ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-                ('FONTSIZE', (0,0), (-1,-1), 9)
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('LEFTPADDING', (0,0), (-1,-1), 6),
+                ('RIGHTPADDING', (0,0), (-1,-1), 6),
+                ('TOPPADDING', (0,0), (-1,-1), 6),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 6),
             ]))
             elements.append(img_table)
-            elements.append(Spacer(1, 0.2*inch))
-
-            # Signature Fields
-            elements.append(Spacer(1, 0.2*inch))
-            sig_table = Table([
-                ["Site Incharge", "Operator/User"],
-                ["Signature: ___________________", "Signature: ___________________"],
-                ["Date: ___________________", "Date: ___________________"]
-            ], colWidths=[3*inch, 3*inch])
-
-            sig_table.setStyle(TableStyle([
-                ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+            
+            # CHANGE 3: Add operator signature line at bottom right
+            elements.append(Spacer(1, 0.3*inch))
+            
+            # Create signature line table aligned to the right
+            signature_style = ParagraphStyle(
+                name='SignatureStyle',
+                fontSize=11,  # was 9, now increased by 2
+                fontName='Helvetica',
+                textColor=colors.black,
+                alignment=TA_RIGHT
+            )
+            
+            signature_table = Table([["", "Operator's Signature"]], colWidths=[5*inch, 2.5*inch])
+            signature_table.setStyle(TableStyle([
                 ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
-                ('FONTSIZE', (0,0), (-1,-1), 10)
+                ('FONTSIZE', (0,0), (-1,-1), 11),  # was 9
+                ('ALIGN', (1,0), (1,0), 'RIGHT'),
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('LEFTPADDING', (0,0), (-1,-1), 0),
+                ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                ('TOPPADDING', (0,0), (-1,-1), 0),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 0),
             ]))
-            elements.append(sig_table)
+            elements.append(signature_table)
 
+        # CRITICAL: Only ONE doc.build() call at the very end
         doc.build(elements)
 
-    
     def add_optimized_record_table(self, elements, record, styles):
         """Add record details in a nice 2-column table format"""
         # Prepare data in 2-column format
@@ -753,7 +890,6 @@ class ReportGenerator:
             ['Vehicle Number', record.get('vehicle_no', '')],
             ['Transfer Party', record.get('transfer_party_name', '')],
             ['Material', record.get('material', '')],
-            ['Material Type', record.get('material_type', '')],
             ['First Weight (kg)', record.get('first_weight', '')],
             ['First Weight Time', record.get('first_timestamp', '')],
             ['Second Weight (kg)', record.get('second_weight', '')],
