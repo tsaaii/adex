@@ -1,4 +1,4 @@
-# Updated main_form.py - Complete integration with modular structure
+# Updated main_form.py - Fixed ticket number management
 
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -105,9 +105,8 @@ class MainForm:
         self.agency_var.trace_add("write", self.on_agency_change)
         self.site_var.trace_add("write", self.on_site_change)
         
-        # Generate next ticket number if data manager is available
-        if hasattr(self, 'data_manager') and self.data_manager:
-            self.generate_next_ticket_number()
+        # FIXED: Reserve next ticket number WITHOUT incrementing counter
+        self.reserve_next_ticket_number()
 
     # Import methods from modular files
     from form_ui import create_form
@@ -148,11 +147,28 @@ class MainForm:
         """Handle site selection change to update data file context"""
         self.on_agency_change()
 
-    def generate_next_ticket_number(self):
-        """Generate the next ticket number using the persistent counter system"""
+    def reserve_next_ticket_number(self):
+        """Reserve (peek at) the next ticket number WITHOUT incrementing counter"""
         try:
-            # Use the new config function to get next ticket number
-            next_ticket = config.get_next_ticket_number()
+            # Use the new config function to reserve (not increment) ticket number
+            next_ticket = config.reserve_next_ticket_number()
+            self.rst_var.set(next_ticket)
+            print(f"Reserved ticket number: {next_ticket}")
+            
+            # Reset the form to first weighment state for new ticket
+            self.current_weighment = "first"
+            self.weighment_state_var.set("First Weighment")
+            
+        except Exception as e:
+            print(f"Error reserving ticket number: {e}")
+            # Fallback to old method if new system fails
+            self._generate_fallback_ticket()
+
+    def generate_next_ticket_number(self):
+        """Generate the next ticket number (for manual new ticket button)"""
+        try:
+            # Use the new config function to reserve next ticket number
+            next_ticket = config.reserve_next_ticket_number()
             self.rst_var.set(next_ticket)
             print(f"Generated new ticket number: {next_ticket}")
             
@@ -164,6 +180,19 @@ class MainForm:
             print(f"Error generating ticket number: {e}")
             # Fallback to old method if new system fails
             self._generate_fallback_ticket()
+
+    def commit_current_ticket_number(self):
+        """Commit the current ticket number (increment the counter) - only after successful save with both weighments"""
+        try:
+            success = config.commit_next_ticket_number()
+            if success:
+                print(f"Successfully committed ticket number: {self.rst_var.get()}")
+            else:
+                print("Failed to commit ticket number")
+            return success
+        except Exception as e:
+            print(f"Error committing ticket number: {e}")
+            return False
     
     def _generate_fallback_ticket(self):
         """Fallback ticket generation method (legacy support)"""
@@ -295,8 +324,53 @@ class MainForm:
             self.back_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
             self.back_camera.capture_button.config(text="Capture")
             
-        # Generate new ticket number (this will automatically set it as read-only)
-        self.generate_next_ticket_number()
+        # FIXED: Only reserve (don't increment) new ticket number when clearing form
+        self.reserve_next_ticket_number()
+
+    def prepare_for_new_ticket_after_completion(self):
+        """Prepare form for new ticket ONLY after both weighments are complete and saved"""
+        try:
+            # This method is called only after both weighments are successfully saved
+            
+            # Reset variables
+            self.vehicle_var.set("")
+            self.agency_var.set("")
+            self.first_weight_var.set("")
+            self.first_timestamp_var.set("")
+            self.second_weight_var.set("")
+            self.second_timestamp_var.set("")
+            self.net_weight_var.set("")
+            self.material_type_var.set("Inert")
+            
+            # Reset weighment state
+            self.current_weighment = "first"
+            self.weighment_state_var.set("First Weighment")
+            
+            # Reset images
+            self.image_handler.reset_images()
+            
+            # Reset cameras
+            if hasattr(self, 'front_camera'):
+                self.front_camera.stop_camera()
+                self.front_camera.captured_image = None
+                self.front_camera.canvas.delete("all")
+                self.front_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
+                self.front_camera.capture_button.config(text="Capture")
+                
+            if hasattr(self, 'back_camera'):
+                self.back_camera.stop_camera()
+                self.back_camera.captured_image = None
+                self.back_camera.canvas.delete("all")
+                self.back_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
+                self.back_camera.capture_button.config(text="Capture")
+            
+            # Reserve the next ticket number (this is where increment happens)
+            self.reserve_next_ticket_number()
+            
+            print("Form prepared for new ticket after completion")
+            
+        except Exception as e:
+            print(f"Error preparing form for new ticket: {e}")
 
     def get_form_data(self):
         """Get form data as a dictionary"""
@@ -329,6 +403,19 @@ class MainForm:
                 data[field] = ''
                 
         return data
+
+    def is_record_complete(self):
+        """Check if record has both weighments complete
+        
+        Returns:
+            bool: True if both weighments are complete
+        """
+        first_weight = self.first_weight_var.get().strip()
+        first_timestamp = self.first_timestamp_var.get().strip()
+        second_weight = self.second_weight_var.get().strip()
+        second_timestamp = self.second_timestamp_var.get().strip()
+        
+        return bool(first_weight and first_timestamp and second_weight and second_timestamp)
 
     def validate_form(self):
         """Validate form fields using form validator"""

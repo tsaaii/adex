@@ -31,10 +31,8 @@ def create_form(self, parent):
     # Ticket No Entry - Column 0 (READ-ONLY)
     ticket_entry = ttk.Entry(form_inner, textvariable=self.rst_var, width=config.STD_WIDTH, state="readonly")
     ticket_entry.grid(row=1, column=0, sticky=tk.W, padx=3, pady=3)
-    # Remove the FocusOut binding since it's read-only
-    # ticket_entry.bind("<FocusOut>", self.check_ticket_exists)
     
-    # Auto-generate next ticket button (positioned next to the ticket entry)
+    # FIXED: New Ticket button now uses generate_next_ticket_number (manual reserve)
     auto_ticket_btn = HoverButton(form_inner, text="New", 
                                 bg=config.COLORS["primary"], 
                                 fg=config.COLORS["button_text"],
@@ -110,7 +108,7 @@ def create_form(self, parent):
 
     # Status label for current weight
     self.weight_status_label = ttk.Label(weighment_frame, 
-                                       text="(Live)", 
+                                       text="(Live from weighbridge)", 
                                        font=("Segoe UI", 8, "italic"),
                                        foreground="gray")
     self.weight_status_label.grid(row=0, column=2, sticky=tk.W, padx=5, pady=5)
@@ -172,11 +170,11 @@ def create_form(self, parent):
                                 font=("Segoe UI", 9, "bold"), foreground=config.COLORS["primary"])
     state_value_label.pack(side=tk.LEFT)
 
-    # Note about current weight display
+    # FIXED: Updated note about ticket increment behavior
     weight_note = ttk.Label(state_frame, 
-                          text="Current weight shows live reading - click Capture Weight when ready", 
+                          text="💡 Ticket number increments only after BOTH weighments are completed", 
                           font=("Segoe UI", 8, "italic"), 
-                          foreground="gray")
+                          foreground="green")
     weight_note.pack(side=tk.RIGHT)
             
     # Image status indicators

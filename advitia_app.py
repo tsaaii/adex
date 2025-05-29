@@ -516,7 +516,7 @@ class TharuniApp:
             print(f"Error updating camera settings: {e}")
         
     def save_record(self):
-        """Save current record to database"""
+        """Save current record to database - FIXED TICKET INCREMENT LOGIC"""
         # Validate form first
         if not self.main_form.validate_form():
             return
@@ -525,42 +525,45 @@ class TharuniApp:
         record_data = self.main_form.get_form_data()
         ticket_no = record_data.get('ticket_no', '')
         
+        # Check if this is a complete record (both weighments)
+        is_complete_record = self.main_form.is_record_complete()
+        
         # Save to database
         if self.data_manager.save_record(record_data):
-            # Check if this is a second weighment being completed
-            is_second_weighment_complete = (
-                record_data.get('second_weight') and record_data.get('second_timestamp') and 
-                self.main_form.current_weighment == "second"
-            )
             
-            # Set appropriate message based on what was saved
-            if is_second_weighment_complete:
-                # Both weighments complete
+            # FIXED: Only commit (increment) ticket number when BOTH weighments are complete
+            if is_complete_record:
+                # Both weighments complete - commit the ticket number (increment counter)
+                commit_success = self.main_form.commit_current_ticket_number()
+                if commit_success:
+                    print(f"Ticket {ticket_no} completed - counter incremented")
+                else:
+                    print(f"Warning: Failed to commit ticket number {ticket_no}")
+                
                 messagebox.showinfo("Success", "Record completed with both weighments!")
                 
                 # Remove from pending vehicles list
                 if hasattr(self, 'pending_vehicles'):
                     self.pending_vehicles.remove_saved_record(ticket_no)
+                
+                # Prepare form for new ticket (this will reserve the next ticket number)
+                self.main_form.prepare_for_new_ticket_after_completion()
+                
+                # Switch to summary tab to show completed record
+                self.notebook.select(1)
+                
             else:
-                # Only first weighment - must explicitly tell user it's added to pending queue
+                # Only first weighment - DON'T increment ticket counter yet
+                print(f"First weighment saved for ticket {ticket_no} - counter NOT incremented")
                 messagebox.showinfo("Success", "First weighment saved! Vehicle added to pending queue.")
+                
+                # Clear form for next entry but DON'T increment ticket counter
+                self.clear_form()
             
             # Always update the summary and pending vehicles list when saving
             self.update_summary()
             self.update_pending_vehicles()
             
-            # If second weighment is done, clear form for next entry
-            if is_second_weighment_complete:
-                self.clear_form()
-                # Generate a new ticket number
-                self.main_form.generate_next_ticket_number()
-                # Switch to summary tab
-                self.notebook.select(1)
-            else:
-                # For first weighment, clear form and prepare for next entry
-                self.clear_form()
-                # Generate a new ticket
-                self.main_form.generate_next_ticket_number()
         else:
             messagebox.showerror("Error", "Failed to save record.")
     
@@ -588,8 +591,9 @@ class TharuniApp:
         self.update_summary()
     
     def clear_form(self):
-        """Clear the main form"""
+        """Clear the main form - FIXED TO NOT INCREMENT TICKET"""
         if hasattr(self, 'main_form'):
+            # This will only reserve (not increment) the next ticket number
             self.main_form.clear_form()
     
     def logout(self):

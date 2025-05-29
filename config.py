@@ -77,8 +77,8 @@ def get_current_data_file():
     """
     return get_data_filename(CURRENT_AGENCY, CURRENT_SITE)
 
-def get_next_ticket_number():
-    """Get the next ticket number and increment the counter
+def reserve_next_ticket_number():
+    """Reserve (peek at) the next ticket number WITHOUT incrementing the counter
     
     Returns:
         str: Next ticket number (e.g., "T0001", "T0002")
@@ -88,22 +88,55 @@ def get_next_ticket_number():
     try:
         settings_storage = SettingsStorage()
         
-        # Get current ticket counter from settings
+        # Get current ticket counter from settings (don't increment)
         current_number = settings_storage.get_ticket_counter()
         
-        # Generate the ticket number
+        # Generate the ticket number without incrementing
         next_ticket = f"{TICKET_PREFIX}{current_number:0{TICKET_NUMBER_DIGITS}d}"
         
-        # Increment and save the counter for next time
-        settings_storage.save_ticket_counter(current_number + 1)
-        
-        print(f"Generated ticket number: {next_ticket}")
+        print(f"Reserved ticket number: {next_ticket}")
         return next_ticket
         
     except Exception as e:
-        print(f"Error generating ticket number: {e}")
+        print(f"Error reserving ticket number: {e}")
         # Fallback to default format if settings fail
         return f"{TICKET_PREFIX}{TICKET_START_NUMBER:0{TICKET_NUMBER_DIGITS}d}"
+
+def commit_next_ticket_number():
+    """Actually increment and commit the ticket counter (only after successful save)
+    
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    from settings_storage import SettingsStorage
+    
+    try:
+        settings_storage = SettingsStorage()
+        
+        # Get current ticket counter from settings
+        current_number = settings_storage.get_ticket_counter()
+        
+        # Increment and save the counter
+        success = settings_storage.save_ticket_counter(current_number + 1)
+        
+        if success:
+            print(f"Committed ticket number: T{current_number:0{TICKET_NUMBER_DIGITS}d}, next will be: T{(current_number + 1):0{TICKET_NUMBER_DIGITS}d}")
+        
+        return success
+        
+    except Exception as e:
+        print(f"Error committing ticket number: {e}")
+        return False
+
+def get_next_ticket_number():
+    """Get the next ticket number and increment the counter
+    DEPRECATED: Use reserve_next_ticket_number() and commit_next_ticket_number() instead
+    
+    Returns:
+        str: Next ticket number (e.g., "T0001", "T0002")
+    """
+    print("WARNING: get_next_ticket_number() is deprecated. Use reserve_next_ticket_number() and commit_next_ticket_number() instead.")
+    return reserve_next_ticket_number()
 
 def reset_ticket_counter(start_number=None):
     """Reset the ticket counter to a specific number
