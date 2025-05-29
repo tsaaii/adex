@@ -1,4 +1,5 @@
-# Updated main_form.py - Fixed ticket number management
+
+# Fixed main_form.py - Resolved import issues and save functionality
 
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -62,6 +63,482 @@ class MainForm:
         
         # Initialize vehicle autocomplete
         self.vehicle_autocomplete.refresh_cache()
+
+    def create_form(self, parent):
+        """Create the main data entry form with weighment panel including current weight display"""
+        # Vehicle Information Frame
+        form_frame = ttk.LabelFrame(parent, text="Vehicle Information")
+        form_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        # Set background color for better visibility
+        form_inner = ttk.Frame(form_frame, style="TFrame")
+        form_inner.pack(fill=tk.BOTH, padx=5, pady=5)
+        
+        # Configure grid columns for better distribution
+        for i in range(3):  # 3 columns
+            form_inner.columnconfigure(i, weight=1)  # Equal weight
+        
+        # =================== ROW 0: First row of labels ===================
+        # Ticket No - Column 0
+        ttk.Label(form_inner, text="Ticket No:").grid(row=0, column=0, sticky=tk.W, padx=3, pady=3)
+        
+        # Site Name - Column 1
+        ttk.Label(form_inner, text="Site Name:").grid(row=0, column=1, sticky=tk.W, padx=3, pady=3)
+        
+        # Agency Name - Column 2
+        ttk.Label(form_inner, text="Agency Name:").grid(row=0, column=2, sticky=tk.W, padx=3, pady=3)
+        
+        # =================== ROW 1: First row of entries ===================
+        # Ticket No Entry - Column 0 (READ-ONLY)
+        ticket_entry = ttk.Entry(form_inner, textvariable=self.rst_var, width=config.STD_WIDTH, state="readonly")
+        ticket_entry.grid(row=1, column=0, sticky=tk.W, padx=3, pady=3)
+        
+        # New Ticket button
+        auto_ticket_btn = HoverButton(form_inner, text="New", 
+                                    bg=config.COLORS["primary"], 
+                                    fg=config.COLORS["button_text"],
+                                    padx=4, pady=1,
+                                    command=self.generate_next_ticket_number)
+        auto_ticket_btn.grid(row=1, column=0, sticky=tk.E, padx=(0, 5), pady=3)
+        
+        # Site Name Entry - Column 1
+        self.site_combo = ttk.Combobox(form_inner, textvariable=self.site_var, state="readonly", width=config.STD_WIDTH)
+        self.site_combo['values'] = ('Guntur',)
+        self.site_combo.grid(row=1, column=1, sticky=tk.W, padx=3, pady=3)
+        
+        # Agency Name Combobox - Column 2 (now a dropdown)
+        self.agency_combo = ttk.Combobox(form_inner, textvariable=self.agency_var, state="readonly", width=config.STD_WIDTH)
+        self.agency_combo['values'] = ('Default Agency',)  # Default value, will be updated from settings
+        self.agency_combo.grid(row=1, column=2, sticky=tk.W, padx=3, pady=3)
+        
+        # =================== ROW 2: Second row of labels ===================
+        # Vehicle No - Column 0
+        ttk.Label(form_inner, text="Vehicle No:").grid(row=2, column=0, sticky=tk.W, padx=3, pady=3)
+        
+        # Transfer Party Name - Column 1
+        ttk.Label(form_inner, text="Transfer Party Name:").grid(row=2, column=1, sticky=tk.W, padx=3, pady=3)
+        
+        # Material Type - Column 2 
+        ttk.Label(form_inner, text="Material Type:").grid(row=2, column=2, sticky=tk.W, padx=3, pady=3)
+        
+        # =================== ROW 3: Second row of entries ===================
+        # Vehicle No Entry - Column 0
+        self.vehicle_entry = ttk.Combobox(form_inner, textvariable=self.vehicle_var, width=config.STD_WIDTH)
+        self.vehicle_entry.grid(row=3, column=0, sticky=tk.W, padx=3, pady=3)
+        # Load initial vehicle numbers
+        self.vehicle_entry['values'] = self.vehicle_autocomplete.get_vehicle_numbers()
+        # Set up autocomplete
+        self.vehicle_autocomplete.setup_vehicle_autocomplete()
+        
+        # Transfer Party Name Combobox - Column 1 (now a dropdown)
+        self.tpt_combo = ttk.Combobox(form_inner, textvariable=self.tpt_var, state="readonly", width=config.STD_WIDTH)
+        self.tpt_combo['values'] = ('Advitia Labs',)  # Default value, will be updated from settings
+        self.tpt_combo.grid(row=3, column=1, sticky=tk.W, padx=3, pady=3)
+        
+        # Material Type Combo - Column 2
+        material_type_combo = ttk.Combobox(form_inner, 
+                                        textvariable=self.material_type_var, 
+                                        state="readonly", 
+                                        width=config.STD_WIDTH)
+        material_type_combo['values'] = ('Inert', 'Soil', 'Construction and Demolition', 
+                                    'RDF(REFUSE DERIVED FUEL)')
+        material_type_combo.grid(row=3, column=2, sticky=tk.W, padx=3, pady=3)
+        
+        # =================== WEIGHMENT PANEL (WITH CURRENT WEIGHT DISPLAY) ===================
+        weighment_frame = ttk.LabelFrame(form_inner, text="Weighment Information")
+        weighment_frame.grid(row=4, column=0, columnspan=3, sticky="ew", padx=3, pady=10)
+
+        # Configure grid columns for weighment panel
+        weighment_frame.columnconfigure(0, weight=1)  # Description
+        weighment_frame.columnconfigure(1, weight=1)  # Weight value
+        weighment_frame.columnconfigure(2, weight=1)  # Timestamp
+        weighment_frame.columnconfigure(3, weight=1)  # Button
+
+        # Current Weight Display (Prominent 6-digit display)
+        ttk.Label(weighment_frame, text="Current Weight:", font=("Segoe UI", 10, "bold")).grid(
+            row=0, column=0, sticky=tk.W, padx=5, pady=5)
+
+        # Current Weight Display (large, prominent display for up to 6 digits)
+        self.current_weight_display = ttk.Label(weighment_frame, 
+                                               textvariable=self.current_weight_var,
+                                               font=("Segoe UI", 16, "bold"),  
+                                               foreground=config.COLORS["primary"],
+                                               background=config.COLORS["background"],
+                                               width=12)  
+        self.current_weight_display.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5)
+
+        # Status label for current weight
+        self.weight_status_label = ttk.Label(weighment_frame, 
+                                           text="(Live from weighbridge)", 
+                                           font=("Segoe UI", 8, "italic"),
+                                           foreground="gray")
+        self.weight_status_label.grid(row=0, column=2, sticky=tk.W, padx=5, pady=5)
+
+        # Capture Weight Button
+        self.capture_weight_btn = HoverButton(weighment_frame, text="Capture Weight", 
+                                        bg=config.COLORS["primary"], 
+                                        fg=config.COLORS["button_text"],
+                                        font=("Segoe UI", 10, "bold"),
+                                        padx=10, pady=10,
+                                        command=self.weight_manager.capture_weight)
+        self.capture_weight_btn.grid(row=1, column=2, rowspan=3, sticky="ns", padx=5, pady=5)
+
+        # First Row - First Weighment
+        ttk.Label(weighment_frame, text="First Weighment:", font=("Segoe UI", 9, "bold")).grid(
+            row=1, column=0, sticky=tk.W, padx=5, pady=5)
+
+        # First Weight Entry (read-only)
+        self.first_weight_entry = ttk.Entry(weighment_frame, textvariable=self.first_weight_var, 
+                                    width=12, style="Weight.TEntry", state="readonly")
+        self.first_weight_entry.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
+
+        # First Timestamp
+        first_timestamp_label = ttk.Label(weighment_frame, textvariable=self.first_timestamp_var, 
+                                        font=("Segoe UI", 8), foreground="blue")
+        first_timestamp_label.grid(row=1, column=2, sticky=tk.E, padx=5, pady=5)
+
+        # Second Row - Second Weighment
+        ttk.Label(weighment_frame, text="Second Weighment:", font=("Segoe UI", 9, "bold")).grid(
+            row=2, column=0, sticky=tk.W, padx=5, pady=5)
+
+        # Second Weight Entry (read-only)
+        self.second_weight_entry = ttk.Entry(weighment_frame, textvariable=self.second_weight_var, 
+                                        width=12, style="Weight.TEntry", state="readonly")
+        self.second_weight_entry.grid(row=2, column=1, sticky=tk.W, padx=5, pady=5)
+
+        # Second Timestamp
+        second_timestamp_label = ttk.Label(weighment_frame, textvariable=self.second_timestamp_var, 
+                                         font=("Segoe UI", 8), foreground="blue")
+        second_timestamp_label.grid(row=2, column=2, sticky=tk.E, padx=5, pady=5)
+
+        # Third Row - Net Weight
+        ttk.Label(weighment_frame, text="Net Weight:", font=("Segoe UI", 9, "bold")).grid(
+            row=3, column=0, sticky=tk.W, padx=5, pady=5)
+
+        # Net Weight Display (read-only)
+        net_weight_display = ttk.Entry(weighment_frame, textvariable=self.net_weight_var, 
+                                    width=12, state="readonly", style="Weight.TEntry")
+        net_weight_display.grid(row=3, column=1, sticky=tk.W, padx=5, pady=5)
+
+        # Current weighment state indicator
+        state_frame = ttk.Frame(weighment_frame)
+        state_frame.grid(row=4, column=0, columnspan=4, sticky=tk.EW, padx=5, pady=(10,5))
+
+        state_label = ttk.Label(state_frame, text="Current State: ", font=("Segoe UI", 9))
+        state_label.pack(side=tk.LEFT)
+
+        state_value_label = ttk.Label(state_frame, textvariable=self.weighment_state_var, 
+                                    font=("Segoe UI", 9, "bold"), foreground=config.COLORS["primary"])
+        state_value_label.pack(side=tk.LEFT)
+
+        # Note about ticket increment behavior
+        weight_note = ttk.Label(state_frame, 
+                              text="💡 Ticket number increments only after BOTH weighments are completed", 
+                              font=("Segoe UI", 8, "italic"), 
+                              foreground="green")
+        weight_note.pack(side=tk.RIGHT)
+
+    def create_cameras_panel(self, parent):
+        """Create the cameras panel with cameras side by side and state-based image capture"""
+        # Camera container with compact layout
+        camera_frame = ttk.LabelFrame(parent, text="Camera Capture (Optional - Can save without images)")
+        camera_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        # Container for both cameras side by side
+        cameras_container = ttk.Frame(camera_frame, style="TFrame")
+        cameras_container.pack(fill=tk.X, padx=5, pady=5)
+        cameras_container.columnconfigure(0, weight=1)
+        cameras_container.columnconfigure(1, weight=1)
+        
+        # Front camera
+        front_panel = ttk.Frame(cameras_container, style="TFrame")
+        front_panel.grid(row=0, column=0, padx=2, pady=2, sticky="nsew")
+        
+        # Front camera title
+        ttk.Label(front_panel, text="Front Camera (Optional)").pack(anchor=tk.W, pady=2)
+        
+        # Create front camera with RTSP support
+        try:
+            self.front_camera = CameraView(front_panel)
+            self.front_camera.save_function = self.image_handler.save_front_image
+        except:
+            # If camera fails to initialize, create a placeholder
+            ttk.Label(front_panel, text="Camera not available\nRecords can still be saved").pack(pady=20)
+            self.front_camera = None
+        
+        # Back camera
+        back_panel = ttk.Frame(cameras_container, style="TFrame")
+        back_panel.grid(row=0, column=1, padx=2, pady=2, sticky="nsew")
+        
+        # Back Camera title
+        ttk.Label(back_panel, text="Back Camera (Optional)").pack(anchor=tk.W, pady=2)
+        
+        # Create back camera with RTSP support
+        try:
+            self.back_camera = CameraView(back_panel)
+            self.back_camera.save_function = self.image_handler.save_back_image
+        except:
+            # If camera fails to initialize, create a placeholder
+            ttk.Label(back_panel, text="Camera not available\nRecords can still be saved").pack(pady=20)
+            self.back_camera = None
+        
+        # Load camera settings and configure cameras
+        self.load_camera_settings()
+        
+        # Image status section
+        status_frame = ttk.LabelFrame(camera_frame, text="Image Capture Status (Optional)")
+        status_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        # Current weighment indicator
+        current_weighment_frame = ttk.Frame(status_frame)
+        current_weighment_frame.pack(fill=tk.X, padx=5, pady=2)
+        
+        ttk.Label(current_weighment_frame, text="Current State:", 
+                 font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT, padx=5)
+        
+        # This will show which weighment we're currently capturing images for
+        weighment_status_label = ttk.Label(current_weighment_frame, 
+                                          textvariable=self.weighment_state_var,
+                                          font=("Segoe UI", 9, "bold"),
+                                          foreground=config.COLORS["primary"])
+        weighment_status_label.pack(side=tk.LEFT, padx=5)
+        
+        # Image count status
+        image_status_frame = ttk.Frame(status_frame)
+        image_status_frame.pack(fill=tk.X, padx=5, pady=2)
+        
+        ttk.Label(image_status_frame, text="Images Captured:").pack(side=tk.LEFT, padx=5)
+        
+        # First weighment image status
+        self.first_image_status_var = tk.StringVar(value="1st: 0/2")
+        self.first_image_status = ttk.Label(image_status_frame, 
+                                           textvariable=self.first_image_status_var, 
+                                           foreground="red",
+                                           font=("Segoe UI", 8, "bold"))
+        self.first_image_status.pack(side=tk.LEFT, padx=10)
+        
+        # Second weighment image status
+        self.second_image_status_var = tk.StringVar(value="2nd: 0/2")
+        self.second_image_status = ttk.Label(image_status_frame, 
+                                            textvariable=self.second_image_status_var, 
+                                            foreground="red",
+                                            font=("Segoe UI", 8, "bold"))
+        self.second_image_status.pack(side=tk.LEFT, padx=10)
+        
+        # Total image count
+        self.total_image_status_var = tk.StringVar(value="Total: 0/4")
+        total_image_status = ttk.Label(image_status_frame,
+                                      textvariable=self.total_image_status_var,
+                                      foreground="blue",
+                                      font=("Segoe UI", 8, "bold"))
+        total_image_status.pack(side=tk.LEFT, padx=10)
+        
+        # Instructions
+        instruction_frame = ttk.Frame(status_frame)
+        instruction_frame.pack(fill=tk.X, padx=5, pady=2)
+        
+        instruction_text = ("💡 Images are optional - records can be saved with or without images")
+        instruction_label = ttk.Label(instruction_frame, text=instruction_text, 
+                                     font=("Segoe UI", 8, "italic"), 
+                                     foreground="green")
+        instruction_label.pack(side=tk.LEFT, padx=5)
+        
+        # Add action buttons below the cameras
+        action_buttons_frame = ttk.Frame(camera_frame, style="TFrame")
+        action_buttons_frame.pack(fill=tk.X, padx=5, pady=(5, 8))
+        
+        # Create the buttons with callbacks to main application functions
+        save_btn = HoverButton(action_buttons_frame, 
+                            text="Save Record", 
+                            font=("Segoe UI", 10, "bold"),
+                            bg=config.COLORS["secondary"],
+                            fg=config.COLORS["button_text"],
+                            padx=8, pady=3,
+                            command=self.trigger_save_callback)
+        save_btn.pack(side=tk.LEFT, padx=5)
+        
+        view_btn = HoverButton(action_buttons_frame, 
+                            text="View Records", 
+                            font=("Segoe UI", 10),
+                            bg=config.COLORS["primary"],
+                            fg=config.COLORS["button_text"],
+                            padx=8, pady=3,
+                            command=self.trigger_view_callback)
+        view_btn.pack(side=tk.LEFT, padx=5)
+        
+        clear_btn = HoverButton(action_buttons_frame, 
+                            text="Clear", 
+                            font=("Segoe UI", 10),
+                            bg=config.COLORS["button_alt"],
+                            fg=config.COLORS["button_text"],
+                            padx=8, pady=3,
+                            command=self.trigger_clear_callback)
+        clear_btn.pack(side=tk.LEFT, padx=5)
+        
+        exit_btn = HoverButton(action_buttons_frame, 
+                            text="Exit", 
+                            font=("Segoe UI", 10),
+                            bg=config.COLORS["error"],
+                            fg=config.COLORS["button_text"],
+                            padx=8, pady=3,
+                            command=self.trigger_exit_callback)
+        exit_btn.pack(side=tk.LEFT, padx=5)
+
+    def trigger_save_callback(self):
+        """Trigger the save callback - FIXED"""
+        try:
+            print("Save button clicked!")
+            if self.save_callback:
+                print("Calling save callback...")
+                self.save_callback()
+            else:
+                print("No save callback set!")
+                messagebox.showerror("Error", "Save function not available")
+        except Exception as e:
+            print(f"Error in save callback: {e}")
+            messagebox.showerror("Error", f"Save failed: {str(e)}")
+
+    def trigger_view_callback(self):
+        """Trigger the view callback"""
+        try:
+            if self.view_callback:
+                self.view_callback()
+            else:
+                messagebox.showinfo("Info", "View function not available")
+        except Exception as e:
+            print(f"Error in view callback: {e}")
+
+    def trigger_clear_callback(self):
+        """Trigger the clear callback"""
+        try:
+            if self.clear_callback:
+                self.clear_callback()
+            else:
+                self.clear_form()
+        except Exception as e:
+            print(f"Error in clear callback: {e}")
+
+    def trigger_exit_callback(self):
+        """Trigger the exit callback"""
+        try:
+            if self.exit_callback:
+                self.exit_callback()
+            else:
+                messagebox.showinfo("Info", "Exit function not available")
+        except Exception as e:
+            print(f"Error in exit callback: {e}")
+
+    def load_camera_settings(self):
+        """Load camera settings from storage and configure cameras"""
+        try:
+            # Get settings storage instance
+            settings_storage = self.get_settings_storage()
+            if not settings_storage:
+                return
+                
+            # Get camera settings
+            camera_settings = settings_storage.get_camera_settings()
+            
+            if camera_settings and self.front_camera and self.back_camera:
+                # Configure front camera
+                front_type = camera_settings.get("front_camera_type", "USB")
+                if front_type == "RTSP":
+                    rtsp_url = settings_storage.get_rtsp_url("front")
+                    if rtsp_url:
+                        self.front_camera.set_rtsp_config(rtsp_url)
+                else:
+                    # USB camera
+                    front_index = camera_settings.get("front_camera_index", 0)
+                    self.front_camera.camera_index = front_index
+                    self.front_camera.camera_type = "USB"
+                
+                # Configure back camera
+                back_type = camera_settings.get("back_camera_type", "USB")
+                if back_type == "RTSP":
+                    rtsp_url = settings_storage.get_rtsp_url("back")
+                    if rtsp_url:
+                        self.back_camera.set_rtsp_config(rtsp_url)
+                else:
+                    # USB camera
+                    back_index = camera_settings.get("back_camera_index", 1)
+                    self.back_camera.camera_index = back_index
+                    self.back_camera.camera_type = "USB"
+                    
+        except Exception as e:
+            print(f"Error loading camera settings: {e}")
+
+    def get_settings_storage(self):
+        """Get settings storage instance from the main app"""
+        # Try to traverse up widget hierarchy to find settings storage
+        widget = self.parent
+        while widget:
+            if hasattr(widget, 'settings_storage'):
+                return widget.settings_storage
+            if hasattr(widget, 'master'):
+                widget = widget.master
+            else:
+                break
+        
+        # If not found in hierarchy, create a new instance
+        try:
+            from settings_storage import SettingsStorage
+            return SettingsStorage()
+        except:
+            return None
+
+    def update_camera_settings(self, settings):
+        """Update camera settings when changed in settings panel"""
+        try:
+            if not self.front_camera or not self.back_camera:
+                print("Cameras not available - skipping settings update")
+                return
+                
+            # Update front camera
+            front_type = settings.get("front_camera_type", "USB")
+            if front_type == "RTSP":
+                # Get RTSP URL from settings
+                username = settings.get("front_rtsp_username", "")
+                password = settings.get("front_rtsp_password", "")
+                ip = settings.get("front_rtsp_ip", "")
+                port = settings.get("front_rtsp_port", "554")
+                endpoint = settings.get("front_rtsp_endpoint", "/stream1")
+                
+                if ip:
+                    if username and password:
+                        rtsp_url = f"rtsp://{username}:{password}@{ip}:{port}{endpoint}"
+                    else:
+                        rtsp_url = f"rtsp://{ip}:{port}{endpoint}"
+                    self.front_camera.set_rtsp_config(rtsp_url)
+            else:
+                # USB camera
+                self.front_camera.camera_type = "USB"
+                self.front_camera.camera_index = settings.get("front_camera_index", 0)
+                self.front_camera.rtsp_url = None
+            
+            # Update back camera
+            back_type = settings.get("back_camera_type", "USB")
+            if back_type == "RTSP":
+                # Get RTSP URL from settings
+                username = settings.get("back_rtsp_username", "")
+                password = settings.get("back_rtsp_password", "")
+                ip = settings.get("back_rtsp_ip", "")
+                port = settings.get("back_rtsp_port", "554")
+                endpoint = settings.get("back_rtsp_endpoint", "/stream1")
+                
+                if ip:
+                    if username and password:
+                        rtsp_url = f"rtsp://{username}:{password}@{ip}:{port}{endpoint}"
+                    else:
+                        rtsp_url = f"rtsp://{ip}:{port}{endpoint}"
+                    self.back_camera.set_rtsp_config(rtsp_url)
+                else:
+                    # USB camera
+                    self.back_camera.camera_type = "USB"
+                    self.back_camera.camera_index = settings.get("back_camera_index", 1)
+                    self.back_camera.rtsp_url = None
+                    
+        except Exception as e:
+            print(f"Error updating camera settings: {e}")
 
 
 
@@ -175,11 +652,7 @@ class MainForm:
         self.rst_var.set(next_ticket)
     
     def get_current_ticket_info(self):
-        """Get information about current ticket numbering
-        
-        Returns:
-            dict: Ticket information including current number, next number, etc.
-        """
+        """Get information about current ticket numbering"""
         try:
             current_ticket = config.get_current_ticket_number()
             
@@ -203,11 +676,7 @@ class MainForm:
             return {"current_ticket": "T0001"}
     
     def load_pending_ticket(self, ticket_no):
-        """Load a pending ticket for second weighment
-        
-        Args:
-            ticket_no: Ticket number to load
-        """
+        """Load a pending ticket for second weighment"""
         if hasattr(self, 'data_manager') and self.data_manager:
             records = self.data_manager.get_filtered_records(ticket_no)
             for record in records:
@@ -227,7 +696,6 @@ class MainForm:
                         self.weighment_state_var.set("Second Weighment")
                         return True
         return False
-
 
     def init_variables(self):
         """Initialize form variables including 4 image paths"""
@@ -257,7 +725,7 @@ class MainForm:
         # Material type tracking
         self.material_type_var = tk.StringVar(value="Inert")
         
-        # NEW: 4 separate image paths for first and second weighments
+        # 4 separate image paths for first and second weighments
         self.first_front_image_path = None
         self.first_back_image_path = None
         self.second_front_image_path = None
@@ -275,7 +743,6 @@ class MainForm:
         
         # Reserve next ticket number WITHOUT incrementing counter
         self.reserve_next_ticket_number()
-
 
     def clear_form(self):
         """Reset form fields except site and Transfer Party Name"""
@@ -302,15 +769,15 @@ class MainForm:
         # Reset images using image handler
         self.image_handler.reset_images()
         
-        # Reset cameras
-        if hasattr(self, 'front_camera'):
+        # Reset cameras if they exist
+        if hasattr(self, 'front_camera') and self.front_camera:
             self.front_camera.stop_camera()
             self.front_camera.captured_image = None
             self.front_camera.canvas.delete("all")
             self.front_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
             self.front_camera.capture_button.config(text="Capture")
             
-        if hasattr(self, 'back_camera'):
+        if hasattr(self, 'back_camera') and self.back_camera:
             self.back_camera.stop_camera()
             self.back_camera.captured_image = None
             self.back_camera.canvas.delete("all")
@@ -346,15 +813,15 @@ class MainForm:
             # Reset images using image handler
             self.image_handler.reset_images()
             
-            # Reset cameras
-            if hasattr(self, 'front_camera'):
+            # Reset cameras if they exist
+            if hasattr(self, 'front_camera') and self.front_camera:
                 self.front_camera.stop_camera()
                 self.front_camera.captured_image = None
                 self.front_camera.canvas.delete("all")
                 self.front_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
                 self.front_camera.capture_button.config(text="Capture")
                 
-            if hasattr(self, 'back_camera'):
+            if hasattr(self, 'back_camera') and self.back_camera:
                 self.back_camera.stop_camera()
                 self.back_camera.captured_image = None
                 self.back_camera.canvas.delete("all")
@@ -437,16 +904,8 @@ class MainForm:
         # Handle all 4 images using image handler
         self.image_handler.load_images_from_record(record)
 
-
-
-
-
     def is_record_complete(self):
-        """Check if record has both weighments complete
-        
-        Returns:
-            bool: True if both weighments are complete
-        """
+        """Check if record has both weighments complete"""
         first_weight = self.first_weight_var.get().strip()
         first_timestamp = self.first_timestamp_var.get().strip()
         second_weight = self.second_weight_var.get().strip()
@@ -511,9 +970,9 @@ class MainForm:
 
     def on_closing(self):
         """Handle cleanup when closing"""
-        if hasattr(self, 'front_camera'):
+        if hasattr(self, 'front_camera') and self.front_camera:
             self.front_camera.stop_camera()
-        if hasattr(self, 'back_camera'):
+        if hasattr(self, 'back_camera') and self.back_camera:
             self.back_camera.stop_camera()
 
     # Legacy methods that delegate to component managers

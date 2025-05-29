@@ -46,13 +46,13 @@ def setup_logging():
     return logging.getLogger('DataManager')
 
 class DataManager:
-    """Class for managing data operations with enhanced logging and debugging"""
+    """Class for managing data operations with OFFLINE-FIRST approach"""
     
     def __init__(self):
         """Initialize data manager with logging"""
         # Set up logging first
         self.logger = setup_logging()
-        self.logger.info("DataManager initialized")
+        self.logger.info("DataManager initialized with OFFLINE-FIRST approach")
         
         self.data_file = config.DATA_FILE
         self.initialize_new_csv_structure()
@@ -63,7 +63,11 @@ class DataManager:
         # Load address config for PDF generation
         self.address_config = self.load_address_config()
         
+        # DO NOT initialize cloud storage here - only when explicitly requested
+        self.cloud_storage = None
+        
         self.logger.info(f"Data file: {self.data_file}")
+        self.logger.info("Cloud storage will only be initialized when backup is requested")
     
     def setup_daily_pdf_folders(self):
         """Set up daily folder structure for PDF generation"""
@@ -229,10 +233,10 @@ class DataManager:
         self.logger.info(f"Data file: {self.data_file}")
 
     def save_record(self, data):
-        """FIXED: Save record to CSV file with enhanced validation and logging"""
+        """FIXED: OFFLINE-FIRST record saving - NO cloud attempts during regular save"""
         try:
             self.logger.info("="*50)
-            self.logger.info("STARTING RECORD SAVE OPERATION")
+            self.logger.info("STARTING OFFLINE-FIRST RECORD SAVE")
             self.logger.info(f"Input data keys: {list(data.keys())}")
             
             # Enhanced validation with detailed logging
@@ -295,62 +299,74 @@ class DataManager:
             self.logger.info(f"First weight: '{first_weight}', timestamp: '{first_timestamp}'")
             self.logger.info(f"Second weight: '{second_weight}', timestamp: '{second_timestamp}'")
             
-            # PRIORITY 2: Auto-generate PDF for complete records (optional, don't fail if this fails)
+            # PRIORITY 2: Auto-generate PDF for complete records (ALWAYS ATTEMPT - OFFLINE)
             pdf_generated = False
             pdf_path = None
             if is_complete_record:
-                self.logger.info(f"Complete record detected for ticket {ticket_no} - attempting PDF generation...")
+                self.logger.info(f"Complete record detected for ticket {ticket_no} - generating PDF locally...")
                 try:
                     pdf_generated, pdf_path = self.auto_generate_pdf_for_complete_record(data)
                     if pdf_generated:
-                        self.logger.info(f"✅ PDF auto-generated: {pdf_path}")
-                        # Show success message to user only if PDF was generated
+                        self.logger.info(f"✅ PDF auto-generated locally: {pdf_path}")
+                        # Show success message to user
                         try:
                             if messagebox:
-                                messagebox.showinfo("PDF Generated", 
-                                                f"Record saved and PDF generated!\n\n"
-                                                f"PDF saved to: {os.path.basename(pdf_path)}\n"
-                                                f"Location: {os.path.dirname(pdf_path)}")
-                        except:
-                            # Don't fail if messagebox fails
-                            pass
+                                messagebox.showinfo("Record Saved + PDF Generated", 
+                                                f"✅ Record saved successfully!\n"
+                                                f"✅ PDF generated: {os.path.basename(pdf_path)}\n\n"
+                                                f"📂 Location: {os.path.dirname(pdf_path)}\n\n"
+                                                f"💡 Use Settings > Cloud Storage > Backup to upload to cloud when internet is available.")
+                        except Exception as msg_error:
+                            self.logger.warning(f"Could not show messagebox: {msg_error}")
                     else:
-                        self.logger.warning("⚠️ PDF generation failed, but record was saved")
+                        self.logger.warning("⚠️ PDF generation failed, but record was saved locally")
+                        # Still show success for record save
+                        try:
+                            if messagebox:
+                                messagebox.showinfo("Record Saved", 
+                                                f"✅ Record saved successfully!\n"
+                                                f"⚠️ PDF generation failed - check logs\n\n"
+                                                f"💡 Use Settings > Cloud Storage > Backup to upload when internet is available.")
+                        except Exception as msg_error:
+                            self.logger.warning(f"Could not show messagebox: {msg_error}")
                 except Exception as pdf_error:
                     self.logger.error(f"⚠️ PDF generation error (non-critical): {pdf_error}")
-            
-            # PRIORITY 3: Save to cloud storage (optional, don't fail if this fails)
-            cloud_success = False
-            images_uploaded = 0
-            total_images = 0
-            
-            # Only attempt cloud storage if enabled AND record is complete AND we have internet
-            if (hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE and 
-                is_complete_record):
-                try:
-                    cloud_success, images_uploaded, total_images = self.save_to_cloud_with_images(data)
-                    
-                    if cloud_success:
-                        self.logger.info(f"✅ Complete record {ticket_no} successfully saved to cloud")
-                        if images_uploaded > 0:
-                            self.logger.info(f"✅ Images uploaded: {images_uploaded}/{total_images}")
-                    else:
-                        self.logger.warning(f"⚠️ Warning: Complete record {ticket_no} could not be saved to cloud (working offline)")
-                except Exception as cloud_error:
-                    self.logger.error(f"⚠️ Cloud storage error (non-critical): {cloud_error}")
-            elif not is_complete_record:
-                self.logger.info(f"ℹ️ Record {ticket_no} saved locally only - incomplete weighments")
+                    # Still show success for record save
+                    try:
+                        if messagebox:
+                            messagebox.showinfo("Record Saved", 
+                                            f"✅ Record saved successfully!\n"
+                                            f"⚠️ PDF generation error: {str(pdf_error)}\n\n"
+                                            f"💡 Use Settings > Cloud Storage > Backup to upload when internet is available.")
+                    except Exception as msg_error:
+                        self.logger.warning(f"Could not show messagebox: {msg_error}")
             else:
-                self.logger.info(f"ℹ️ Record {ticket_no} saved locally only - cloud storage disabled or offline")
+                # Incomplete record - just show save success
+                try:
+                    if messagebox:
+                        messagebox.showinfo("Record Saved", 
+                                        f"✅ Record saved locally!\n"
+                                        f"ℹ️ Incomplete weighments - PDF will generate after second weighment\n\n"
+                                        f"💡 Complete both weighments for auto PDF generation")
+                except Exception as msg_error:
+                    self.logger.warning(f"Could not show messagebox: {msg_error}")
             
-            self.logger.info("RECORD SAVE OPERATION COMPLETED SUCCESSFULLY")
+            # IMPORTANT: NO CLOUD STORAGE ATTEMPTS HERE
+            # Cloud storage will only be used when explicitly requested via backup
+            self.logger.info("✅ OFFLINE-FIRST SAVE COMPLETED - No cloud attempts made")
+            self.logger.info("💡 Cloud backup available via Settings > Cloud Storage > Backup")
             self.logger.info("="*50)
             
-            # Return success if CSV save worked (the critical operation)
+            # Return success since CSV save worked (the critical operation)
             return csv_success
                     
         except Exception as e:
             self.logger.error(f"❌ Critical error saving record: {e}")
+            try:
+                if messagebox:
+                    messagebox.showerror("Save Error", f"Failed to save record:\n{str(e)}")
+            except:
+                pass
             return False
 
     def validate_record_data(self, data):
@@ -621,106 +637,8 @@ class DataManager:
             self.logger.error(f"Error filtering records: {e}")
             return []
 
-    # Include other methods from original file...
-    # (keeping space for brevity, but include all other methods like save_to_cloud_with_images, 
-    # auto_generate_pdf_for_complete_record, etc.)
-    
-    def save_to_cloud_with_images(self, data):
-        """Save record with images to Google Cloud Storage only if both weighments are complete"""
-        try:
-            # Check if both weighments are complete before saving to cloud
-            first_weight = data.get('first_weight', '').strip()
-            first_timestamp = data.get('first_timestamp', '').strip()
-            second_weight = data.get('second_weight', '').strip()
-            second_timestamp = data.get('second_timestamp', '').strip()
-            
-            # Only save to cloud if both weighments are complete
-            if not (first_weight and first_timestamp and second_weight and second_timestamp):
-                self.logger.info(f"Skipping cloud save for ticket {data.get('ticket_no', 'unknown')} - incomplete weighments")
-                return False, 0, 0
-            
-            # Check if cloud storage is enabled
-            if not (hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE):
-                self.logger.info("Cloud storage disabled - skipping")
-                return False, 0, 0
-            
-            # Initialize cloud storage if not already initialized
-            if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
-                try:
-                    from cloud_storage import CloudStorageService
-                    self.cloud_storage = CloudStorageService(
-                        config.CLOUD_BUCKET_NAME,
-                        config.CLOUD_CREDENTIALS_PATH
-                    )
-                except ImportError:
-                    self.logger.error("Cloud storage module not available")
-                    return False, 0, 0
-                except Exception as init_error:
-                    self.logger.error(f"Failed to initialize cloud storage: {init_error}")
-                    return False, 0, 0
-            
-            # Check if connected to cloud storage
-            try:
-                if not self.cloud_storage.is_connected():
-                    self.logger.warning("Not connected to cloud storage (offline or configuration issue)")
-                    return False, 0, 0
-            except Exception as conn_error:
-                self.logger.error(f"Cloud connection check failed: {conn_error}")
-                return False, 0, 0
-            
-            # Get site name and ticket number for folder structure
-            site_name = data.get('site_name', 'Unknown_Site').replace(' ', '_').replace('/', '_')
-            agency_name = data.get('agency_name', 'Unknown_Agency').replace(' ', '_').replace('/', '_')
-            ticket_no = data.get('ticket_no', 'unknown')
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            
-            # Create structured filename: agency_name/site_name/ticket_number/timestamp.json
-            json_filename = f"{agency_name}/{site_name}/{ticket_no}/{timestamp}.json"
-            
-            # Add some additional metadata to the JSON
-            enhanced_data = data.copy()
-            enhanced_data['cloud_upload_timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            enhanced_data['record_status'] = 'complete'  # Mark as complete record
-            enhanced_data['net_weight_calculated'] = self._calculate_net_weight_for_cloud(
-                enhanced_data.get('first_weight', ''), 
-                enhanced_data.get('second_weight', '')
-            )
-            
-            # Upload record with images using the new method
-            json_success, images_uploaded, total_images = self.cloud_storage.upload_record_with_images(
-                enhanced_data, 
-                json_filename, 
-                config.IMAGES_FOLDER
-            )
-            
-            if json_success:
-                self.logger.info(f"Record {ticket_no} successfully saved to cloud at {json_filename}")
-                if images_uploaded > 0:
-                    self.logger.info(f"Uploaded {images_uploaded}/{total_images} images for ticket {ticket_no}")
-                else:
-                    self.logger.info(f"No images found to upload for ticket {ticket_no}")
-            else:
-                self.logger.error(f"Failed to save record {ticket_no} to cloud")
-                
-            return json_success, images_uploaded, total_images
-            
-        except Exception as e:
-            self.logger.error(f"Error saving to cloud with images (non-critical): {str(e)}")
-            return False, 0, 0
-
-    def _calculate_net_weight_for_cloud(self, first_weight_str, second_weight_str):
-        """Calculate net weight for cloud storage"""
-        try:
-            if first_weight_str and second_weight_str:
-                first_weight = float(first_weight_str)
-                second_weight = float(second_weight_str)
-                return abs(first_weight - second_weight)
-            return 0.0
-        except (ValueError, TypeError):
-            return 0.0
-
     def auto_generate_pdf_for_complete_record(self, record_data):
-        """Automatically generate PDF for a complete record"""
+        """Automatically generate PDF for a complete record - OFFLINE OPERATION"""
         # Check if ReportLab is available
         try:
             global REPORTLAB_AVAILABLE
@@ -1116,86 +1034,122 @@ class DataManager:
             print(f"Error preparing image for PDF: {e}")
             return None
 
-    def save_to_cloud(self, data):
-        """Legacy method - now calls the new save_to_cloud_with_images method
-        
-        Args:
-            data: Record data dictionary
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        success, _, _ = self.save_to_cloud_with_images(data)
-        return success
-
-
-    def get_record_by_vehicle(self, vehicle_no):
-        """Get a specific record by vehicle number
-        
-        Args:
-            vehicle_no: Vehicle number to search for
-            
-        Returns:
-            dict: Record as dictionary or None if not found
-        """
-        current_file = self.get_current_data_file()
-        
-        if not os.path.exists(current_file):
-            return None
-            
-        try:
-            with open(current_file, 'r', newline='') as csv_file:
-                reader = csv.reader(csv_file)
-                
-                # Skip header
-                next(reader, None)
-                
-                for row in reader:
-                    if len(row) >= 7 and row[6] == vehicle_no:  # Vehicle number is index 6
-                        record = {
-                            'date': row[0],
-                            'time': row[1],
-                            'site_name': row[2],
-                            'agency_name': row[3],
-                            'material': row[4],
-                            'ticket_no': row[5],
-                            'vehicle_no': row[6],
-                            'transfer_party_name': row[7],
-                            'first_weight': row[8] if len(row) > 8 else '',
-                            'first_timestamp': row[9] if len(row) > 9 else '',
-                            'second_weight': row[10] if len(row) > 10 else '',
-                            'second_timestamp': row[11] if len(row) > 11 else '',
-                            'net_weight': row[12] if len(row) > 12 else '',
-                            'material_type': row[13] if len(row) > 13 else '',
-                            'front_image': row[14] if len(row) > 14 else '',
-                            'back_image': row[15] if len(row) > 15 else ''
-                        }
-                        return record
-                        
-            return None
-                
-        except Exception as e:
-            print(f"Error finding record: {e}")
-            return None
+    # ========== CLOUD STORAGE METHODS (ONLY USED WHEN EXPLICITLY REQUESTED) ==========
     
-
-
-    def backup_complete_records_to_cloud_with_reports(self):
-        """Enhanced backup: records, images, and daily reports with incremental backup
-        
-        Returns:
-            dict: Comprehensive backup results
-        """
-        try:
-            import config  # Import config at the beginning
-            
-            # Initialize cloud storage if not already initialized
-            if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
-                from cloud_storage import CloudStorageService
+    def init_cloud_storage_if_needed(self):
+        """Initialize cloud storage only when explicitly needed"""
+        if self.cloud_storage is None:
+            try:
                 self.cloud_storage = CloudStorageService(
                     config.CLOUD_BUCKET_NAME,
                     config.CLOUD_CREDENTIALS_PATH
                 )
+                self.logger.info("Cloud storage initialized on demand")
+            except Exception as e:
+                self.logger.error(f"Failed to initialize cloud storage: {e}")
+                return False
+        return True
+
+    def save_to_cloud_with_images(self, data):
+        """Save record with images to Google Cloud Storage - ONLY WHEN EXPLICITLY CALLED"""
+        try:
+            # Check if both weighments are complete before saving to cloud
+            first_weight = data.get('first_weight', '').strip()
+            first_timestamp = data.get('first_timestamp', '').strip()
+            second_weight = data.get('second_weight', '').strip()
+            second_timestamp = data.get('second_timestamp', '').strip()
+            
+            # Only save to cloud if both weighments are complete
+            if not (first_weight and first_timestamp and second_weight and second_timestamp):
+                self.logger.info(f"Skipping cloud save for ticket {data.get('ticket_no', 'unknown')} - incomplete weighments")
+                return False, 0, 0
+            
+            # Check if cloud storage is enabled
+            if not (hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE):
+                self.logger.info("Cloud storage disabled - skipping")
+                return False, 0, 0
+            
+            # Initialize cloud storage if needed
+            if not self.init_cloud_storage_if_needed():
+                return False, 0, 0
+            
+            # Check if connected to cloud storage
+            try:
+                if not self.cloud_storage.is_connected():
+                    self.logger.warning("Not connected to cloud storage (offline or configuration issue)")
+                    return False, 0, 0
+            except Exception as conn_error:
+                self.logger.error(f"Cloud connection check failed: {conn_error}")
+                return False, 0, 0
+            
+            # Get site name and ticket number for folder structure
+            site_name = data.get('site_name', 'Unknown_Site').replace(' ', '_').replace('/', '_')
+            agency_name = data.get('agency_name', 'Unknown_Agency').replace(' ', '_').replace('/', '_')
+            ticket_no = data.get('ticket_no', 'unknown')
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create structured filename: agency_name/site_name/ticket_number/timestamp.json
+            json_filename = f"{agency_name}/{site_name}/{ticket_no}/{timestamp}.json"
+            
+            # Add some additional metadata to the JSON
+            enhanced_data = data.copy()
+            enhanced_data['cloud_upload_timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            enhanced_data['record_status'] = 'complete'  # Mark as complete record
+            enhanced_data['net_weight_calculated'] = self._calculate_net_weight_for_cloud(
+                enhanced_data.get('first_weight', ''), 
+                enhanced_data.get('second_weight', '')
+            )
+            
+            # Upload record with images using the new method
+            json_success, images_uploaded, total_images = self.cloud_storage.upload_record_with_images(
+                enhanced_data, 
+                json_filename, 
+                config.IMAGES_FOLDER
+            )
+            
+            if json_success:
+                self.logger.info(f"Record {ticket_no} successfully saved to cloud at {json_filename}")
+                if images_uploaded > 0:
+                    self.logger.info(f"Uploaded {images_uploaded}/{total_images} images for ticket {ticket_no}")
+                else:
+                    self.logger.info(f"No images found to upload for ticket {ticket_no}")
+            else:
+                self.logger.error(f"Failed to save record {ticket_no} to cloud")
+                
+            return json_success, images_uploaded, total_images
+            
+        except Exception as e:
+            self.logger.error(f"Error saving to cloud with images: {str(e)}")
+            return False, 0, 0
+
+    def _calculate_net_weight_for_cloud(self, first_weight_str, second_weight_str):
+        """Calculate net weight for cloud storage"""
+        try:
+            if first_weight_str and second_weight_str:
+                first_weight = float(first_weight_str)
+                second_weight = float(second_weight_str)
+                return abs(first_weight - second_weight)
+            return 0.0
+        except (ValueError, TypeError):
+            return 0.0
+
+    def backup_complete_records_to_cloud_with_reports(self):
+        """Enhanced backup: records, images, and daily reports - ONLY WHEN EXPLICITLY CALLED"""
+        try:
+            import config  # Import config at the beginning
+            
+            # Initialize cloud storage if not already initialized
+            if not self.init_cloud_storage_if_needed():
+                return {
+                    "success": False,
+                    "error": "Failed to initialize cloud storage",
+                    "records_uploaded": 0,
+                    "total_records": 0,
+                    "images_uploaded": 0,
+                    "total_images": 0,
+                    "reports_uploaded": 0,
+                    "total_reports": 0
+                }
             
             # Check if connected to cloud storage
             if not self.cloud_storage.is_connected():
@@ -1255,12 +1209,53 @@ class DataManager:
                 "total_reports": 0
             }
 
+    def get_enhanced_cloud_upload_summary(self):
+        """Get enhanced summary including daily reports - ONLY WHEN EXPLICITLY CALLED"""
+        try:
+            import config  # Import config at the beginning
+            
+            if not self.init_cloud_storage_if_needed():
+                return {"error": "Failed to initialize cloud storage"}
+            
+            if not self.cloud_storage.is_connected():
+                return {"error": "Not connected to cloud storage"}
+            
+            # Get current agency and site for filtering
+            agency_name = config.CURRENT_AGENCY or "Unknown_Agency"
+            site_name = config.CURRENT_SITE or "Unknown_Site"
+            
+            # Clean names for filtering
+            clean_agency = agency_name.replace(' ', '_').replace('/', '_')
+            clean_site = site_name.replace(' ', '_').replace('/', '_')
+            
+            # Get summary for current agency/site
+            prefix = f"{clean_agency}/{clean_site}/"
+            summary = self.cloud_storage.get_upload_summary(prefix)
+            
+            # Add daily reports summary (no prefix filter for reports)
+            reports_summary = self.cloud_storage.get_upload_summary("daily_reports/")
+            
+            # Combine summaries
+            if "error" not in summary and "error" not in reports_summary:
+                summary["daily_report_files"] = reports_summary.get("total_files", 0)
+                summary["daily_reports_size"] = reports_summary.get("total_size", "0 B")
+            
+            # Add context information
+            summary["agency"] = agency_name
+            summary["site"] = site_name
+            summary["context"] = f"{agency_name} - {site_name}"
+            
+            # Add today's reports info
+            daily_reports_info = self.get_daily_reports_info()
+            summary["todays_reports"] = daily_reports_info
+            
+            return summary
+            
+        except Exception as e:
+            return {"error": f"Error getting enhanced cloud summary: {str(e)}"}
+
     def get_daily_reports_info(self):
-        """Get information about today's daily reports
-        
-        Returns:
-            dict: Daily reports information
-        """
+        """Get information about today's daily reports"""
         try:
             import datetime
             import os
@@ -1315,59 +1310,6 @@ class DataManager:
                 "error": str(e)
             }
 
-    def get_enhanced_cloud_upload_summary(self):
-        """Get enhanced summary including daily reports
-        
-        Returns:
-            dict: Enhanced upload summary
-        """
-        try:
-            import config  # Import config at the beginning
-            
-            if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
-                from cloud_storage import CloudStorageService
-                self.cloud_storage = CloudStorageService(
-                    config.CLOUD_BUCKET_NAME,
-                    config.CLOUD_CREDENTIALS_PATH
-                )
-            
-            if not self.cloud_storage.is_connected():
-                return {"error": "Not connected to cloud storage"}
-            
-            # Get current agency and site for filtering
-            agency_name = config.CURRENT_AGENCY or "Unknown_Agency"
-            site_name = config.CURRENT_SITE or "Unknown_Site"
-            
-            # Clean names for filtering
-            clean_agency = agency_name.replace(' ', '_').replace('/', '_')
-            clean_site = site_name.replace(' ', '_').replace('/', '_')
-            
-            # Get summary for current agency/site
-            prefix = f"{clean_agency}/{clean_site}/"
-            summary = self.cloud_storage.get_upload_summary(prefix)
-            
-            # Add daily reports summary (no prefix filter for reports)
-            reports_summary = self.cloud_storage.get_upload_summary("daily_reports/")
-            
-            # Combine summaries
-            if "error" not in summary and "error" not in reports_summary:
-                summary["daily_report_files"] = reports_summary.get("total_files", 0)
-                summary["daily_reports_size"] = reports_summary.get("total_size", "0 B")
-            
-            # Add context information
-            summary["agency"] = agency_name
-            summary["site"] = site_name
-            summary["context"] = f"{agency_name} - {site_name}"
-            
-            # Add today's reports info
-            daily_reports_info = self.get_daily_reports_info()
-            summary["todays_reports"] = daily_reports_info
-            
-            return summary
-            
-        except Exception as e:
-            return {"error": f"Error getting enhanced cloud summary: {str(e)}"}
-
     # Update the existing backup_complete_records_to_cloud method to use the new enhanced version
     def backup_complete_records_to_cloud(self):
         """Legacy method - now calls enhanced backup with reports
@@ -1391,20 +1333,11 @@ class DataManager:
             print(f"Error in legacy backup method: {e}")
             return 0, 0, 0, 0
 
-
-
     def get_cloud_upload_summary(self):
-        """Get summary of files uploaded to cloud storage
-        
-        Returns:
-            dict: Upload summary with statistics
-        """
+        """Get summary of files uploaded to cloud storage - ONLY WHEN EXPLICITLY CALLED"""
         try:
-            if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
-                self.cloud_storage = CloudStorageService(
-                    config.CLOUD_BUCKET_NAME,
-                    config.CLOUD_CREDENTIALS_PATH
-                )
+            if not self.init_cloud_storage_if_needed():
+                return {"error": "Failed to initialize cloud storage"}
             
             if not self.cloud_storage.is_connected():
                 return {"error": "Not connected to cloud storage"}
@@ -1430,6 +1363,73 @@ class DataManager:
             
         except Exception as e:
             return {"error": f"Error getting cloud summary: {str(e)}"}
+
+    # ========== UTILITY METHODS ==========
+    
+    def save_to_cloud(self, data):
+        """Legacy method - now calls the new save_to_cloud_with_images method
+        
+        Args:
+            data: Record data dictionary
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        success, _, _ = self.save_to_cloud_with_images(data)
+        return success
+
+    def get_record_by_vehicle(self, vehicle_no):
+        """Get a specific record by vehicle number
+        
+        Args:
+            vehicle_no: Vehicle number to search for
+            
+        Returns:
+            dict: Record as dictionary or None if not found
+        """
+        current_file = self.get_current_data_file()
+        
+        if not os.path.exists(current_file):
+            return None
+            
+        try:
+            with open(current_file, 'r', newline='') as csv_file:
+                reader = csv.reader(csv_file)
+                
+                # Skip header
+                next(reader, None)
+                
+                for row in reader:
+                    if len(row) >= 7 and row[6] == vehicle_no:  # Vehicle number is index 6
+                        record = {
+                            'date': row[0],
+                            'time': row[1],
+                            'site_name': row[2],
+                            'agency_name': row[3],
+                            'material': row[4],
+                            'ticket_no': row[5],
+                            'vehicle_no': row[6],
+                            'transfer_party_name': row[7],
+                            'first_weight': row[8] if len(row) > 8 else '',
+                            'first_timestamp': row[9] if len(row) > 9 else '',
+                            'second_weight': row[10] if len(row) > 10 else '',
+                            'second_timestamp': row[11] if len(row) > 11 else '',
+                            'net_weight': row[12] if len(row) > 12 else '',
+                            'material_type': row[13] if len(row) > 13 else '',
+                            'first_front_image': row[14] if len(row) > 14 else '',
+                            'first_back_image': row[15] if len(row) > 15 else '',
+                            'second_front_image': row[16] if len(row) > 16 else '',
+                            'second_back_image': row[17] if len(row) > 17 else '',
+                            'site_incharge': row[18] if len(row) > 18 else '',
+                            'user_name': row[19] if len(row) > 19 else ''
+                        }
+                        return record
+                        
+            return None
+                
+        except Exception as e:
+            print(f"Error finding record: {e}")
+            return None
     
     def validate_record(self, data):
         """Validate record data
@@ -1456,13 +1456,6 @@ class DataManager:
         if not data.get('first_weight', '').strip():
             return False, "First weighment is required"
             
-        # Validate images if specified in validation
-        front_image = data.get('front_image', '')
-        back_image = data.get('back_image', '')
-        
-        if not front_image and not back_image:
-            return False, "No images captured"
-            
         return True, ""
 
     def cleanup_orphaned_images(self):
@@ -1478,13 +1471,11 @@ class DataManager:
             # Collect all referenced image filenames
             referenced_images = set()
             for record in all_records:
-                front_image = record.get('front_image', '').strip()
-                back_image = record.get('back_image', '').strip()
-                
-                if front_image:
-                    referenced_images.add(front_image)
-                if back_image:
-                    referenced_images.add(back_image)
+                # Check all 4 image fields
+                for img_field in ['first_front_image', 'first_back_image', 'second_front_image', 'second_back_image']:
+                    img_filename = record.get(img_field, '').strip()
+                    if img_filename:
+                        referenced_images.add(img_filename)
             
             # Get all image files in the images folder
             if not os.path.exists(config.IMAGES_FOLDER):

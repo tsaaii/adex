@@ -48,7 +48,7 @@ class TharuniApp:
             root: Root Tkinter window
         """
         self.root = root
-        self.root.title("Swaccha Andhra Corporation - Enhanced with Auto PDF & Logging")
+        self.root.title("Swaccha Andhra Corporation powered by Advitia Labs")
         self.root.geometry("900x580")
         self.root.minsize(900, 580)
         
@@ -468,7 +468,7 @@ class TharuniApp:
         title_box.pack(fill=tk.X)
         
         title_label = tk.Label(title_box, 
-                            text="Swaccha Andhra Corporation - Auto PDF Enabled", 
+                            text="Swaccha Andhra Corporation- RealTime tracker", 
                             font=("Segoe UI", 14, "bold"),
                             fg=config.COLORS["white"],
                             bg=config.COLORS["header_bg"])

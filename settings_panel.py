@@ -1648,14 +1648,53 @@ class SettingsPanel:
             text_widget.insert(tk.END, error_text)
             text_widget.config(state=tk.DISABLED)
 
-
-
-
             
     def create_camera_settings(self, parent):
-        """Create camera configuration settings with RTSP support"""
-        # Camera settings frame
-        cam_frame = ttk.LabelFrame(parent, text="Camera Configuration", padding=10)
+        """Create camera configuration settings with RTSP support and scrollable frame"""
+        # Create main container frame
+        main_container = ttk.Frame(parent)
+        main_container.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # Configure main container for proper resizing
+        main_container.columnconfigure(0, weight=1)
+        main_container.rowconfigure(0, weight=1)
+        
+        # Create canvas and scrollbar for scrolling
+        canvas = tk.Canvas(main_container, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(main_container, orient="vertical", command=canvas.yview)
+        scrollable_frame = ttk.Frame(canvas)
+        
+        # Configure scrolling
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        # Create window in canvas
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Pack canvas and scrollbar
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Bind mousewheel to canvas for scroll functionality
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        def _bind_mousewheel(event):
+            canvas.bind_all("<MouseWheel>", _on_mousewheel)
+        
+        def _unbind_mousewheel(event):
+            canvas.unbind_all("<MouseWheel>")
+        
+        # Bind mouse wheel events
+        canvas.bind('<Enter>', _bind_mousewheel)
+        canvas.bind('<Leave>', _unbind_mousewheel)
+        
+        # Now create the camera settings content in the scrollable frame
+        # Camera settings frame (now inside scrollable_frame instead of parent)
+        cam_frame = ttk.LabelFrame(scrollable_frame, text="Camera Configuration", padding=10)
         cam_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
         # Create notebook for front and back camera tabs
@@ -1672,7 +1711,7 @@ class SettingsPanel:
         camera_notebook.add(back_cam_tab, text="Back Camera")
         self.create_camera_config_tab(back_cam_tab, "back")
         
-        # Apply and Save buttons
+        # Apply and Save buttons (also in scrollable frame)
         btn_frame = ttk.Frame(cam_frame)
         btn_frame.pack(fill=tk.X, pady=10)
         
@@ -1694,9 +1733,13 @@ class SettingsPanel:
                             command=self.test_camera_connections)
         test_btn.pack(side=tk.LEFT, padx=5)
         
-        # Status message
+        # Status message (also in scrollable frame)
         ttk.Label(cam_frame, textvariable=self.cam_status_var, 
                 foreground=config.COLORS["primary"]).pack(pady=5)
+        
+        # Update scroll region after all widgets are added
+        scrollable_frame.update_idletasks()
+        canvas.configure(scrollregion=canvas.bbox("all"))
 
 
     def create_camera_config_tab(self, parent, position):
@@ -1765,12 +1808,11 @@ class SettingsPanel:
         type_frame.pack(fill=tk.X, padx=5, pady=5)
         
         ttk.Radiobutton(type_frame, text="USB Camera", variable=camera_type_var, 
-                    value="USB", command=lambda: self.on_camera_type_change(position)).pack(anchor=tk.W, padx=5, pady=2)
+            value="USB", command=lambda: self.on_camera_type_change(position)).pack(side=tk.LEFT, padx=5, pady=2)
         ttk.Radiobutton(type_frame, text="RTSP IP Camera", variable=camera_type_var, 
-                    value="RTSP", command=lambda: self.on_camera_type_change(position)).pack(anchor=tk.W, padx=5, pady=2)
+            value="RTSP", command=lambda: self.on_camera_type_change(position)).pack(side=tk.LEFT, padx=5, pady=2)
         ttk.Radiobutton(type_frame, text="HTTP IP Camera", variable=camera_type_var, 
-                    value="HTTP", command=lambda: self.on_camera_type_change(position)).pack(anchor=tk.W, padx=5, pady=2)
-        
+            value="HTTP", command=lambda: self.on_camera_type_change(position)).pack(side=tk.LEFT, padx=5, pady=2)
         # USB Camera Settings
         usb_frame = ttk.LabelFrame(parent, text="USB Camera Settings")
         usb_frame.pack(fill=tk.X, padx=5, pady=5)
