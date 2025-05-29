@@ -2,10 +2,12 @@ import os
 import csv
 import pandas as pd
 import datetime
+import logging
 from tkinter import messagebox, filedialog
 import config
 import json
 from cloud_storage import CloudStorageService
+import shutil
 
 # Import PDF generation capabilities
 try:
@@ -22,13 +24,37 @@ except ImportError:
     REPORTLAB_AVAILABLE = False
     print("ReportLab not available - PDF auto-generation will be disabled")
 
+# Set up logging
+def setup_logging():
+    """Set up logging directory and configuration"""
+    logs_dir = "logs"
+    os.makedirs(logs_dir, exist_ok=True)
+    
+    # Create log filename with current date
+    log_filename = os.path.join(logs_dir, f"weighbridge_{datetime.datetime.now().strftime('%Y-%m-%d')}.log")
+    
+    # Configure logging
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_filename, encoding='utf-8'),
+            logging.StreamHandler()  # Also log to console
+        ]
+    )
+    
+    return logging.getLogger('DataManager')
 
 class DataManager:
-    """Class for managing data operations with dynamic CSV files and automatic PDF generation"""
+    """Class for managing data operations with enhanced logging and debugging"""
     
     def __init__(self):
-        """Initialize data manager"""
-        self.data_file = config.DATA_FILE  # This will be updated when context is set
+        """Initialize data manager with logging"""
+        # Set up logging first
+        self.logger = setup_logging()
+        self.logger.info("DataManager initialized")
+        
+        self.data_file = config.DATA_FILE
         self.initialize_new_csv_structure()
         
         # Create daily PDF folder structure
@@ -37,6 +63,8 @@ class DataManager:
         # Load address config for PDF generation
         self.address_config = self.load_address_config()
         
+        self.logger.info(f"Data file: {self.data_file}")
+    
     def setup_daily_pdf_folders(self):
         """Set up daily folder structure for PDF generation"""
         try:
@@ -50,29 +78,11 @@ class DataManager:
             self.today_pdf_folder = os.path.join(self.pdf_reports_folder, self.today_folder_name)
             os.makedirs(self.today_pdf_folder, exist_ok=True)
             
-            print(f"Daily PDF folder ready: {self.today_pdf_folder}")
+            self.logger.info(f"Daily PDF folder ready: {self.today_pdf_folder}")
             
         except Exception as e:
-            print(f"Error setting up daily PDF folders: {e}")
+            self.logger.error(f"Error setting up daily PDF folders: {e}")
             self.today_pdf_folder = config.DATA_FOLDER  # Fallback
-    
-    def get_daily_pdf_folder(self):
-        """Get or create today's PDF folder
-        
-        Returns:
-            str: Path to today's PDF folder
-        """
-        today = datetime.datetime.now()
-        folder_name = today.strftime("%d-%m")  # Format: 28-05
-        
-        # Check if we need to create a new folder (date changed)
-        if not hasattr(self, 'today_folder_name') or self.today_folder_name != folder_name:
-            self.today_folder_name = folder_name
-            self.today_pdf_folder = os.path.join(self.pdf_reports_folder, folder_name)
-            os.makedirs(self.today_pdf_folder, exist_ok=True)
-            print(f"Created new daily folder: {self.today_pdf_folder}")
-        
-        return self.today_pdf_folder
     
     def load_address_config(self):
         """Load address configuration for PDF generation"""
@@ -114,10 +124,665 @@ class DataManager:
                 
                 return default_config
         except Exception as e:
-            print(f"Error loading address config for PDF: {e}")
+            self.logger.error(f"Error loading address config for PDF: {e}")
             return {"agencies": {}, "sites": {}}
-    
 
+    def get_current_data_file(self):
+        """Get the current data file path based on context"""
+        return config.get_current_data_file()
+        
+    def initialize_new_csv_structure(self):
+        """Update CSV structure to include weighment fields if needed"""
+        current_file = self.get_current_data_file()
+        
+        if not os.path.exists(current_file):
+            # Create new file with updated header
+            try:
+                os.makedirs(os.path.dirname(current_file), exist_ok=True)
+                with open(current_file, 'w', newline='', encoding='utf-8') as csv_file:
+                    writer = csv.writer(csv_file)
+                    writer.writerow(config.CSV_HEADER)
+                self.logger.info(f"Created new CSV file: {current_file}")
+            except Exception as e:
+                self.logger.error(f"Error creating CSV file: {e}")
+            return
+            
+        try:
+            # Check if existing file has the new structure
+            with open(current_file, 'r', newline='', encoding='utf-8') as csv_file:
+                reader = csv.reader(csv_file)
+                header = next(reader, None)
+                
+                # Check if our new fields exist in the header
+                if header and all(field in header for field in ['First Weight', 'First Timestamp', 'Second Weight', 'Second Timestamp']):
+                    # Structure is already updated
+                    self.logger.info("CSV structure is up to date")
+                    return
+                    
+                # Need to migrate old data to new structure
+                data = list(reader)  # Read all existing data
+            
+            # Create backup of old file
+            backup_file = f"{current_file}.backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            shutil.copy2(current_file, backup_file)
+            self.logger.info(f"Created backup: {backup_file}")
+            
+            # Create new file with updated structure
+            with open(current_file, 'w', newline='', encoding='utf-8') as csv_file:
+                writer = csv.writer(csv_file)
+                
+                # Write new header
+                writer.writerow(config.CSV_HEADER)
+                
+                # Migrate old data - map old fields to new structure
+                for row in data:
+                    if len(row) >= 12:  # Ensure we have minimum fields
+                        new_row = [
+                            row[0],  # Date
+                            row[1],  # Time
+                            row[2],  # Site Name
+                            row[3],  # Agency Name
+                            row[4],  # Material
+                            row[5],  # Ticket No
+                            row[6],  # Vehicle No
+                            row[7],  # Transfer Party Name
+                            row[8] if len(row) > 8 else "",  # Gross Weight -> First Weight
+                            "",      # First Timestamp (new field)
+                            row[9] if len(row) > 9 else "",  # Tare Weight -> Second Weight
+                            "",      # Second Timestamp (new field)
+                            row[10] if len(row) > 10 else "",  # Net Weight
+                            row[11] if len(row) > 11 else "",  # Material Type
+                            row[12] if len(row) > 12 else "",  # First Front Image
+                            row[13] if len(row) > 13 else "",  # First Back Image
+                            row[14] if len(row) > 14 else "",  # Second Front Image
+                            row[15] if len(row) > 15 else "",  # Second Back Image
+                            row[16] if len(row) > 16 else "",  # Site Incharge
+                            row[17] if len(row) > 17 else ""   # User Name
+                        ]
+                        writer.writerow(new_row)
+                        
+            self.logger.info("Database structure updated successfully")
+            if messagebox:
+                messagebox.showinfo("Database Updated", 
+                                 "The data structure has been updated to support the new weighment system.\n"
+                                 f"A backup of your old data has been saved to {backup_file}")
+                             
+        except Exception as e:
+            self.logger.error(f"Error updating database structure: {e}")
+            if messagebox:
+                messagebox.showerror("Database Update Error", 
+                                  f"Error updating database structure: {e}\n"
+                                  "The application may not function correctly.")
+
+    def set_agency_site_context(self, agency_name, site_name):
+        """Set the current agency and site context for file operations"""
+        # Update the global context
+        config.set_current_context(agency_name, site_name)
+        
+        # Update our local reference
+        self.data_file = self.get_current_data_file()
+        
+        # Ensure the new file exists with proper structure
+        self.initialize_new_csv_structure()
+        
+        self.logger.info(f"Data context set to: Agency='{agency_name}', Site='{site_name}'")
+        self.logger.info(f"Data file: {self.data_file}")
+
+    def save_record(self, data):
+        """FIXED: Save record to CSV file with enhanced validation and logging"""
+        try:
+            self.logger.info("="*50)
+            self.logger.info("STARTING RECORD SAVE OPERATION")
+            self.logger.info(f"Input data keys: {list(data.keys())}")
+            
+            # Enhanced validation with detailed logging
+            validation_result = self.validate_record_data(data)
+            if not validation_result['valid']:
+                self.logger.error(f"Validation failed: {validation_result['errors']}")
+                if messagebox:
+                    messagebox.showerror("Validation Error", f"Record validation failed:\n" + "\n".join(validation_result['errors']))
+                return False
+            
+            # Use the current data file
+            current_file = self.get_current_data_file()
+            self.logger.info(f"Using data file: {current_file}")
+            
+            # Check if this is an update to an existing record
+            ticket_no = data.get('ticket_no', '')
+            is_update = False
+            
+            if ticket_no:
+                # Check if record with this ticket number exists
+                records = self.get_filtered_records(ticket_no)
+                for record in records:
+                    if record.get('ticket_no') == ticket_no:
+                        is_update = True
+                        self.logger.info(f"Updating existing record: {ticket_no}")
+                        break
+            
+            if not is_update:
+                self.logger.info(f"Adding new record: {ticket_no}")
+            
+            # PRIORITY 1: Save to CSV locally (this MUST work)
+            csv_success = False
+            try:
+                if is_update:
+                    # Update existing record
+                    csv_success = self.update_record(data)
+                else:
+                    # Add new record
+                    csv_success = self.add_new_record(data)
+                
+                if csv_success:
+                    self.logger.info(f"✅ Record {ticket_no} saved to local CSV successfully")
+                else:
+                    self.logger.error(f"❌ Failed to save record {ticket_no} to local CSV")
+                    return False
+            except Exception as csv_error:
+                self.logger.error(f"❌ Critical error saving to CSV: {csv_error}")
+                return False
+            
+            # Check if this is a complete record (both weighments)
+            first_weight = data.get('first_weight', '').strip()
+            first_timestamp = data.get('first_timestamp', '').strip()
+            second_weight = data.get('second_weight', '').strip()
+            second_timestamp = data.get('second_timestamp', '').strip()
+            
+            is_complete_record = (first_weight and first_timestamp and 
+                                second_weight and second_timestamp)
+            
+            self.logger.info(f"Record completion status: {is_complete_record}")
+            self.logger.info(f"First weight: '{first_weight}', timestamp: '{first_timestamp}'")
+            self.logger.info(f"Second weight: '{second_weight}', timestamp: '{second_timestamp}'")
+            
+            # PRIORITY 2: Auto-generate PDF for complete records (optional, don't fail if this fails)
+            pdf_generated = False
+            pdf_path = None
+            if is_complete_record:
+                self.logger.info(f"Complete record detected for ticket {ticket_no} - attempting PDF generation...")
+                try:
+                    pdf_generated, pdf_path = self.auto_generate_pdf_for_complete_record(data)
+                    if pdf_generated:
+                        self.logger.info(f"✅ PDF auto-generated: {pdf_path}")
+                        # Show success message to user only if PDF was generated
+                        try:
+                            if messagebox:
+                                messagebox.showinfo("PDF Generated", 
+                                                f"Record saved and PDF generated!\n\n"
+                                                f"PDF saved to: {os.path.basename(pdf_path)}\n"
+                                                f"Location: {os.path.dirname(pdf_path)}")
+                        except:
+                            # Don't fail if messagebox fails
+                            pass
+                    else:
+                        self.logger.warning("⚠️ PDF generation failed, but record was saved")
+                except Exception as pdf_error:
+                    self.logger.error(f"⚠️ PDF generation error (non-critical): {pdf_error}")
+            
+            # PRIORITY 3: Save to cloud storage (optional, don't fail if this fails)
+            cloud_success = False
+            images_uploaded = 0
+            total_images = 0
+            
+            # Only attempt cloud storage if enabled AND record is complete AND we have internet
+            if (hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE and 
+                is_complete_record):
+                try:
+                    cloud_success, images_uploaded, total_images = self.save_to_cloud_with_images(data)
+                    
+                    if cloud_success:
+                        self.logger.info(f"✅ Complete record {ticket_no} successfully saved to cloud")
+                        if images_uploaded > 0:
+                            self.logger.info(f"✅ Images uploaded: {images_uploaded}/{total_images}")
+                    else:
+                        self.logger.warning(f"⚠️ Warning: Complete record {ticket_no} could not be saved to cloud (working offline)")
+                except Exception as cloud_error:
+                    self.logger.error(f"⚠️ Cloud storage error (non-critical): {cloud_error}")
+            elif not is_complete_record:
+                self.logger.info(f"ℹ️ Record {ticket_no} saved locally only - incomplete weighments")
+            else:
+                self.logger.info(f"ℹ️ Record {ticket_no} saved locally only - cloud storage disabled or offline")
+            
+            self.logger.info("RECORD SAVE OPERATION COMPLETED SUCCESSFULLY")
+            self.logger.info("="*50)
+            
+            # Return success if CSV save worked (the critical operation)
+            return csv_success
+                    
+        except Exception as e:
+            self.logger.error(f"❌ Critical error saving record: {e}")
+            return False
+
+    def validate_record_data(self, data):
+        """Enhanced validation with detailed error reporting"""
+        errors = []
+        
+        # Check required fields
+        required_fields = {
+            'ticket_no': 'Ticket Number',
+            'vehicle_no': 'Vehicle Number',
+            'agency_name': 'Agency Name'
+        }
+        
+        for field, display_name in required_fields.items():
+            value = data.get(field, '').strip()
+            if not value:
+                errors.append(f"{display_name} is required")
+        
+        # Check weighment data consistency
+        first_weight = data.get('first_weight', '').strip()
+        first_timestamp = data.get('first_timestamp', '').strip()
+        second_weight = data.get('second_weight', '').strip()
+        second_timestamp = data.get('second_timestamp', '').strip()
+        
+        # If first weight exists, timestamp should also exist
+        if first_weight and not first_timestamp:
+            errors.append("First weighment timestamp is missing")
+        
+        # If second weight exists, timestamp should also exist
+        if second_weight and not second_timestamp:
+            errors.append("Second weighment timestamp is missing")
+        
+        # At least first weighment should be present for new records
+        if not first_weight and not first_timestamp:
+            errors.append("At least first weighment is required")
+        
+        return {
+            'valid': len(errors) == 0,
+            'errors': errors
+        }
+
+    def add_new_record(self, data):
+        """FIXED: Add a new record to the CSV file with enhanced error handling and logging"""
+        try:
+            self.logger.info("Adding new record to CSV")
+            
+            # Ensure all required fields have values
+            record = [
+                data.get('date', datetime.datetime.now().strftime("%d-%m-%Y")),
+                data.get('time', datetime.datetime.now().strftime("%H:%M:%S")),
+                data.get('site_name', ''),
+                data.get('agency_name', ''),
+                data.get('material', ''),
+                data.get('ticket_no', ''),
+                data.get('vehicle_no', ''),
+                data.get('transfer_party_name', ''),
+                data.get('first_weight', ''),
+                data.get('first_timestamp', ''),
+                data.get('second_weight', ''),
+                data.get('second_timestamp', ''),
+                data.get('net_weight', ''),
+                data.get('material_type', ''),
+                data.get('first_front_image', ''),
+                data.get('first_back_image', ''),
+                data.get('second_front_image', ''),
+                data.get('second_back_image', ''),
+                data.get('site_incharge', ''),
+                data.get('user_name', '')
+            ]
+            
+            # Log the record being saved
+            self.logger.info(f"Record data: {record}")
+            
+            # Use current data file
+            current_file = self.get_current_data_file()
+            
+            # Ensure the directory exists
+            os.makedirs(os.path.dirname(current_file), exist_ok=True)
+            
+            # Write to CSV
+            with open(current_file, 'a', newline='', encoding='utf-8') as csv_file:
+                writer = csv.writer(csv_file)
+                writer.writerow(record)
+            
+            self.logger.info(f"✅ New record added to {current_file}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"❌ Error adding new record: {e}")
+            return False
+
+    def update_record(self, data):
+        """FIXED: Update an existing record in the CSV file with enhanced error handling and logging"""
+        try:
+            current_file = self.get_current_data_file()
+            ticket_no = data.get('ticket_no', '')
+            
+            self.logger.info(f"Updating record {ticket_no} in {current_file}")
+            
+            if not os.path.exists(current_file):
+                self.logger.warning(f"CSV file doesn't exist, creating new one: {current_file}")
+                return self.add_new_record(data)
+            
+            # Read all records
+            all_records = []
+            header = None
+            try:
+                with open(current_file, 'r', newline='', encoding='utf-8') as csv_file:
+                    reader = csv.reader(csv_file)
+                    header = next(reader, None)  # Read header
+                    all_records = list(reader)
+                    
+                self.logger.info(f"Read {len(all_records)} records from CSV")
+            except Exception as read_error:
+                self.logger.error(f"Error reading CSV file: {read_error}")
+                return False
+            
+            # Find and update the record
+            updated = False
+            
+            for i, row in enumerate(all_records):
+                if len(row) >= 6 and row[5] == ticket_no:  # Ticket number is index 5
+                    self.logger.info(f"Found record to update at index {i}")
+                    
+                    # Update the row with new data including all fields
+                    updated_row = [
+                        data.get('date', row[0] if len(row) > 0 else ''),
+                        data.get('time', row[1] if len(row) > 1 else ''),
+                        data.get('site_name', row[2] if len(row) > 2 else ''),
+                        data.get('agency_name', row[3] if len(row) > 3 else ''),
+                        data.get('material', row[4] if len(row) > 4 else ''),
+                        data.get('ticket_no', row[5] if len(row) > 5 else ''),
+                        data.get('vehicle_no', row[6] if len(row) > 6 else ''),
+                        data.get('transfer_party_name', row[7] if len(row) > 7 else ''),
+                        data.get('first_weight', row[8] if len(row) > 8 else ''),
+                        data.get('first_timestamp', row[9] if len(row) > 9 else ''),
+                        data.get('second_weight', row[10] if len(row) > 10 else ''),
+                        data.get('second_timestamp', row[11] if len(row) > 11 else ''),
+                        data.get('net_weight', row[12] if len(row) > 12 else ''),
+                        data.get('material_type', row[13] if len(row) > 13 else ''),
+                        data.get('first_front_image', row[14] if len(row) > 14 else ''),
+                        data.get('first_back_image', row[15] if len(row) > 15 else ''),
+                        data.get('second_front_image', row[16] if len(row) > 16 else ''),
+                        data.get('second_back_image', row[17] if len(row) > 17 else ''),
+                        data.get('site_incharge', row[18] if len(row) > 18 else ''),
+                        data.get('user_name', row[19] if len(row) > 19 else '')
+                    ]
+                    
+                    all_records[i] = updated_row
+                    updated = True
+                    self.logger.info(f"Updated record data: {updated_row}")
+                    break
+            
+            if not updated:
+                self.logger.warning(f"Record with ticket {ticket_no} not found, adding as new record")
+                return self.add_new_record(data)
+                
+            # Write all records back to the file
+            try:
+                # Create backup before updating
+                backup_file = f"{current_file}.backup"
+                if os.path.exists(current_file):
+                    shutil.copy2(current_file, backup_file)
+                
+                with open(current_file, 'w', newline='', encoding='utf-8') as csv_file:
+                    writer = csv.writer(csv_file)
+                    if header:
+                        writer.writerow(header)  # Write header
+                    writer.writerows(all_records)  # Write all records
+                
+                # Remove backup if write was successful
+                if os.path.exists(backup_file):
+                    os.remove(backup_file)
+                    
+                self.logger.info(f"✅ Record {ticket_no} updated in {current_file}")
+                return True
+            except Exception as write_error:
+                self.logger.error(f"Error writing updated records: {write_error}")
+                # Restore from backup if write failed
+                backup_file = f"{current_file}.backup"
+                if os.path.exists(backup_file):
+                    shutil.copy2(backup_file, current_file)
+                    os.remove(backup_file)
+                    self.logger.info("Restored from backup due to write error")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"❌ Error updating record: {e}")
+            return False
+
+    def get_all_records(self):
+        """FIXED: Get all records from current CSV file with enhanced error handling"""
+        records = []
+        current_file = self.get_current_data_file()
+        
+        if not os.path.exists(current_file):
+            self.logger.warning(f"CSV file does not exist: {current_file}")
+            return records
+            
+        try:
+            with open(current_file, 'r', newline='', encoding='utf-8') as csv_file:
+                reader = csv.reader(csv_file)
+                
+                # Skip header
+                header = next(reader, None)
+                if not header:
+                    self.logger.warning("CSV file has no header")
+                    return records
+                
+                for row_num, row in enumerate(reader, 1):
+                    try:
+                        if len(row) >= 13:  # Minimum fields required
+                            record = {
+                                'date': row[0],
+                                'time': row[1],
+                                'site_name': row[2],
+                                'agency_name': row[3],
+                                'material': row[4],
+                                'ticket_no': row[5],
+                                'vehicle_no': row[6],
+                                'transfer_party_name': row[7],
+                                'first_weight': row[8] if len(row) > 8 else '',
+                                'first_timestamp': row[9] if len(row) > 9 else '',
+                                'second_weight': row[10] if len(row) > 10 else '',
+                                'second_timestamp': row[11] if len(row) > 11 else '',
+                                'net_weight': row[12] if len(row) > 12 else '',
+                                'material_type': row[13] if len(row) > 13 else '',
+                                'first_front_image': row[14] if len(row) > 14 else '',
+                                'first_back_image': row[15] if len(row) > 15 else '',
+                                'second_front_image': row[16] if len(row) > 16 else '',
+                                'second_back_image': row[17] if len(row) > 17 else '',
+                                'site_incharge': row[18] if len(row) > 18 else '',
+                                'user_name': row[19] if len(row) > 19 else ''
+                            }
+                            records.append(record)
+                        else:
+                            self.logger.warning(f"Skipping row {row_num} - insufficient data: {len(row)} fields")
+                    except Exception as row_error:
+                        self.logger.error(f"Error processing row {row_num}: {row_error}")
+                        
+            self.logger.info(f"Successfully loaded {len(records)} records from {current_file}")
+            return records
+                
+        except Exception as e:
+            self.logger.error(f"Error reading records from {current_file}: {e}")
+            return []
+
+    def get_filtered_records(self, filter_text=""):
+        """Get records filtered by text with logging"""
+        try:
+            all_records = self.get_all_records()
+            
+            if not filter_text:
+                self.logger.info(f"Returning all {len(all_records)} records (no filter)")
+                return all_records
+                
+            filter_text = filter_text.lower()
+            filtered_records = []
+            
+            for record in all_records:
+                # Check if filter text exists in any field
+                if any(filter_text in str(value).lower() for value in record.values()):
+                    filtered_records.append(record)
+                    
+            self.logger.info(f"Filtered {len(all_records)} records to {len(filtered_records)} using filter: '{filter_text}'")
+            return filtered_records
+        except Exception as e:
+            self.logger.error(f"Error filtering records: {e}")
+            return []
+
+    # Include other methods from original file...
+    # (keeping space for brevity, but include all other methods like save_to_cloud_with_images, 
+    # auto_generate_pdf_for_complete_record, etc.)
+    
+    def save_to_cloud_with_images(self, data):
+        """Save record with images to Google Cloud Storage only if both weighments are complete"""
+        try:
+            # Check if both weighments are complete before saving to cloud
+            first_weight = data.get('first_weight', '').strip()
+            first_timestamp = data.get('first_timestamp', '').strip()
+            second_weight = data.get('second_weight', '').strip()
+            second_timestamp = data.get('second_timestamp', '').strip()
+            
+            # Only save to cloud if both weighments are complete
+            if not (first_weight and first_timestamp and second_weight and second_timestamp):
+                self.logger.info(f"Skipping cloud save for ticket {data.get('ticket_no', 'unknown')} - incomplete weighments")
+                return False, 0, 0
+            
+            # Check if cloud storage is enabled
+            if not (hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE):
+                self.logger.info("Cloud storage disabled - skipping")
+                return False, 0, 0
+            
+            # Initialize cloud storage if not already initialized
+            if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
+                try:
+                    from cloud_storage import CloudStorageService
+                    self.cloud_storage = CloudStorageService(
+                        config.CLOUD_BUCKET_NAME,
+                        config.CLOUD_CREDENTIALS_PATH
+                    )
+                except ImportError:
+                    self.logger.error("Cloud storage module not available")
+                    return False, 0, 0
+                except Exception as init_error:
+                    self.logger.error(f"Failed to initialize cloud storage: {init_error}")
+                    return False, 0, 0
+            
+            # Check if connected to cloud storage
+            try:
+                if not self.cloud_storage.is_connected():
+                    self.logger.warning("Not connected to cloud storage (offline or configuration issue)")
+                    return False, 0, 0
+            except Exception as conn_error:
+                self.logger.error(f"Cloud connection check failed: {conn_error}")
+                return False, 0, 0
+            
+            # Get site name and ticket number for folder structure
+            site_name = data.get('site_name', 'Unknown_Site').replace(' ', '_').replace('/', '_')
+            agency_name = data.get('agency_name', 'Unknown_Agency').replace(' ', '_').replace('/', '_')
+            ticket_no = data.get('ticket_no', 'unknown')
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create structured filename: agency_name/site_name/ticket_number/timestamp.json
+            json_filename = f"{agency_name}/{site_name}/{ticket_no}/{timestamp}.json"
+            
+            # Add some additional metadata to the JSON
+            enhanced_data = data.copy()
+            enhanced_data['cloud_upload_timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            enhanced_data['record_status'] = 'complete'  # Mark as complete record
+            enhanced_data['net_weight_calculated'] = self._calculate_net_weight_for_cloud(
+                enhanced_data.get('first_weight', ''), 
+                enhanced_data.get('second_weight', '')
+            )
+            
+            # Upload record with images using the new method
+            json_success, images_uploaded, total_images = self.cloud_storage.upload_record_with_images(
+                enhanced_data, 
+                json_filename, 
+                config.IMAGES_FOLDER
+            )
+            
+            if json_success:
+                self.logger.info(f"Record {ticket_no} successfully saved to cloud at {json_filename}")
+                if images_uploaded > 0:
+                    self.logger.info(f"Uploaded {images_uploaded}/{total_images} images for ticket {ticket_no}")
+                else:
+                    self.logger.info(f"No images found to upload for ticket {ticket_no}")
+            else:
+                self.logger.error(f"Failed to save record {ticket_no} to cloud")
+                
+            return json_success, images_uploaded, total_images
+            
+        except Exception as e:
+            self.logger.error(f"Error saving to cloud with images (non-critical): {str(e)}")
+            return False, 0, 0
+
+    def _calculate_net_weight_for_cloud(self, first_weight_str, second_weight_str):
+        """Calculate net weight for cloud storage"""
+        try:
+            if first_weight_str and second_weight_str:
+                first_weight = float(first_weight_str)
+                second_weight = float(second_weight_str)
+                return abs(first_weight - second_weight)
+            return 0.0
+        except (ValueError, TypeError):
+            return 0.0
+
+    def auto_generate_pdf_for_complete_record(self, record_data):
+        """Automatically generate PDF for a complete record"""
+        # Check if ReportLab is available
+        try:
+            global REPORTLAB_AVAILABLE
+            if not REPORTLAB_AVAILABLE:
+                self.logger.warning("ReportLab not available - skipping PDF generation")
+                return False, None
+        except:
+            self.logger.warning("PDF generation not available")
+            return False, None
+        
+        try:
+            # Check if record is complete (both weighments)
+            first_weight = record_data.get('first_weight', '').strip()
+            first_timestamp = record_data.get('first_timestamp', '').strip()
+            second_weight = record_data.get('second_weight', '').strip()
+            second_timestamp = record_data.get('second_timestamp', '').strip()
+            
+            if not (first_weight and first_timestamp and second_weight and second_timestamp):
+                self.logger.info("Record incomplete - skipping PDF generation")
+                return False, None
+            
+            # Generate PDF filename
+            ticket_no = record_data.get('ticket_no', 'Unknown').replace('/', '_')
+            vehicle_no = record_data.get('vehicle_no', 'Unknown').replace('/', '_').replace(' ', '_')
+            site_name = record_data.get('site_name', 'Unknown').replace(' ', '_').replace('/', '_')
+            agency_name = record_data.get('agency_name', 'Unknown').replace(' ', '_').replace('/', '_')
+            timestamp = datetime.datetime.now().strftime("%H%M%S")
+            
+            # PDF filename format: AgencyName_SiteName_TicketNo_VehicleNo_HHMMSS.pdf
+            pdf_filename = f"{agency_name}_{site_name}_{ticket_no}_{vehicle_no}_{timestamp}.pdf"
+            
+            # Get today's folder
+            daily_folder = self.get_daily_pdf_folder()
+            pdf_path = os.path.join(daily_folder, pdf_filename)
+            
+            # Generate the PDF
+            success = self.create_pdf_report([record_data], pdf_path)
+            
+            if success:
+                self.logger.info(f"Auto-generated PDF: {pdf_path}")
+                return True, pdf_path
+            else:
+                self.logger.error("Failed to generate PDF")
+                return False, None
+                
+        except Exception as e:
+            self.logger.error(f"Error in auto PDF generation (non-critical): {e}")
+            return False, None
+
+    def get_daily_pdf_folder(self):
+        """Get or create today's PDF folder"""
+        today = datetime.datetime.now()
+        folder_name = today.strftime("%d-%m")  # Format: 28-05
+        
+        # Check if we need to create a new folder (date changed)
+        if not hasattr(self, 'today_folder_name') or self.today_folder_name != folder_name:
+            self.today_folder_name = folder_name
+            self.today_pdf_folder = os.path.join(self.pdf_reports_folder, folder_name)
+            os.makedirs(self.today_pdf_folder, exist_ok=True)
+            self.logger.info(f"Created new daily folder: {self.today_pdf_folder}")
+        
+        return self.today_pdf_folder
     
     def create_pdf_report(self, records_data, save_path):
         """Create PDF report with 4-image grid for complete records (same as reports.py)
@@ -451,105 +1116,6 @@ class DataManager:
             print(f"Error preparing image for PDF: {e}")
             return None
 
-    def get_current_data_file(self):
-        """Get the current data file path based on context
-        
-        Returns:
-            str: Current data file path
-        """
-        return config.get_current_data_file()
-        
-    def initialize_new_csv_structure(self):
-        """Update CSV structure to include weighment fields if needed"""
-        current_file = self.get_current_data_file()
-        
-        if not os.path.exists(current_file):
-            # Create new file with updated header
-            with open(current_file, 'w', newline='') as csv_file:
-                writer = csv.writer(csv_file)
-                writer.writerow(config.CSV_HEADER)
-            return
-            
-        try:
-            # Check if existing file has the new structure
-            with open(current_file, 'r', newline='') as csv_file:
-                reader = csv.reader(csv_file)
-                header = next(reader, None)
-                
-                # Check if our new fields exist in the header
-                if header and all(field in header for field in ['First Weight', 'First Timestamp', 'Second Weight', 'Second Timestamp']):
-                    # Structure is already updated
-                    return
-                    
-                # Need to migrate old data to new structure
-                data = list(reader)  # Read all existing data
-            
-            # Create backup of old file
-            backup_file = f"{current_file}.backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            os.rename(current_file, backup_file)
-            
-            # Create new file with updated structure
-            with open(current_file, 'w', newline='') as csv_file:
-                writer = csv.writer(csv_file)
-                
-                # Write new header
-                writer.writerow(config.CSV_HEADER)
-                
-                # Migrate old data - map old fields to new structure
-                for row in data:
-                    if len(row) >= 12:  # Ensure we have minimum fields
-                        new_row = [
-                            row[0],  # Date
-                            row[1],  # Time
-                            row[2],  # Site Name
-                            row[3],  # Agency Name
-                            row[4],  # Material
-                            row[5],  # Ticket No
-                            row[6],  # Vehicle No
-                            row[7],  # Transfer Party Name
-                            row[8] if len(row) > 8 else "",  # Gross Weight -> First Weight
-                            "",      # First Timestamp (new field)
-                            row[9] if len(row) > 9 else "",  # Tare Weight -> Second Weight
-                            "",      # Second Timestamp (new field)
-                            row[10] if len(row) > 10 else "",  # Net Weight
-                            row[11] if len(row) > 11 else "",  # Material Type
-                            row[12] if len(row) > 12 else "",  # Front Image
-                            row[13] if len(row) > 13 else "",  # Back Image
-                            row[14] if len(row) > 14 else "",  # Site Incharge
-                            row[15] if len(row) > 15 else ""   # User Name
-                        ]
-                        writer.writerow(new_row)
-                        
-            messagebox.showinfo("Database Updated", 
-                             "The data structure has been updated to support the new weighment system.\n"
-                             f"A backup of your old data has been saved to {backup_file}")
-                             
-        except Exception as e:
-            messagebox.showerror("Database Update Error", 
-                              f"Error updating database structure: {e}\n"
-                              "The application may not function correctly.")
-
-    def set_agency_site_context(self, agency_name, site_name):
-        """Set the current agency and site context for file operations
-        
-        Args:
-            agency_name: Current agency name
-            site_name: Current site name
-        """
-        # Update the global context
-        config.set_current_context(agency_name, site_name)
-        
-        # Update our local reference
-        self.data_file = self.get_current_data_file()
-        
-        # Ensure the new file exists with proper structure
-        self.initialize_new_csv_structure()
-        
-        print(f"Data context set to: Agency='{agency_name}', Site='{site_name}'")
-        print(f"Data file: {self.data_file}")
-
-
-
     def save_to_cloud(self, data):
         """Legacy method - now calls the new save_to_cloud_with_images method
         
@@ -562,475 +1128,6 @@ class DataManager:
         success, _, _ = self.save_to_cloud_with_images(data)
         return success
 
-
-# Key fixes for data_management.py - Save functionality
-
-    def save_record(self, data):
-        """Save record to CSV file, cloud storage, and auto-generate PDF for complete records
-        FIXED: Always save locally first, cloud and PDF are optional
-        
-        Args:
-            data: Dictionary of data to save
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        try:
-            # Use the current data file
-            current_file = self.get_current_data_file()
-            
-            # Check if this is an update to an existing record
-            ticket_no = data.get('ticket_no', '')
-            is_update = False
-            
-            if ticket_no:
-                # Check if record with this ticket number exists
-                records = self.get_filtered_records(ticket_no)
-                for record in records:
-                    if record.get('ticket_no') == ticket_no:
-                        is_update = True
-                        break
-            
-            # PRIORITY 1: Save to CSV locally (this MUST work)
-            csv_success = False
-            try:
-                if is_update:
-                    # Update existing record
-                    csv_success = self.update_record(data)
-                else:
-                    # Add new record
-                    csv_success = self.add_new_record(data)
-                
-                if csv_success:
-                    print(f"✅ Record {ticket_no} saved to local CSV successfully")
-                else:
-                    print(f"❌ Failed to save record {ticket_no} to local CSV")
-                    return False
-            except Exception as csv_error:
-                print(f"❌ Critical error saving to CSV: {csv_error}")
-                return False
-            
-            # Check if this is a complete record (both weighments)
-            first_weight = data.get('first_weight', '').strip()
-            first_timestamp = data.get('first_timestamp', '').strip()
-            second_weight = data.get('second_weight', '').strip()
-            second_timestamp = data.get('second_timestamp', '').strip()
-            
-            is_complete_record = (first_weight and first_timestamp and 
-                                second_weight and second_timestamp)
-            
-            # PRIORITY 2: Auto-generate PDF for complete records (optional, don't fail if this fails)
-            pdf_generated = False
-            pdf_path = None
-            if is_complete_record:
-                print(f"Complete record detected for ticket {ticket_no} - attempting PDF generation...")
-                try:
-                    pdf_generated, pdf_path = self.auto_generate_pdf_for_complete_record(data)
-                    if pdf_generated:
-                        print(f"✅ PDF auto-generated: {pdf_path}")
-                        # Show success message to user only if PDF was generated
-                        try:
-                            if messagebox:
-                                messagebox.showinfo("PDF Generated", 
-                                                f"Record saved and PDF generated!\n\n"
-                                                f"PDF saved to: {os.path.basename(pdf_path)}\n"
-                                                f"Location: {os.path.dirname(pdf_path)}")
-                        except:
-                            # Don't fail if messagebox fails
-                            pass
-                    else:
-                        print("⚠️ PDF generation failed, but record was saved")
-                except Exception as pdf_error:
-                    print(f"⚠️ PDF generation error (non-critical): {pdf_error}")
-            
-            # PRIORITY 3: Save to cloud storage (optional, don't fail if this fails)
-            cloud_success = False
-            images_uploaded = 0
-            total_images = 0
-            
-            # Only attempt cloud storage if enabled AND record is complete AND we have internet
-            if (hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE and 
-                is_complete_record):
-                try:
-                    cloud_success, images_uploaded, total_images = self.save_to_cloud_with_images(data)
-                    
-                    if cloud_success:
-                        print(f"✅ Complete record {ticket_no} successfully saved to cloud")
-                        if images_uploaded > 0:
-                            print(f"✅ Images uploaded: {images_uploaded}/{total_images}")
-                    else:
-                        print(f"⚠️ Warning: Complete record {ticket_no} could not be saved to cloud (working offline)")
-                except Exception as cloud_error:
-                    print(f"⚠️ Cloud storage error (non-critical): {cloud_error}")
-            elif not is_complete_record:
-                print(f"ℹ️ Record {ticket_no} saved locally only - incomplete weighments")
-            else:
-                print(f"ℹ️ Record {ticket_no} saved locally only - cloud storage disabled or offline")
-            
-            # Return success if CSV save worked (the critical operation)
-            return csv_success
-                    
-        except Exception as e:
-            print(f"❌ Critical error saving record: {e}")
-            return False
-
-    def save_to_cloud_with_images(self, data):
-        """Save record with images to Google Cloud Storage only if both weighments are complete
-        FIXED: Don't fail if cloud storage is not available
-        
-        Args:
-            data: Record data dictionary
-            
-        Returns:
-            tuple: (success, images_uploaded, total_images)
-        """
-        try:
-            # Check if both weighments are complete before saving to cloud
-            first_weight = data.get('first_weight', '').strip()
-            first_timestamp = data.get('first_timestamp', '').strip()
-            second_weight = data.get('second_weight', '').strip()
-            second_timestamp = data.get('second_timestamp', '').strip()
-            
-            # Only save to cloud if both weighments are complete
-            if not (first_weight and first_timestamp and second_weight and second_timestamp):
-                print(f"Skipping cloud save for ticket {data.get('ticket_no', 'unknown')} - incomplete weighments")
-                return False, 0, 0
-            
-            # Check if cloud storage is enabled
-            if not (hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE):
-                print("Cloud storage disabled - skipping")
-                return False, 0, 0
-            
-            # Initialize cloud storage if not already initialized
-            if not hasattr(self, 'cloud_storage') or self.cloud_storage is None:
-                try:
-                    from cloud_storage import CloudStorageService
-                    self.cloud_storage = CloudStorageService(
-                        config.CLOUD_BUCKET_NAME,
-                        config.CLOUD_CREDENTIALS_PATH
-                    )
-                except ImportError:
-                    print("Cloud storage module not available")
-                    return False, 0, 0
-                except Exception as init_error:
-                    print(f"Failed to initialize cloud storage: {init_error}")
-                    return False, 0, 0
-            
-            # Check if connected to cloud storage
-            try:
-                if not self.cloud_storage.is_connected():
-                    print("Not connected to cloud storage (offline or configuration issue)")
-                    return False, 0, 0
-            except Exception as conn_error:
-                print(f"Cloud connection check failed: {conn_error}")
-                return False, 0, 0
-            
-            # Get site name and ticket number for folder structure
-            site_name = data.get('site_name', 'Unknown_Site').replace(' ', '_').replace('/', '_')
-            agency_name = data.get('agency_name', 'Unknown_Agency').replace(' ', '_').replace('/', '_')
-            ticket_no = data.get('ticket_no', 'unknown')
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            
-            # Create structured filename: agency_name/site_name/ticket_number/timestamp.json
-            json_filename = f"{agency_name}/{site_name}/{ticket_no}/{timestamp}.json"
-            
-            # Add some additional metadata to the JSON
-            enhanced_data = data.copy()
-            enhanced_data['cloud_upload_timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            enhanced_data['record_status'] = 'complete'  # Mark as complete record
-            enhanced_data['net_weight_calculated'] = self._calculate_net_weight_for_cloud(
-                enhanced_data.get('first_weight', ''), 
-                enhanced_data.get('second_weight', '')
-            )
-            
-            # Upload record with images using the new method
-            json_success, images_uploaded, total_images = self.cloud_storage.upload_record_with_images(
-                enhanced_data, 
-                json_filename, 
-                config.IMAGES_FOLDER
-            )
-            
-            if json_success:
-                print(f"Record {ticket_no} successfully saved to cloud at {json_filename}")
-                if images_uploaded > 0:
-                    print(f"Uploaded {images_uploaded}/{total_images} images for ticket {ticket_no}")
-                else:
-                    print(f"No images found to upload for ticket {ticket_no}")
-            else:
-                print(f"Failed to save record {ticket_no} to cloud")
-                
-            return json_success, images_uploaded, total_images
-            
-        except Exception as e:
-            print(f"Error saving to cloud with images (non-critical): {str(e)}")
-            return False, 0, 0
-
-    def _calculate_net_weight_for_cloud(self, first_weight_str, second_weight_str):
-        """Calculate net weight for cloud storage
-        
-        Args:
-            first_weight_str: First weight as string
-            second_weight_str: Second weight as string
-            
-        Returns:
-            float: Net weight or 0 if calculation fails
-        """
-        try:
-            if first_weight_str and second_weight_str:
-                first_weight = float(first_weight_str)
-                second_weight = float(second_weight_str)
-                return abs(first_weight - second_weight)
-            return 0.0
-        except (ValueError, TypeError):
-            return 0.0
-
-    def auto_generate_pdf_for_complete_record(self, record_data):
-        """Automatically generate PDF for a complete record
-        FIXED: Don't fail if PDF generation is not available
-        
-        Args:
-            record_data: Dictionary containing the complete record data
-            
-        Returns:
-            tuple: (success, pdf_path)
-        """
-        # Check if ReportLab is available
-        try:
-            global REPORTLAB_AVAILABLE
-            if not REPORTLAB_AVAILABLE:
-                print("ReportLab not available - skipping PDF generation")
-                return False, None
-        except:
-            print("PDF generation not available")
-            return False, None
-        
-        try:
-            # Check if record is complete (both weighments)
-            first_weight = record_data.get('first_weight', '').strip()
-            first_timestamp = record_data.get('first_timestamp', '').strip()
-            second_weight = record_data.get('second_weight', '').strip()
-            second_timestamp = record_data.get('second_timestamp', '').strip()
-            
-            if not (first_weight and first_timestamp and second_weight and second_timestamp):
-                print("Record incomplete - skipping PDF generation")
-                return False, None
-            
-            # Generate PDF filename
-            ticket_no = record_data.get('ticket_no', 'Unknown').replace('/', '_')
-            vehicle_no = record_data.get('vehicle_no', 'Unknown').replace('/', '_').replace(' ', '_')
-            site_name = record_data.get('site_name', 'Unknown').replace(' ', '_').replace('/', '_')
-            agency_name = record_data.get('agency_name', 'Unknown').replace(' ', '_').replace('/', '_')
-            timestamp = datetime.datetime.now().strftime("%H%M%S")
-            
-            # PDF filename format: AgencyName_SiteName_TicketNo_VehicleNo_HHMMSS.pdf
-            pdf_filename = f"{agency_name}_{site_name}_{ticket_no}_{vehicle_no}_{timestamp}.pdf"
-            
-            # Get today's folder
-            daily_folder = self.get_daily_pdf_folder()
-            pdf_path = os.path.join(daily_folder, pdf_filename)
-            
-            # Generate the PDF
-            success = self.create_pdf_report([record_data], pdf_path)
-            
-            if success:
-                print(f"Auto-generated PDF: {pdf_path}")
-                return True, pdf_path
-            else:
-                print("Failed to generate PDF")
-                return False, None
-                
-        except Exception as e:
-            print(f"Error in auto PDF generation (non-critical): {e}")
-            return False, None
-
-    def add_new_record(self, data):
-        """Add a new record to the CSV file with 4 image fields - ENHANCED with error handling"""
-        try:
-            # Format data as a row with all 4 image fields
-            record = [
-                data.get('date', datetime.datetime.now().strftime("%d-%m-%Y")),
-                data.get('time', datetime.datetime.now().strftime("%H:%M:%S")),
-                data.get('site_name', ''),
-                data.get('agency_name', ''),
-                data.get('material', ''),
-                data.get('ticket_no', ''),
-                data.get('vehicle_no', ''),
-                data.get('transfer_party_name', ''),
-                data.get('first_weight', ''),
-                data.get('first_timestamp', ''),
-                data.get('second_weight', ''),
-                data.get('second_timestamp', ''),
-                data.get('net_weight', ''),
-                data.get('material_type', ''),
-                data.get('first_front_image', ''),    # NEW
-                data.get('first_back_image', ''),     # NEW
-                data.get('second_front_image', ''),   # NEW
-                data.get('second_back_image', ''),    # NEW
-                data.get('site_incharge', ''),
-                data.get('user_name', '')
-            ]
-            
-            # Use current data file
-            current_file = self.get_current_data_file()
-            
-            # Ensure the directory exists
-            os.makedirs(os.path.dirname(current_file), exist_ok=True)
-            
-            # Write to CSV
-            with open(current_file, 'a', newline='', encoding='utf-8') as csv_file:
-                writer = csv.writer(csv_file)
-                writer.writerow(record)
-            
-            print(f"✅ New record added to {current_file}")
-            return True
-            
-        except Exception as e:
-            print(f"❌ Error adding new record: {e}")
-            return False
-
-    def update_record(self, data):
-        """Update an existing record in the CSV file with 4 image fields - ENHANCED with error handling"""
-        try:
-            current_file = self.get_current_data_file()
-            
-            if not os.path.exists(current_file):
-                print(f"CSV file doesn't exist, creating new one: {current_file}")
-                return self.add_new_record(data)
-            
-            # Read all records
-            all_records = []
-            header = None
-            try:
-                with open(current_file, 'r', newline='', encoding='utf-8') as csv_file:
-                    reader = csv.reader(csv_file)
-                    header = next(reader, None)  # Read header
-                    all_records = list(reader)
-            except Exception as read_error:
-                print(f"Error reading CSV file: {read_error}")
-                return False
-            
-            # Find and update the record
-            ticket_no = data.get('ticket_no', '')
-            updated = False
-            
-            for i, row in enumerate(all_records):
-                if len(row) >= 6 and row[5] == ticket_no:  # Ticket number is index 5
-                    # Update the row with new data including all 4 images
-                    updated_row = [
-                        data.get('date', row[0] if len(row) > 0 else ''),
-                        data.get('time', row[1] if len(row) > 1 else ''),
-                        data.get('site_name', row[2] if len(row) > 2 else ''),
-                        data.get('agency_name', row[3] if len(row) > 3 else ''),
-                        data.get('material', row[4] if len(row) > 4 else ''),
-                        data.get('ticket_no', row[5] if len(row) > 5 else ''),
-                        data.get('vehicle_no', row[6] if len(row) > 6 else ''),
-                        data.get('transfer_party_name', row[7] if len(row) > 7 else ''),
-                        data.get('first_weight', row[8] if len(row) > 8 else ''),
-                        data.get('first_timestamp', row[9] if len(row) > 9 else ''),
-                        data.get('second_weight', row[10] if len(row) > 10 else ''),
-                        data.get('second_timestamp', row[11] if len(row) > 11 else ''),
-                        data.get('net_weight', row[12] if len(row) > 12 else ''),
-                        data.get('material_type', row[13] if len(row) > 13 else ''),
-                        data.get('first_front_image', row[14] if len(row) > 14 else ''),   # NEW
-                        data.get('first_back_image', row[15] if len(row) > 15 else ''),    # NEW
-                        data.get('second_front_image', row[16] if len(row) > 16 else ''),  # NEW
-                        data.get('second_back_image', row[17] if len(row) > 17 else ''),   # NEW
-                        data.get('site_incharge', row[18] if len(row) > 18 else ''),
-                        data.get('user_name', row[19] if len(row) > 19 else '')
-                    ]
-                    
-                    all_records[i] = updated_row
-                    updated = True
-                    break
-            
-            if not updated:
-                print(f"Record with ticket {ticket_no} not found, adding as new record")
-                return self.add_new_record(data)
-                
-            # Write all records back to the file
-            try:
-                # Create backup before updating
-                backup_file = f"{current_file}.backup"
-                if os.path.exists(current_file):
-                    shutil.copy2(current_file, backup_file)
-                
-                with open(current_file, 'w', newline='', encoding='utf-8') as csv_file:
-                    writer = csv.writer(csv_file)
-                    if header:
-                        writer.writerow(header)  # Write header
-                    writer.writerows(all_records)  # Write all records
-                
-                # Remove backup if write was successful
-                if os.path.exists(backup_file):
-                    os.remove(backup_file)
-                    
-                print(f"✅ Record {ticket_no} updated in {current_file}")
-                return True
-            except Exception as write_error:
-                print(f"Error writing updated records: {write_error}")
-                # Restore from backup if write failed
-                backup_file = f"{current_file}.backup"
-                if os.path.exists(backup_file):
-                    shutil.copy2(backup_file, current_file)
-                    os.remove(backup_file)
-                    print("Restored from backup due to write error")
-                return False
-                
-        except Exception as e:
-            print(f"❌ Error updating record: {e}")
-            return False
-
-
-
-
-
-
-    def get_all_records(self):
-        """Get all records from current CSV file with 4 image fields"""
-        records = []
-        current_file = self.get_current_data_file()
-        
-        if not os.path.exists(current_file):
-            return records
-            
-        try:
-            with open(current_file, 'r', newline='') as csv_file:
-                reader = csv.reader(csv_file)
-                
-                # Skip header
-                header = next(reader, None)
-                
-                for row in reader:
-                    if len(row) >= 13:  # Minimum fields required
-                        record = {
-                            'date': row[0],
-                            'time': row[1],
-                            'site_name': row[2],
-                            'agency_name': row[3],
-                            'material': row[4],
-                            'ticket_no': row[5],
-                            'vehicle_no': row[6],
-                            'transfer_party_name': row[7],
-                            'first_weight': row[8] if len(row) > 8 else '',
-                            'first_timestamp': row[9] if len(row) > 9 else '',
-                            'second_weight': row[10] if len(row) > 10 else '',
-                            'second_timestamp': row[11] if len(row) > 11 else '',
-                            'net_weight': row[12] if len(row) > 12 else '',
-                            'material_type': row[13] if len(row) > 13 else '',
-                            'first_front_image': row[14] if len(row) > 14 else '',   # NEW
-                            'first_back_image': row[15] if len(row) > 15 else '',    # NEW
-                            'second_front_image': row[16] if len(row) > 16 else '',  # NEW
-                            'second_back_image': row[17] if len(row) > 17 else '',   # NEW
-                            'site_incharge': row[18] if len(row) > 18 else '',
-                            'user_name': row[19] if len(row) > 19 else ''
-                        }
-                        records.append(record)
-                        
-            return records
-                
-        except Exception as e:
-            print(f"Error reading records: {e}")
-            return []
 
     def get_record_by_vehicle(self, vehicle_no):
         """Get a specific record by vehicle number
@@ -1081,31 +1178,7 @@ class DataManager:
             print(f"Error finding record: {e}")
             return None
     
-    def get_filtered_records(self, filter_text=""):
-        """Get records filtered by text
-        
-        Args:
-            filter_text: Text to filter records by
-            
-        Returns:
-            list: Filtered records
-        """
-        all_records = self.get_all_records()
-        
-        if not filter_text:
-            return all_records
-            
-        filter_text = filter_text.lower()
-        filtered_records = []
-        
-        for record in all_records:
-            # Check if filter text exists in any field
-            if any(filter_text in str(value).lower() for value in record.values()):
-                filtered_records.append(record)
-                
-        return filtered_records
 
-# Add these methods to your existing data_management.py class
 
     def backup_complete_records_to_cloud_with_reports(self):
         """Enhanced backup: records, images, and daily reports with incremental backup
