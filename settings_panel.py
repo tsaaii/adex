@@ -1183,6 +1183,8 @@ class SettingsPanel:
             return f"{size_bytes / (1024 * 1024 * 1024):.1f} GB"
 
 
+# Add these methods to your existing settings_panel.py class
+
     def backup_to_cloud(self):
         """Enhanced backup: records, images, and daily reports with incremental backup"""
         try:
@@ -1264,6 +1266,10 @@ class SettingsPanel:
             results (dict): Backup results from comprehensive backup
         """
         try:
+            import datetime  # Add missing import
+            import tkinter as tk
+            from tkinter import ttk
+            
             # Create results window
             results_window = tk.Toplevel(self.parent)
             results_window.title("Backup Results")
@@ -1475,6 +1481,8 @@ class SettingsPanel:
             text_widget: Text widget to update
         """
         try:
+            import datetime  # Add missing import
+            
             # Re-enable text widget for updating
             text_widget.config(state=tk.NORMAL)
             text_widget.delete(1.0, tk.END)
