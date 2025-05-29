@@ -5,9 +5,9 @@ from ui_components import HoverButton
 from camera import CameraView
 
 def create_cameras_panel(self, parent):
-    """Create the cameras panel with cameras side by side and action buttons"""
+    """Create the cameras panel with cameras side by side and state-based image capture"""
     # Camera container with compact layout
-    camera_frame = ttk.LabelFrame(parent, text="Camera Capture")
+    camera_frame = ttk.LabelFrame(parent, text="Camera Capture (Reuse for 1st & 2nd Weighment)")
     camera_frame.pack(fill=tk.X, padx=5, pady=5)
     
     # Container for both cameras side by side
@@ -40,6 +40,64 @@ def create_cameras_panel(self, parent):
     
     # Load camera settings and configure cameras
     self.load_camera_settings()
+    
+    # Image status section
+    status_frame = ttk.LabelFrame(camera_frame, text="Image Capture Status")
+    status_frame.pack(fill=tk.X, padx=5, pady=5)
+    
+    # Current weighment indicator
+    current_weighment_frame = ttk.Frame(status_frame)
+    current_weighment_frame.pack(fill=tk.X, padx=5, pady=2)
+    
+    ttk.Label(current_weighment_frame, text="Current State:", 
+             font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT, padx=5)
+    
+    # This will show which weighment we're currently capturing images for
+    weighment_status_label = ttk.Label(current_weighment_frame, 
+                                      textvariable=self.weighment_state_var,
+                                      font=("Segoe UI", 9, "bold"),
+                                      foreground=config.COLORS["primary"])
+    weighment_status_label.pack(side=tk.LEFT, padx=5)
+    
+    # Image count status
+    image_status_frame = ttk.Frame(status_frame)
+    image_status_frame.pack(fill=tk.X, padx=5, pady=2)
+    
+    ttk.Label(image_status_frame, text="Images Captured:").pack(side=tk.LEFT, padx=5)
+    
+    # First weighment image status
+    self.first_image_status_var = tk.StringVar(value="1st: 0/2")
+    self.first_image_status = ttk.Label(image_status_frame, 
+                                       textvariable=self.first_image_status_var, 
+                                       foreground="red",
+                                       font=("Segoe UI", 8, "bold"))
+    self.first_image_status.pack(side=tk.LEFT, padx=10)
+    
+    # Second weighment image status
+    self.second_image_status_var = tk.StringVar(value="2nd: 0/2")
+    self.second_image_status = ttk.Label(image_status_frame, 
+                                        textvariable=self.second_image_status_var, 
+                                        foreground="red",
+                                        font=("Segoe UI", 8, "bold"))
+    self.second_image_status.pack(side=tk.LEFT, padx=10)
+    
+    # Total image count
+    self.total_image_status_var = tk.StringVar(value="Total: 0/4")
+    total_image_status = ttk.Label(image_status_frame,
+                                  textvariable=self.total_image_status_var,
+                                  foreground="blue",
+                                  font=("Segoe UI", 8, "bold"))
+    total_image_status.pack(side=tk.LEFT, padx=10)
+    
+    # Instructions
+    instruction_frame = ttk.Frame(status_frame)
+    instruction_frame.pack(fill=tk.X, padx=5, pady=2)
+    
+    instruction_text = ("💡 Capture front & back images during 1st weighment, then again during 2nd weighment")
+    instruction_label = ttk.Label(instruction_frame, text=instruction_text, 
+                                 font=("Segoe UI", 8, "italic"), 
+                                 foreground="green")
+    instruction_label.pack(side=tk.LEFT, padx=5)
     
     # Add action buttons below the cameras
     action_buttons_frame = ttk.Frame(camera_frame, style="TFrame")
@@ -81,6 +139,12 @@ def create_cameras_panel(self, parent):
                         padx=8, pady=3,
                         command=self.exit_callback if self.exit_callback else lambda: None)
     exit_btn.pack(side=tk.LEFT, padx=5)
+
+def update_image_status_display(self):
+    """Update the total image count display"""
+    if hasattr(self, 'image_handler') and hasattr(self, 'total_image_status_var'):
+        total_count = self.image_handler.get_total_image_count()
+        self.total_image_status_var.set(f"Total: {total_count}/4")
 
 def load_camera_settings(self):
     """Load camera settings from storage and configure cameras"""
@@ -185,11 +249,11 @@ def update_camera_settings(self, settings):
                 else:
                     rtsp_url = f"rtsp://{ip}:{port}{endpoint}"
                 self.back_camera.set_rtsp_config(rtsp_url)
-        else:
-            # USB camera
-            self.back_camera.camera_type = "USB"
-            self.back_camera.camera_index = settings.get("back_camera_index", 1)
-            self.back_camera.rtsp_url = None
-            
+            else:
+                # USB camera
+                self.back_camera.camera_type = "USB"
+                self.back_camera.camera_index = settings.get("back_camera_index", 1)
+                self.back_camera.rtsp_url = None
+                
     except Exception as e:
         print(f"Error updating camera settings: {e}")

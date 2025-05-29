@@ -166,6 +166,8 @@ class WeightManager:
         first_weight_str = self.main_form.first_weight_var.get().strip()
         second_weight_str = self.main_form.second_weight_var.get().strip()
         
+        print(f"DEBUG - Calculating net weight: first='{first_weight_str}', second='{second_weight_str}'")
+        
         try:
             if first_weight_str and second_weight_str:
                 # Calculate difference if both weights are available
@@ -176,19 +178,26 @@ class WeightManager:
                 net_weight = abs(first_weight - second_weight)
                 
                 # Format to 2 decimal places
-                self.main_form.net_weight_var.set(f"{net_weight:.2f}")
+                net_weight_formatted = f"{net_weight:.2f}"
+                self.main_form.net_weight_var.set(net_weight_formatted)
+                
+                print(f"DEBUG - Net weight calculated: {net_weight_formatted}")
+                
             elif first_weight_str:
                 # If only first weight available, leave net weight empty
                 self.main_form.net_weight_var.set("")
+                print("DEBUG - Only first weight available, net weight left empty")
             else:
                 # No weights available
+                print("DEBUG - No weights available for calculation")
                 messagebox.showerror("Error", "Please enter at least one weight value")
                 
-        except ValueError:
+        except ValueError as e:
             # Handle non-numeric input
+            print(f"DEBUG - ValueError in net weight calculation: {e}")
             messagebox.showerror("Error", "Invalid weight values. Please enter valid numbers.")
             self.main_form.net_weight_var.set("")
-    
+
     def handle_weighbridge_weight(self, weight):
         """Handle weight from weighbridge based on current state
         

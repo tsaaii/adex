@@ -615,18 +615,17 @@ class ReportGenerator:
             return f"Report_{len(selected_data)}records_{timestamp}.{extension}"
     
     def create_pdf_report(self, records_data, save_path):
-        """Create ink-friendly PDF report with agency info, organized layout and proper image display"""
+        """Create PDF report with 4-image grid for complete records"""
         doc = SimpleDocTemplate(save_path, pagesize=A4,
                                 rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
         
         styles = getSampleStyleSheet()
         elements = []
 
-        # Ink-friendly styles - minimal colors, mostly black text with light borders
-        # CHANGE 1: Increased all font sizes by 2px
+        # Ink-friendly styles with increased font sizes
         header_style = ParagraphStyle(
             name='HeaderStyle',
-            fontSize=18,  # was 16
+            fontSize=18,
             alignment=TA_CENTER,
             fontName='Helvetica-Bold',
             textColor=colors.black,
@@ -636,7 +635,7 @@ class ReportGenerator:
         
         subheader_style = ParagraphStyle(
             name='SubHeaderStyle',
-            fontSize=12,  # was 10
+            fontSize=12,
             alignment=TA_CENTER,
             fontName='Helvetica',
             textColor=colors.black,
@@ -645,7 +644,7 @@ class ReportGenerator:
         
         section_header_style = ParagraphStyle(
             name='SectionHeader',
-            fontSize=13,  # was 11
+            fontSize=13,
             alignment=TA_CENTER,
             fontName='Helvetica-Bold',
             textColor=colors.black,
@@ -655,14 +654,14 @@ class ReportGenerator:
 
         label_style = ParagraphStyle(
             name='LabelStyle',
-            fontSize=11,  # was 9
+            fontSize=11,
             fontName='Helvetica-Bold',
             textColor=colors.black
         )
 
         value_style = ParagraphStyle(
             name='ValueStyle',
-            fontSize=11,  # was 9
+            fontSize=11,
             fontName='Helvetica',
             textColor=colors.black
         )
@@ -679,11 +678,10 @@ class ReportGenerator:
             elements.append(Paragraph(agency_info.get('name', agency_name), header_style))
             
             if agency_info.get('address'):
-                # Replace line breaks with proper formatting
                 address_text = agency_info.get('address', '').replace('\n', '<br/>')
                 elements.append(Paragraph(address_text, subheader_style))
             
-            # Contact information in a single line
+            # Contact information
             contact_info = []
             if agency_info.get('contact'):
                 contact_info.append(f"Phone: {agency_info.get('contact')}")
@@ -703,27 +701,30 @@ class ReportGenerator:
             elements.append(Paragraph(f"Ticket No: {ticket_no}", header_style))
             elements.append(Spacer(1, 0.15*inch))
 
-            # Vehicle Information in a single bordered box with proper alignment
+            # Vehicle Information
             elements.append(Paragraph("VEHICLE INFORMATION", section_header_style))
             
-            # Create vehicle information using table structure for perfect alignment
+            # Get material from material_type field if material is empty
+            material_value = record.get('material', '') or record.get('material_type', '')
+            user_name_value = record.get('user_name', '') or "Not specified"
+            site_incharge_value = record.get('site_incharge', '') or "Not specified"
+            
             vehicle_data = [
                 [Paragraph("<b>Vehicle No:</b>", label_style), Paragraph(record.get('vehicle_no', ''), value_style), 
                 Paragraph("<b>Date:</b>", label_style), Paragraph(record.get('date', ''), value_style), 
                 Paragraph("<b>Time:</b>", label_style), Paragraph(record.get('time', ''), value_style)],
-                [Paragraph("<b>Material:</b>", label_style), Paragraph(record.get('material', ''), value_style), 
+                [Paragraph("<b>Material:</b>", label_style), Paragraph(material_value, value_style), 
                 Paragraph("<b>Site Name:</b>", label_style), Paragraph(record.get('site_name', ''), value_style), 
                 Paragraph("<b>Transfer Party:</b>", label_style), Paragraph(record.get('transfer_party_name', ''), value_style)],
                 [Paragraph("<b>Agency Name:</b>", label_style), Paragraph(record.get('agency_name', ''), value_style), 
-                Paragraph("<b>User Name:</b>", label_style), Paragraph(record.get('user_name', ''), value_style), 
-                Paragraph("<b>Site Incharge:</b>", label_style), Paragraph(record.get('site_incharge', ''), value_style)]
+                Paragraph("<b>User Name:</b>", label_style), Paragraph(user_name_value, value_style), 
+                Paragraph("<b>Site Incharge:</b>", label_style), Paragraph(site_incharge_value, value_style)]
             ]
             
-            # Create nested table for vehicle information with perfect alignment
             vehicle_inner_table = Table(vehicle_data, colWidths=[1.2*inch, 1.3*inch, 1.0*inch, 1.3*inch, 1.2*inch, 1.5*inch])
             vehicle_inner_table.setStyle(TableStyle([
                 ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
-                ('FONTSIZE', (0,0), (-1,-1), 13),  # was 11
+                ('FONTSIZE', (0,0), (-1,-1), 13),
                 ('ALIGN', (0,0), (-1,-1), 'LEFT'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                 ('LEFTPADDING', (0,0), (-1,-1), 2),
@@ -732,7 +733,6 @@ class ReportGenerator:
                 ('BOTTOMPADDING', (0,0), (-1,-1), 4),
             ]))
             
-            # Wrap the inner table in the main bordered box
             vehicle_table = Table([[vehicle_inner_table]], colWidths=[7.5*inch])
             vehicle_table.setStyle(TableStyle([
                 ('GRID', (0,0), (-1,-1), 1, colors.black),
@@ -745,37 +745,51 @@ class ReportGenerator:
             elements.append(vehicle_table)
             elements.append(Spacer(1, 0.15*inch))
 
-            # CHANGE 2: Modified Weighment Information to include Net Weight in corner
+            # Weighment Information
             elements.append(Paragraph("WEIGHMENT DETAILS", section_header_style))
             
-            # Create weighment information with Net Weight in corner
+            # Weighment Information with proper net weight calculation
+            first_weight_str = record.get('first_weight', '').strip()
+            second_weight_str = record.get('second_weight', '').strip()
+            net_weight_str = record.get('net_weight', '').strip()
+            
+            # If net weight is empty but we have both weights, calculate it
+            if not net_weight_str and first_weight_str and second_weight_str:
+                try:
+                    first_weight = float(first_weight_str)
+                    second_weight = float(second_weight_str)
+                    calculated_net = abs(first_weight - second_weight)
+                    net_weight_str = f"{calculated_net:.2f}"
+                except (ValueError, TypeError):
+                    net_weight_str = "Calculation Error"
+            
+            # If still empty, show as not available
+            if not net_weight_str:
+                net_weight_str = "Not Available"
+            
             weighment_data = [
-                [Paragraph("<b>First Weight:</b>", label_style), Paragraph(f"{record.get('first_weight', '')} kg", value_style), 
-                Paragraph("<b>First Time:</b>", label_style), Paragraph(record.get('first_timestamp', ''), value_style)],
-                [Paragraph("<b>Second Weight:</b>", label_style), Paragraph(f"{record.get('second_weight', '')} kg", value_style), 
-                Paragraph("<b>Second Time:</b>", label_style), Paragraph(record.get('second_timestamp', ''), value_style)],
-                # Add Net Weight in the corner (bottom right)
-                ["", "", Paragraph("<b>Net Weight:</b>", label_style), Paragraph(f"{record.get('net_weight', '')} Kgs", 
+                [Paragraph("<b>First Weight:</b>", label_style), Paragraph(f"{first_weight_str} kg" if first_weight_str else "Not captured", value_style), 
+                Paragraph("<b>First Time:</b>", label_style), Paragraph(record.get('first_timestamp', '') or "Not captured", value_style)],
+                [Paragraph("<b>Second Weight:</b>", label_style), Paragraph(f"{second_weight_str} kg" if second_weight_str else "Not captured", value_style), 
+                Paragraph("<b>Second Time:</b>", label_style), Paragraph(record.get('second_timestamp', '') or "Not captured", value_style)],
+                ["", "", Paragraph("<b>Net Weight:</b>", label_style), Paragraph(f"{net_weight_str} Kgs", 
                                 ParagraphStyle(name='NetWeightCorner', fontSize=14, fontName='Helvetica-Bold', textColor=colors.black))]
             ]
             
-            # Create nested table for weighment information including net weight
             weighment_inner_table = Table(weighment_data, colWidths=[1.5*inch, 1.5*inch, 1.2*inch, 2.8*inch])
             weighment_inner_table.setStyle(TableStyle([
                 ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
-                ('FONTSIZE', (0,0), (-1,-1), 14),  # was 12
+                ('FONTSIZE', (0,0), (-1,-1), 14),
                 ('ALIGN', (0,0), (-1,-1), 'LEFT'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                 ('LEFTPADDING', (0,0), (-1,-1), 2),
                 ('RIGHTPADDING', (0,0), (-1,-1), 2),
                 ('TOPPADDING', (0,0), (-1,-1), 4),
                 ('BOTTOMPADDING', (0,0), (-1,-1), 4),
-                # Special formatting for net weight row
-                ('SPAN', (2,2), (3,2)),  # Merge cells for net weight
-                ('ALIGN', (2,2), (3,2), 'RIGHT'),  # Right align net weight
+                ('SPAN', (2,2), (3,2)),
+                ('ALIGN', (2,2), (3,2), 'RIGHT'),
             ]))
             
-            # Wrap the inner table in the main bordered box
             weighment_table = Table([[weighment_inner_table]], colWidths=[7.5*inch])
             weighment_table.setStyle(TableStyle([
                 ('GRID', (0,0), (-1,-1), 1, colors.black),
@@ -788,83 +802,110 @@ class ReportGenerator:
             elements.append(weighment_table)
             elements.append(Spacer(1, 0.15*inch))
 
-            # Vehicle Images Section - 2x2 Grid
-            elements.append(Paragraph("VEHICLE IMAGES", section_header_style))
+            # NEW: 4-Image Grid Section
+            elements.append(Paragraph("VEHICLE IMAGES (4-Image System)", section_header_style))
             
-            # Get image paths
-            front_img_path = os.path.join(config.IMAGES_FOLDER, record.get('front_image', ''))
-            back_img_path = os.path.join(config.IMAGES_FOLDER, record.get('back_image', ''))
+            # Get all 4 image paths
+            first_front_img_path = os.path.join(config.IMAGES_FOLDER, record.get('first_front_image', ''))
+            first_back_img_path = os.path.join(config.IMAGES_FOLDER, record.get('first_back_image', ''))
+            second_front_img_path = os.path.join(config.IMAGES_FOLDER, record.get('second_front_image', ''))
+            second_back_img_path = os.path.join(config.IMAGES_FOLDER, record.get('second_back_image', ''))
 
-            # Create 2x2 image grid
+            # Create 2x2 image grid with headers
             img_data = [
-                ["1ST WEIGHMENT", "2ND WEIGHMENT"],
-                [None, None],  # Will be filled with images
-                [None, None]   # Will be filled with images
+                ["1ST WEIGHMENT - FRONT", "1ST WEIGHMENT - BACK"],
+                [None, None],  # Will be filled with first weighment images
+                ["2ND WEIGHMENT - FRONT", "2ND WEIGHMENT - BACK"], 
+                [None, None]   # Will be filled with second weighment images
             ]
 
-            # Process first weighment images (same image for both positions in first weighment)
-            first_weighment_img = None
-            if os.path.exists(front_img_path):
+            # Process first weighment front image
+            first_front_img = None
+            if os.path.exists(first_front_img_path):
                 try:
-                    temp_img = self.prepare_image_for_pdf(front_img_path, f"Ticket: {ticket_no} - 1st Weighment")
+                    temp_img = self.prepare_image_for_pdf(first_front_img_path, f"Ticket: {ticket_no} - 1st Front")
                     if temp_img:
-                        first_weighment_img = RLImage(temp_img, width=3.5*inch, height=2.2*inch)
+                        first_front_img = RLImage(temp_img, width=3.5*inch, height=2.0*inch)
                         os.remove(temp_img)
                 except Exception as e:
-                    print(f"Error processing front image: {e}")
+                    print(f"Error processing first front image: {e}")
             
-            if first_weighment_img is None:
-                first_weighment_img = "Image not available"
+            if first_front_img is None:
+                first_front_img = "1st Front\nImage not available"
 
-            # Process second weighment images (same image for both positions in second weighment)
-            second_weighment_img = None
-            if os.path.exists(back_img_path):
+            # Process first weighment back image
+            first_back_img = None
+            if os.path.exists(first_back_img_path):
                 try:
-                    temp_img = self.prepare_image_for_pdf(back_img_path, f"Ticket: {ticket_no} - 2nd Weighment")
+                    temp_img = self.prepare_image_for_pdf(first_back_img_path, f"Ticket: {ticket_no} - 1st Back")
                     if temp_img:
-                        second_weighment_img = RLImage(temp_img, width=3.5*inch, height=2.2*inch)
+                        first_back_img = RLImage(temp_img, width=3.5*inch, height=2.0*inch)
                         os.remove(temp_img)
                 except Exception as e:
-                    print(f"Error processing back image: {e}")
+                    print(f"Error processing first back image: {e}")
             
-            if second_weighment_img is None:
-                second_weighment_img = "Image not available"
+            if first_back_img is None:
+                first_back_img = "1st Back\nImage not available"
 
-            # Fill the image grid - 2 images for 1st weighment, 2 images for 2nd weighment
-            img_data[1] = [first_weighment_img, second_weighment_img]
-            img_data[2] = [first_weighment_img, second_weighment_img]
+            # Process second weighment front image
+            second_front_img = None
+            if os.path.exists(second_front_img_path):
+                try:
+                    temp_img = self.prepare_image_for_pdf(second_front_img_path, f"Ticket: {ticket_no} - 2nd Front")
+                    if temp_img:
+                        second_front_img = RLImage(temp_img, width=3.5*inch, height=2.0*inch)
+                        os.remove(temp_img)
+                except Exception as e:
+                    print(f"Error processing second front image: {e}")
+            
+            if second_front_img is None:
+                second_front_img = "2nd Front\nImage not available"
+
+            # Process second weighment back image
+            second_back_img = None
+            if os.path.exists(second_back_img_path):
+                try:
+                    temp_img = self.prepare_image_for_pdf(second_back_img_path, f"Ticket: {ticket_no} - 2nd Back")
+                    if temp_img:
+                        second_back_img = RLImage(temp_img, width=3.5*inch, height=2.0*inch)
+                        os.remove(temp_img)
+                except Exception as e:
+                    print(f"Error processing second back image: {e}")
+            
+            if second_back_img is None:
+                second_back_img = "2nd Back\nImage not available"
+
+            # Fill the image grid
+            img_data[1] = [first_front_img, first_back_img]
+            img_data[3] = [second_front_img, second_back_img]
 
             # Create images table with 2x2 grid
-            img_table = Table(img_data, colWidths=[3.75*inch, 3.75*inch])
+            img_table = Table(img_data, colWidths=[3.5*inch, 3.5*inch], 
+                             rowHeights=[0.3*inch, 2*inch, 0.3*inch, 2*inch])
             img_table.setStyle(TableStyle([
                 ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0,0), (-1,0), 12),  # was 10
+                ('FONTNAME', (0,0), (-1,-1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0,0), (1,0), 10),  # Header row 1
+                ('FONTSIZE', (0,2), (1,2), 10),  # Header row 2
                 ('ALIGN', (0,0), (-1,-1), 'CENTER'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                 ('LEFTPADDING', (0,0), (-1,-1), 6),
                 ('RIGHTPADDING', (0,0), (-1,-1), 6),
                 ('TOPPADDING', (0,0), (-1,-1), 6),
                 ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+                # Header background
+                ('BACKGROUND', (0,0), (1,0), colors.lightgrey),
+                ('BACKGROUND', (0,2), (1,2), colors.lightgrey),
             ]))
             elements.append(img_table)
             
-            # CHANGE 3: Add operator signature line at bottom right
+            # Add operator signature line at bottom right
             elements.append(Spacer(1, 0.3*inch))
-            
-            # Create signature line table aligned to the right
-            signature_style = ParagraphStyle(
-                name='SignatureStyle',
-                fontSize=11,  # was 9, now increased by 2
-                fontName='Helvetica',
-                textColor=colors.black,
-                alignment=TA_RIGHT
-            )
             
             signature_table = Table([["", "Operator's Signature"]], colWidths=[5*inch, 2.5*inch])
             signature_table.setStyle(TableStyle([
                 ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
-                ('FONTSIZE', (0,0), (-1,-1), 11),  # was 9
+                ('FONTSIZE', (0,0), (-1,-1), 11),
                 ('ALIGN', (1,0), (1,0), 'RIGHT'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                 ('LEFTPADDING', (0,0), (-1,-1), 0),
@@ -874,7 +915,7 @@ class ReportGenerator:
             ]))
             elements.append(signature_table)
 
-        # CRITICAL: Only ONE doc.build() call at the very end
+        # Build the PDF
         doc.build(elements)
 
     def add_optimized_record_table(self, elements, record, styles):

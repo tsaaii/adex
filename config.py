@@ -194,8 +194,8 @@ def set_ticket_format(prefix=None, digits=None):
 # CSV Header definition
 CSV_HEADER = ['Date', 'Time', 'Site Name', 'Agency Name', 'Material', 'Ticket No', 'Vehicle No', 
               'Transfer Party Name', 'First Weight', 'First Timestamp', 'Second Weight', 'Second Timestamp',
-              'Net Weight', 'Material Type', 'Front Image', 'Back Image', 'Site Incharge', 'User Name']
-
+              'Net Weight', 'Material Type', 'First Front Image', 'First Back Image', 
+              'Second Front Image', 'Second Back Image', 'Site Incharge', 'User Name']
 # Updated color scheme - Light yellow, light orange, and pinkish red
 # Optimized for visibility on sunny screens
 COLORS = {

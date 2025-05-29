@@ -285,17 +285,11 @@ class DataManager:
             print(f"Error saving record: {e}")
             return False
 
+
     def add_new_record(self, data):
-        """Add a new record to the CSV file
-        
-        Args:
-            data: Dictionary of data to save
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
+        """Add a new record to the CSV file with 4 image fields"""
         try:
-            # Format data as a row
+            # Format data as a row with all 4 image fields
             record = [
                 data.get('date', datetime.datetime.now().strftime("%d-%m-%Y")),
                 data.get('time', datetime.datetime.now().strftime("%H:%M:%S")),
@@ -311,10 +305,12 @@ class DataManager:
                 data.get('second_timestamp', ''),
                 data.get('net_weight', ''),
                 data.get('material_type', ''),
-                data.get('front_image', ''),
-                data.get('back_image', ''),
-                data.get('site_incharge', ''),  # New field
-                data.get('user_name', '')       # New field
+                data.get('first_front_image', ''),    # NEW
+                data.get('first_back_image', ''),     # NEW
+                data.get('second_front_image', ''),   # NEW
+                data.get('second_back_image', ''),    # NEW
+                data.get('site_incharge', ''),
+                data.get('user_name', '')
             ]
             
             # Use current data file
@@ -332,14 +328,7 @@ class DataManager:
             return False
 
     def update_record(self, data):
-        """Update an existing record in the CSV file
-        
-        Args:
-            data: Dictionary of data to update
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
+        """Update an existing record in the CSV file with 4 image fields"""
         try:
             current_file = self.get_current_data_file()
             
@@ -356,8 +345,7 @@ class DataManager:
             
             for i, row in enumerate(all_records):
                 if len(row) >= 6 and row[5] == ticket_no:  # Ticket number is index 5
-                    # Update the row with new data
-                    # Keep original date/time if not provided
+                    # Update the row with new data including all 4 images
                     updated_row = [
                         data.get('date', row[0]),
                         data.get('time', row[1]),
@@ -373,10 +361,12 @@ class DataManager:
                         data.get('second_timestamp', row[11] if len(row) > 11 else ''),
                         data.get('net_weight', row[12] if len(row) > 12 else ''),
                         data.get('material_type', row[13] if len(row) > 13 else ''),
-                        data.get('front_image', row[14] if len(row) > 14 else ''),
-                        data.get('back_image', row[15] if len(row) > 15 else ''),
-                        data.get('site_incharge', row[16] if len(row) > 16 else ''),  # New field
-                        data.get('user_name', row[17] if len(row) > 17 else '')       # New field
+                        data.get('first_front_image', row[14] if len(row) > 14 else ''),   # NEW
+                        data.get('first_back_image', row[15] if len(row) > 15 else ''),    # NEW
+                        data.get('second_front_image', row[16] if len(row) > 16 else ''),  # NEW
+                        data.get('second_back_image', row[17] if len(row) > 17 else ''),   # NEW
+                        data.get('site_incharge', row[18] if len(row) > 18 else ''),
+                        data.get('user_name', row[19] if len(row) > 19 else '')
                     ]
                     
                     # Handle shorter rows by extending them to the expected length
@@ -404,11 +394,7 @@ class DataManager:
             return False
 
     def get_all_records(self):
-        """Get all records from current CSV file
-        
-        Returns:
-            list: List of records as dictionaries
-        """
+        """Get all records from current CSV file with 4 image fields"""
         records = []
         current_file = self.get_current_data_file()
         
@@ -439,10 +425,12 @@ class DataManager:
                             'second_timestamp': row[11] if len(row) > 11 else '',
                             'net_weight': row[12] if len(row) > 12 else '',
                             'material_type': row[13] if len(row) > 13 else '',
-                            'front_image': row[14] if len(row) > 14 else '',
-                            'back_image': row[15] if len(row) > 15 else '',
-                            'site_incharge': row[16] if len(row) > 16 else '',  # New field
-                            'user_name': row[17] if len(row) > 17 else ''       # New field
+                            'first_front_image': row[14] if len(row) > 14 else '',   # NEW
+                            'first_back_image': row[15] if len(row) > 15 else '',    # NEW
+                            'second_front_image': row[16] if len(row) > 16 else '',  # NEW
+                            'second_back_image': row[17] if len(row) > 17 else '',   # NEW
+                            'site_incharge': row[18] if len(row) > 18 else '',
+                            'user_name': row[19] if len(row) > 19 else ''
                         }
                         records.append(record)
                         
@@ -451,6 +439,7 @@ class DataManager:
         except Exception as e:
             print(f"Error reading records: {e}")
             return []
+
     
     def get_record_by_vehicle(self, vehicle_no):
         """Get a specific record by vehicle number

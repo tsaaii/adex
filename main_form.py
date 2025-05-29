@@ -63,50 +63,7 @@ class MainForm:
         # Initialize vehicle autocomplete
         self.vehicle_autocomplete.refresh_cache()
 
-    def init_variables(self):
-        """Initialize form variables"""
-        # Create variables for form fields
-        self.site_var = tk.StringVar(value="Guntur")
-        self.agency_var = tk.StringVar()
-        self.rst_var = tk.StringVar()
-        self.vehicle_var = tk.StringVar()
-        self.tpt_var = tk.StringVar()
-        self.material_var = tk.StringVar()
-        
-        # User and site incharge variables
-        self.user_name_var = tk.StringVar()
-        self.site_incharge_var = tk.StringVar()
-        
-        # Weighment related variables
-        self.first_weight_var = tk.StringVar()
-        self.first_timestamp_var = tk.StringVar()
-        self.second_weight_var = tk.StringVar()
-        self.second_timestamp_var = tk.StringVar()
-        self.net_weight_var = tk.StringVar()
-        self.weighment_state_var = tk.StringVar(value="First Weighment")
-        
-        # Current weight display variable - NEW FEATURE
-        self.current_weight_var = tk.StringVar(value="0.00 kg")
-        
-        # Material type tracking
-        self.material_type_var = tk.StringVar(value="Inert")
-        
-        # Saved image paths
-        self.front_image_path = None
-        self.back_image_path = None
-        
-        # Weighment state
-        self.current_weighment = "first"  # Can be "first" or "second"
-        
-        # Vehicle number autocomplete cache
-        self.vehicle_numbers_cache = []
-        
-        # Bind the agency and site variables to update data context
-        self.agency_var.trace_add("write", self.on_agency_change)
-        self.site_var.trace_add("write", self.on_site_change)
-        
-        # FIXED: Reserve next ticket number WITHOUT incrementing counter
-        self.reserve_next_ticket_number()
+
 
     # Import methods from modular files
     from form_ui import create_form
@@ -271,24 +228,54 @@ class MainForm:
                         return True
         return False
 
-    def load_record_data(self, record):
-        """Load record data into the form"""
-        # Set basic fields
-        self.rst_var.set(record.get('ticket_no', ''))
-        self.vehicle_var.set(record.get('vehicle_no', ''))
-        self.agency_var.set(record.get('agency_name', ''))
-        material_data = record.get('material', '') or record.get('material_type', '')
-        self.tpt_var.set(record.get('transfer_party_name', ''))
+
+    def init_variables(self):
+        """Initialize form variables including 4 image paths"""
+        # Create variables for form fields
+        self.site_var = tk.StringVar(value="Guntur")
+        self.agency_var = tk.StringVar()
+        self.rst_var = tk.StringVar()
+        self.vehicle_var = tk.StringVar()
+        self.tpt_var = tk.StringVar()
+        self.material_var = tk.StringVar()
         
-        # Set weighment data
-        self.first_weight_var.set(record.get('first_weight', ''))
-        self.first_timestamp_var.set(record.get('first_timestamp', ''))
-        self.second_weight_var.set(record.get('second_weight', ''))
-        self.second_timestamp_var.set(record.get('second_timestamp', ''))
-        self.net_weight_var.set(record.get('net_weight', ''))
+        # User and site incharge variables
+        self.user_name_var = tk.StringVar()
+        self.site_incharge_var = tk.StringVar()
         
-        # Handle images using image handler
-        self.image_handler.load_images_from_record(record)
+        # Weighment related variables
+        self.first_weight_var = tk.StringVar()
+        self.first_timestamp_var = tk.StringVar()
+        self.second_weight_var = tk.StringVar()
+        self.second_timestamp_var = tk.StringVar()
+        self.net_weight_var = tk.StringVar()
+        self.weighment_state_var = tk.StringVar(value="First Weighment")
+        
+        # Current weight display variable
+        self.current_weight_var = tk.StringVar(value="0.00 kg")
+        
+        # Material type tracking
+        self.material_type_var = tk.StringVar(value="Inert")
+        
+        # NEW: 4 separate image paths for first and second weighments
+        self.first_front_image_path = None
+        self.first_back_image_path = None
+        self.second_front_image_path = None
+        self.second_back_image_path = None
+        
+        # Weighment state
+        self.current_weighment = "first"  # Can be "first" or "second"
+        
+        # Vehicle number autocomplete cache
+        self.vehicle_numbers_cache = []
+        
+        # Bind the agency and site variables to update data context
+        self.agency_var.trace_add("write", self.on_agency_change)
+        self.site_var.trace_add("write", self.on_site_change)
+        
+        # Reserve next ticket number WITHOUT incrementing counter
+        self.reserve_next_ticket_number()
+
 
     def clear_form(self):
         """Reset form fields except site and Transfer Party Name"""
@@ -306,7 +293,13 @@ class MainForm:
         self.current_weighment = "first"
         self.weighment_state_var.set("First Weighment")
         
-        # Reset images
+        # Reset all 4 image paths
+        self.first_front_image_path = None
+        self.first_back_image_path = None
+        self.second_front_image_path = None
+        self.second_back_image_path = None
+        
+        # Reset images using image handler
         self.image_handler.reset_images()
         
         # Reset cameras
@@ -324,14 +317,12 @@ class MainForm:
             self.back_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
             self.back_camera.capture_button.config(text="Capture")
             
-        # FIXED: Only reserve (don't increment) new ticket number when clearing form
+        # Reserve new ticket number when clearing form
         self.reserve_next_ticket_number()
 
     def prepare_for_new_ticket_after_completion(self):
         """Prepare form for new ticket ONLY after both weighments are complete and saved"""
         try:
-            # This method is called only after both weighments are successfully saved
-            
             # Reset variables
             self.vehicle_var.set("")
             self.agency_var.set("")
@@ -346,7 +337,13 @@ class MainForm:
             self.current_weighment = "first"
             self.weighment_state_var.set("First Weighment")
             
-            # Reset images
+            # Reset all 4 image paths
+            self.first_front_image_path = None
+            self.first_back_image_path = None
+            self.second_front_image_path = None
+            self.second_back_image_path = None
+            
+            # Reset images using image handler
             self.image_handler.reset_images()
             
             # Reset cameras
@@ -364,7 +361,7 @@ class MainForm:
                 self.back_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
                 self.back_camera.capture_button.config(text="Capture")
             
-            # Reserve the next ticket number (this is where increment happens)
+            # Reserve the next ticket number
             self.reserve_next_ticket_number()
             
             print("Form prepared for new ticket after completion")
@@ -373,8 +370,16 @@ class MainForm:
             print(f"Error preparing form for new ticket: {e}")
 
     def get_form_data(self):
-        """Get form data as a dictionary"""
+        """Get form data as a dictionary with all 4 image fields"""
         now = datetime.datetime.now()
+        
+        # Get all image filenames using image handler
+        image_filenames = self.image_handler.get_all_image_filenames()
+        
+        # Debug: Print current values to check what we're getting
+        print(f"DEBUG - User name var: '{self.user_name_var.get()}'")
+        print(f"DEBUG - Site incharge var: '{self.site_incharge_var.get()}'")
+        print(f"DEBUG - Net weight var: '{self.net_weight_var.get()}'")
         
         data = {
             'date': now.strftime("%d-%m-%Y"),
@@ -391,8 +396,12 @@ class MainForm:
             'second_timestamp': self.second_timestamp_var.get(),
             'net_weight': self.net_weight_var.get(),
             'material_type': self.material_type_var.get(),
-            'front_image': os.path.basename(self.front_image_path) if self.front_image_path else "",
-            'back_image': os.path.basename(self.back_image_path) if self.back_image_path else "",
+            # All 4 image fields
+            'first_front_image': image_filenames['first_front_image'],
+            'first_back_image': image_filenames['first_back_image'],
+            'second_front_image': image_filenames['second_front_image'],
+            'second_back_image': image_filenames['second_back_image'],
+            # Make sure these fields are properly set
             'site_incharge': self.site_incharge_var.get() if hasattr(self, 'site_incharge_var') else "",
             'user_name': self.user_name_var.get() if hasattr(self, 'user_name_var') else ""
         }
@@ -401,8 +410,36 @@ class MainForm:
         for field in ['first_weight', 'second_weight', 'first_timestamp', 'second_timestamp', 'net_weight']:
             if not data[field]:
                 data[field] = ''
+        
+        # Debug: Print final data to verify
+        print(f"DEBUG - Final data user_name: '{data['user_name']}'")
+        print(f"DEBUG - Final data site_incharge: '{data['site_incharge']}'")
+        print(f"DEBUG - Final data net_weight: '{data['net_weight']}'")
                 
         return data
+
+    def load_record_data(self, record):
+        """Load record data into the form including all 4 images"""
+        # Set basic fields
+        self.rst_var.set(record.get('ticket_no', ''))
+        self.vehicle_var.set(record.get('vehicle_no', ''))
+        self.agency_var.set(record.get('agency_name', ''))
+        material_data = record.get('material', '') or record.get('material_type', '')
+        self.tpt_var.set(record.get('transfer_party_name', ''))
+        
+        # Set weighment data
+        self.first_weight_var.set(record.get('first_weight', ''))
+        self.first_timestamp_var.set(record.get('first_timestamp', ''))
+        self.second_weight_var.set(record.get('second_weight', ''))
+        self.second_timestamp_var.set(record.get('second_timestamp', ''))
+        self.net_weight_var.set(record.get('net_weight', ''))
+        
+        # Handle all 4 images using image handler
+        self.image_handler.load_images_from_record(record)
+
+
+
+
 
     def is_record_complete(self):
         """Check if record has both weighments complete
