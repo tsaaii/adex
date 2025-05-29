@@ -614,75 +614,133 @@ class ReportGenerator:
             return f"Report_{len(selected_data)}records_{timestamp}.{extension}"
     
     def create_pdf_report(self, records_data, save_path):
-        """Create comprehensive PDF report with images and addresses"""
-        doc = SimpleDocTemplate(save_path, pagesize=A4, 
-                               rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+        """Create ink-friendly PDF report with consistent styling"""
+        doc = SimpleDocTemplate(save_path, pagesize=A4,
+                                rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
         
-        # Get ReportLab's built-in styles
         styles = getSampleStyleSheet()
         elements = []
-        
-        # Custom styles
+
+        # Custom ink-friendly styles
         title_style = ParagraphStyle(
-            'CustomTitle',
-            parent=styles['Heading1'],
+            name='Title',
             fontSize=16,
-            spaceAfter=12,
             alignment=TA_CENTER,
-            textColor=colors.darkblue
+            fontName='Helvetica-Bold',
+            spaceAfter=10
         )
         
-        subtitle_style = ParagraphStyle(
-            'CustomSubtitle',
-            parent=styles['Normal'],
-            fontSize=12,
-            spaceAfter=6,
-            alignment=TA_CENTER
+        label_style = ParagraphStyle(
+            name='Label',
+            fontSize=10,
+            alignment=TA_LEFT,
+            fontName='Helvetica-Bold',
         )
-        
-        # Header for each record
+
+        normal_style = ParagraphStyle(
+            name='Normal',
+            fontSize=10,
+            alignment=TA_LEFT,
+            fontName='Helvetica',
+        )
+
         for i, record in enumerate(records_data):
             if i > 0:
-                elements.append(PageBreak())  # New page for each record after the first
+                elements.append(PageBreak())
+
+            # Header
+            agency = record.get('agency_name', 'Unknown Agency')
+            site = record.get('site_name', 'Unknown Site')
+            ticket = record.get('ticket_no', '000')
             
-            # Get agency and site info
-            agency_name = record.get('agency_name', 'Unknown Agency')
-            site_name = record.get('site_name', 'Unknown Site')
-            
-            agency_info = self.address_config.get('agencies', {}).get(agency_name, {})
-            site_info = self.address_config.get('sites', {}).get(site_name, {})
-            
-            # Title with agency info
-            elements.append(Paragraph(agency_info.get('name', agency_name), title_style))
-            
-            # Address and contact info
-            if agency_info.get('address'):
-                elements.append(Paragraph(agency_info['address'], subtitle_style))
-            if agency_info.get('contact'):
-                elements.append(Paragraph(f"Contact: {agency_info['contact']}", subtitle_style))
-            if agency_info.get('email'):
-                elements.append(Paragraph(f"Email: {agency_info['email']}", subtitle_style))
-            
+            elements.append(Paragraph(f"{agency}", title_style))
+            elements.append(Paragraph(f"{site}", normal_style))
+            elements.append(Paragraph(f"Ticket No: {ticket}", normal_style))
             elements.append(Spacer(1, 0.2*inch))
-            
-            # Report title and date
-            elements.append(Paragraph("VEHICLE WEIGHMENT REPORT", title_style))
-            elements.append(Paragraph(f"Generated on: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", subtitle_style))
+
+            # Info table
+            info = [
+                ["Date", record.get('date', ''), "Time", record.get('time', '')],
+                ["Vehicle No", record.get('vehicle_no', ''), "Transfer Party", record.get('transfer_party_name', '')],
+                ["Material", record.get('material', ''), "Material Type", record.get('material_type', '')],
+                ["First Weight", record.get('first_weight', ''), "Time", record.get('first_timestamp', '')],
+                ["Second Weight", record.get('second_weight', ''), "Time", record.get('second_timestamp', '')],
+                ["Net Weight", record.get('net_weight', ''), "User", record.get('user_name', '')],
+            ]
+
+            table = Table(info, colWidths=[1.5*inch, 2*inch, 1.5*inch, 2*inch])
+            table.setStyle(TableStyle([
+                ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+                ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+                ('FONTSIZE', (0,0), (-1,-1), 9),
+                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ]))
+            elements.append(table)
             elements.append(Spacer(1, 0.3*inch))
-            
-            # Record details table
-            self.add_record_details_table(elements, record, styles)
-            
-            # Add images if available
-            self.add_record_images(elements, record, styles)
-            
-            # Add signature fields
-            self.add_signature_fields(elements, record, styles)
-        
-        # Build PDF
+
+            # Section Title - Centered & Underlined
+            elements.append(Paragraph("VEHICLE IMAGES", ParagraphStyle(
+                name='SectionHeader',
+                fontSize=12,
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold',
+                underline=True,
+                spaceAfter=12
+            )))
+
+            # Images (front & back)
+            front_img_path = os.path.join(config.IMAGES_FOLDER, record.get('front_image', ''))
+            back_img_path = os.path.join(config.IMAGES_FOLDER, record.get('back_image', ''))
+
+            img_data = [["Front View", "Back View"]]
+            row = []
+
+            for path in [front_img_path, back_img_path]:
+                if os.path.exists(path):
+                    try:
+                        temp_img = self.prepare_image_for_pdf(path, "Vehicle")
+                        if temp_img:
+                            row.append(RLImage(temp_img, width=2.5*inch, height=1.5*inch))
+                            os.remove(temp_img)
+                        else:
+                            row.append("Image error")
+                    except Exception:
+                        row.append("Image error")
+                else:
+                    row.append("Not available")
+
+            img_data.append(row)
+
+            img_table = Table(img_data, colWidths=[2.75*inch, 2.75*inch])
+            img_table.setStyle(TableStyle([
+                ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                ('FONTSIZE', (0,0), (-1,-1), 9)
+            ]))
+            elements.append(img_table)
+            elements.append(Spacer(1, 0.2*inch))
+
+            # Signature Fields
+            elements.append(Spacer(1, 0.2*inch))
+            sig_table = Table([
+                ["Site Incharge", "Operator/User"],
+                ["Signature: ___________________", "Signature: ___________________"],
+                ["Date: ___________________", "Date: ___________________"]
+            ], colWidths=[3*inch, 3*inch])
+
+            sig_table.setStyle(TableStyle([
+                ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+                ('FONTSIZE', (0,0), (-1,-1), 10)
+            ]))
+            elements.append(sig_table)
+
         doc.build(elements)
+
     
-    def add_record_details_table(self, elements, record, styles):
+    def add_optimized_record_table(self, elements, record, styles):
         """Add record details in a nice 2-column table format"""
         # Prepare data in 2-column format
         data = [
@@ -726,7 +784,7 @@ class ReportGenerator:
         elements.append(table)
         elements.append(Spacer(1, 0.3*inch))
     
-    def add_record_images(self, elements, record, styles):
+    def add_weighment_images(self, elements, record, styles):
         """Add vehicle images to the PDF report with proper error handling"""
         try:
             front_image = record.get('front_image', '')
@@ -849,7 +907,7 @@ class ReportGenerator:
             print(f"Error preparing image for PDF: {e}")
             return None
     
-    def add_signature_fields(self, elements, record, styles):
+    def add_optimized_signature_fields(self, elements, record, styles):
         """Add signature fields to the PDF"""
         elements.append(Spacer(1, 0.3*inch))
         elements.append(Paragraph("SIGNATURES", styles['Heading2']))
