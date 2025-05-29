@@ -1076,21 +1076,115 @@ class SettingsPanel:
             messagebox.showerror("Error", f"Error viewing cloud files: {str(e)}")
 
     def find_data_manager(self):
-        """Find data manager from the application"""
-        # Try to traverse widget hierarchy to find app instance
+        """Find data manager from the application with enhanced search"""
+        
+        # Method 0: Check if we have a direct reference (set by main app)
+        if hasattr(self, 'app_data_manager') and self.app_data_manager:
+            print("✅ Found data_manager from direct reference")
+            return self.app_data_manager
+        
+        # Method 1: Try to traverse widget hierarchy to find app instance
         widget = self.parent
-        while widget:
+        attempts = 0
+        max_attempts = 10  # Prevent infinite loops
+        
+        while widget and attempts < max_attempts:
+            attempts += 1
+            
+            # Check if this widget has data_manager
             if hasattr(widget, 'data_manager'):
+                print(f"✅ Found data_manager at widget level {attempts}")
                 return widget.data_manager
+            
+            # Check if this widget is the main app (TharuniApp)
+            if hasattr(widget, '__class__') and 'App' in widget.__class__.__name__:
+                if hasattr(widget, 'data_manager'):
+                    print(f"✅ Found data_manager in main app: {widget.__class__.__name__}")
+                    return widget.data_manager
+            
+            # Try different parent references
             if hasattr(widget, 'master'):
                 widget = widget.master
+            elif hasattr(widget, 'parent'):
+                widget = widget.parent
+            elif hasattr(widget, 'winfo_parent'):
+                try:
+                    parent_name = widget.winfo_parent()
+                    if parent_name:
+                        widget = widget._root().nametowidget(parent_name)
+                    else:
+                        break
+                except:
+                    break
             else:
                 break
+        
+        # Method 2: Try to find the root window and search from there
+        try:
+            root = self.parent
+            while hasattr(root, 'master') and root.master:
+                root = root.master
+            
+            # Check if root has data_manager
+            if hasattr(root, 'data_manager'):
+                print("✅ Found data_manager in root window")
+                return root.data_manager
+            
+            # Search all children of root for data_manager
+            def find_in_children(widget):
+                if hasattr(widget, 'data_manager'):
+                    return widget.data_manager
+                
+                # Check all children
+                try:
+                    for child in widget.winfo_children():
+                        result = find_in_children(child)
+                        if result:
+                            return result
+                except:
+                    pass
+                return None
+            
+            result = find_in_children(root)
+            if result:
+                print("✅ Found data_manager in widget children")
+                return result
+            
+        except Exception as e:
+            print(f"Error in enhanced data manager search: {e}")
+        
+        # Method 3: Try global references or app registry (if available)
+        try:
+            import tkinter as tk
+            root_windows = tk._default_root
+            if root_windows and hasattr(root_windows, 'data_manager'):
+                print("✅ Found data_manager in default root")
+                return root_windows.data_manager
+        except:
+            pass
+        
+        print("❌ Could not find data_manager anywhere")
+        print("Available attributes in self:", [attr for attr in dir(self) if 'data' in attr.lower()])
         return None
 
 
+
+
+
+    def _format_size(self, size_bytes):
+        """Format size in bytes to human readable format"""
+        if size_bytes < 1024:
+            return f"{size_bytes} B"
+        elif size_bytes < 1024 * 1024:
+            return f"{size_bytes / 1024:.1f} KB"
+        elif size_bytes < 1024 * 1024 * 1024:
+            return f"{size_bytes / (1024 * 1024):.1f} MB"
+        else:
+            return f"{size_bytes / (1024 * 1024 * 1024):.1f} GB"
+
+
     def backup_to_cloud(self):
-        """Backup all complete records with images to cloud storage organized by site"""
+        """Enhanced backup: records, images, and daily reports with incremental backup"""
         try:
             # Find data manager
             data_manager = self.find_data_manager()
@@ -1100,136 +1194,171 @@ class SettingsPanel:
                 return
             
             # Set status to backing up
-            self.backup_status_var.set("Backing up complete records with images...")
+            self.backup_status_var.set("Starting comprehensive backup (records + images + daily reports)...")
             
-            # Use the enhanced backup method that includes images
-            if hasattr(data_manager, 'backup_complete_records_to_cloud'):
+            # Use the enhanced backup method
+            if hasattr(data_manager, 'backup_complete_records_to_cloud_with_reports'):
+                results = data_manager.backup_complete_records_to_cloud_with_reports()
+                
+                if results.get("success", False):
+                    # Prepare detailed status message
+                    status_parts = []
+                    
+                    # Records and images
+                    if results.get("records_uploaded", 0) > 0:
+                        status_parts.append(f"✓ {results['records_uploaded']}/{results['total_records']} records")
+                    
+                    if results.get("images_uploaded", 0) > 0:
+                        status_parts.append(f"✓ {results['images_uploaded']}/{results['total_images']} images")
+                    
+                    # Daily reports
+                    if results.get("reports_uploaded", 0) > 0:
+                        status_parts.append(f"✓ {results['reports_uploaded']} daily reports")
+                    elif results.get("total_reports", 0) == 0:
+                        status_parts.append("ℹ No daily reports found for today")
+                    
+                    if status_parts:
+                        status_msg = "Backup successful! " + ", ".join(status_parts)
+                    else:
+                        status_msg = "Backup completed - no new files to upload"
+                    
+                    self.backup_status_var.set(status_msg)
+                    
+                    # Show detailed results in popup
+                    self.show_backup_results_dialog(results)
+                    
+                else:
+                    error_msg = results.get("error", "Unknown error")
+                    self.backup_status_var.set(f"Backup failed: {error_msg}")
+                    messagebox.showerror("Backup Failed", 
+                                    f"Backup failed: {error_msg}\n\n"
+                                    "Please check:\n"
+                                    "• Cloud storage connection\n"
+                                    "• Internet connectivity\n"
+                                    "• Storage permissions")
+            else:
+                # Fallback to old method if enhanced method not available
+                self.backup_status_var.set("Using legacy backup method...")
                 success_count, total_complete, images_uploaded, total_images = data_manager.backup_complete_records_to_cloud()
                 
                 if success_count > 0:
-                    status_msg = f"Backup successful! {success_count}/{total_complete} records uploaded"
-                    if total_images > 0:
-                        status_msg += f", {images_uploaded}/{total_images} images uploaded"
+                    status_msg = f"Legacy backup: {success_count}/{total_complete} records, {images_uploaded}/{total_images} images"
                     self.backup_status_var.set(status_msg)
-                    
-                    # Show detailed results in a popup
-                    messagebox.showinfo("Cloud Backup Complete", 
-                                      f"Backup Results:\n\n"
-                                      f"✓ Records uploaded: {success_count}/{total_complete}\n"
-                                      f"✓ Images uploaded: {images_uploaded}/{total_images}\n\n"
-                                      f"All complete records with their associated images\n"
-                                      f"have been uploaded to cloud storage.")
+                    messagebox.showinfo("Backup Complete", 
+                                    f"Records: {success_count}/{total_complete} uploaded\n"
+                                    f"Images: {images_uploaded}/{total_images} uploaded")
                 else:
-                    self.backup_status_var.set("Backup failed - no records uploaded")
-                    messagebox.showwarning("Backup Failed", 
-                                         "No records were uploaded to cloud storage.\n\n"
-                                         "Please check:\n"
-                                         "• Cloud storage connection\n"
-                                         "• Records have both weighments completed\n"
-                                         "• Internet connectivity")
-            else:
-                # Fallback to manual backup for complete records only
-                try:
-                    from cloud_storage import CloudStorageService
-                    import datetime
-                    
-                    # Initialize cloud storage
-                    cloud_storage = CloudStorageService(
-                        config.CLOUD_BUCKET_NAME,
-                        config.CLOUD_CREDENTIALS_PATH
-                    )
-                    
-                    if not cloud_storage.is_connected():
-                        self.backup_status_var.set("Error: Cloud connection failed")
-                        return
-                    
-                    # Get all records and filter for complete ones
-                    all_records = data_manager.get_all_records()
-                    complete_records = []
-                    
-                    for record in all_records:
-                        first_weight = record.get('first_weight', '').strip()
-                        first_timestamp = record.get('first_timestamp', '').strip()
-                        second_weight = record.get('second_weight', '').strip()
-                        second_timestamp = record.get('second_timestamp', '').strip()
-                        
-                        # Only include records with both weighments complete
-                        if (first_weight and first_timestamp and second_weight and second_timestamp):
-                            complete_records.append(record)
-                    
-                    if not complete_records:
-                        self.backup_status_var.set("No complete records to backup")
-                        return
-                    
-                    # Group records by site
-                    records_by_site = {}
-                    for record in complete_records:
-                        site_name = record.get('site_name', 'Unknown_Site').replace(' ', '_').replace('/', '_')
-                        if site_name not in records_by_site:
-                            records_by_site[site_name] = []
-                        records_by_site[site_name].append(record)
-                    
-                    # Upload records organized by site with images
-                    success_count = 0
-                    total_records = len(complete_records)
-                    total_images_uploaded = 0
-                    total_images_found = 0
-                    
-                    for site_name, site_records in records_by_site.items():
-                        for record in site_records:
-                            # Use the enhanced upload method
-                            agency_name = record.get('agency_name', 'Unknown_Agency').replace(' ', '_').replace('/', '_')
-                            ticket_no = record.get('ticket_no', 'unknown')
-                            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                            
-                            json_filename = f"{agency_name}/{site_name}/{ticket_no}/{timestamp}.json"
-                            
-                            # Upload with images
-                            json_success, images_uploaded, total_images = cloud_storage.upload_record_with_images(
-                                record, json_filename, config.IMAGES_FOLDER
-                            )
-                            
-                            if json_success:
-                                success_count += 1
-                                total_images_uploaded += images_uploaded
-                                total_images_found += total_images
-                                print(f"Uploaded record {ticket_no} with {images_uploaded}/{total_images} images")
-                    
-                    # Update status
-                    if success_count > 0:
-                        status_msg = f"Backup successful! {success_count}/{total_records} records uploaded"
-                        if total_images_found > 0:
-                            status_msg += f", {total_images_uploaded}/{total_images_found} images uploaded"
-                        self.backup_status_var.set(status_msg)
-                        
-                        # Show detailed results
-                        messagebox.showinfo("Cloud Backup Complete", 
-                                          f"Backup Results:\n\n"
-                                          f"✓ Records uploaded: {success_count}/{total_records}\n"
-                                          f"✓ Images uploaded: {total_images_uploaded}/{total_images_found}\n\n"
-                                          f"Complete records with images uploaded to cloud storage.")
-                    else:
-                        self.backup_status_var.set("Backup failed!")
-                        messagebox.showerror("Backup Failed", "No records were successfully uploaded.")
-                        
-                except Exception as e:
-                    print(f"Error during fallback backup: {e}")
-                    self.backup_status_var.set(f"Error: {str(e)}")
+                    self.backup_status_var.set("Legacy backup failed")
+                    messagebox.showwarning("Backup Failed", "No records were uploaded using legacy method")
                     
         except Exception as e:
+            error_msg = f"Error: {str(e)}"
             print(f"Error during backup: {e}")
-            self.backup_status_var.set(f"Error: {str(e)}")
+            self.backup_status_var.set(error_msg)
+            messagebox.showerror("Backup Error", f"Backup failed with error:\n{error_msg}")
+
+    def show_backup_results_dialog(self, results):
+        """Show detailed backup results in a dialog
+        
+        Args:
+            results (dict): Backup results from comprehensive backup
+        """
+        try:
+            # Create results window
+            results_window = tk.Toplevel(self.parent)
+            results_window.title("Backup Results")
+            results_window.geometry("500x400")
+            results_window.resizable(True, True)
+            
+            # Main frame
+            main_frame = ttk.Frame(results_window, padding=20)
+            main_frame.pack(fill=tk.BOTH, expand=True)
+            
+            # Title
+            title_label = ttk.Label(main_frame, text="📤 Comprehensive Backup Results", 
+                                font=("Segoe UI", 14, "bold"))
+            title_label.pack(pady=(0, 20))
+            
+            # Results frame
+            results_frame = ttk.LabelFrame(main_frame, text="Backup Summary")
+            results_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 20))
+            
+            # Create text widget for results
+            text_widget = tk.Text(results_frame, wrap=tk.WORD, font=("Consolas", 10), height=15)
+            scrollbar = ttk.Scrollbar(results_frame, orient=tk.VERTICAL, command=text_widget.yview)
+            text_widget.configure(yscrollcommand=scrollbar.set)
+            
+            # Format results text
+            results_text = f"""BACKUP COMPLETED SUCCESSFULLY
+    {'=' * 50}
+
+    📊 RECORDS & IMAGES:
+    Records Uploaded: {results.get('records_uploaded', 0)}/{results.get('total_records', 0)}
+    Images Uploaded: {results.get('images_uploaded', 0)}/{results.get('total_images', 0)}
+
+    📁 DAILY REPORTS:
+    Reports Uploaded: {results.get('reports_uploaded', 0)}/{results.get('total_reports', 0)}
+    Status: {'✓ Today\'s reports backed up' if results.get('reports_uploaded', 0) > 0 else 'ℹ No daily reports found for today'}
+
+    🔄 INCREMENTAL BACKUP:
+    Only new and changed files were uploaded
+    Unchanged files were skipped for efficiency
+
+    ⏰ BACKUP TIME:
+    {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+    📂 CLOUD STRUCTURE:
+    Records: Agency/Site/Ticket/timestamp.json
+    Images: Agency/Site/Ticket/images/
+    Reports: daily_reports/YYYY-MM-DD/
+    """
+
+            # Add errors if any
+            if results.get('errors'):
+                results_text += f"\n⚠️ WARNINGS/ERRORS:\n"
+                for i, error in enumerate(results.get('errors', []), 1):
+                    results_text += f"   {i}. {error}\n"
+            
+            results_text += f"\n{'=' * 50}\n✅ Backup completed successfully!"
+            
+            # Insert text
+            text_widget.insert(tk.END, results_text)
+            text_widget.config(state=tk.DISABLED)  # Make read-only
+            
+            # Pack text widget and scrollbar
+            text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            
+            # Buttons frame
+            buttons_frame = ttk.Frame(main_frame)
+            buttons_frame.pack(fill=tk.X)
+            
+            # View cloud status button
+            status_btn = ttk.Button(buttons_frame, text="📊 View Cloud Status", 
+                                command=self.show_cloud_storage_status)
+            status_btn.pack(side=tk.LEFT, padx=5)
+            
+            # Close button
+            close_btn = ttk.Button(buttons_frame, text="Close", command=results_window.destroy)
+            close_btn.pack(side=tk.RIGHT, padx=5)
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Error showing backup results: {str(e)}")
 
     def show_cloud_storage_status(self):
-        """Show detailed cloud storage status and statistics"""
+        """Show enhanced cloud storage status including daily reports"""
         try:
             data_manager = self.find_data_manager()
             if not data_manager:
                 messagebox.showerror("Error", "Data manager not found")
                 return
             
-            # Get cloud upload summary
-            summary = data_manager.get_cloud_upload_summary()
+            # Get enhanced cloud upload summary
+            if hasattr(data_manager, 'get_enhanced_cloud_upload_summary'):
+                summary = data_manager.get_enhanced_cloud_upload_summary()
+            else:
+                # Fallback to regular summary
+                summary = data_manager.get_cloud_upload_summary()
             
             if "error" in summary:
                 messagebox.showerror("Cloud Storage Status", f"Error: {summary['error']}")
@@ -1237,15 +1366,15 @@ class SettingsPanel:
             
             # Create status window
             status_window = tk.Toplevel(self.parent)
-            status_window.title("Cloud Storage Status")
-            status_window.geometry("500x400")
+            status_window.title("Enhanced Cloud Storage Status")
+            status_window.geometry("600x500")
             status_window.resizable(True, True)
             
             # Create scrollable text widget
             text_frame = ttk.Frame(status_window)
             text_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
             
-            text_widget = tk.Text(text_frame, wrap=tk.WORD, font=("Courier", 10))
+            text_widget = tk.Text(text_frame, wrap=tk.WORD, font=("Consolas", 10))
             scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=text_widget.yview)
             text_widget.configure(yscrollcommand=scrollbar.set)
             
@@ -1253,49 +1382,69 @@ class SettingsPanel:
             text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
             scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
             
-            # Format status information
-            status_text = f"""CLOUD STORAGE STATUS REPORT
-                            {'=' * 50}
+            # Format enhanced status information
+            status_text = f"""ENHANCED CLOUD STORAGE STATUS
+    {'=' * 60}
 
-                            Context: {summary.get('context', 'Unknown')}
-                            Agency: {summary.get('agency', 'Unknown')}
-                            Site: {summary.get('site', 'Unknown')}
+    🏢 CONTEXT INFORMATION:
+    Agency: {summary.get('agency', 'Unknown')}
+    Site: {summary.get('site', 'Unknown')}
+    Data Context: {summary.get('context', 'Unknown')}
 
-                            STORAGE STATISTICS:
-                            {'-' * 30}
-                            Total Files: {summary.get('total_files', 0)}
-                            JSON Records: {summary.get('json_files', 0)}
-                            Image Files: {summary.get('image_files', 0)}
-                            Total Size: {summary.get('total_size', 'Unknown')}
+    📊 CLOUD STORAGE STATISTICS:
+    Total Files: {summary.get('total_files', 0)}
+    JSON Records: {summary.get('json_files', 0)}
+    Image Files: {summary.get('image_files', 0)}
+    Daily Report Files: {summary.get('daily_report_files', 0)}
+    Total Storage Used: {summary.get('total_size', 'Unknown')}
 
-                            UPLOAD INFORMATION:
-                            {'-' * 30}
-                            Last Upload: {summary.get('last_upload', 'Never')}
+    ⏰ UPLOAD INFORMATION:
+    Last Upload: {summary.get('last_upload', 'Never')}
 
-                            FILE BREAKDOWN:
-                            {'-' * 30}
-                            • JSON files contain complete vehicle records
-                            • Image files include front and back vehicle photos
-                            • All files are organized by Agency/Site/Ticket structure
+    📁 TODAY'S DAILY REPORTS:
+    """
+            
+            # Add today's reports info if available
+            todays_reports = summary.get('todays_reports', {})
+            if todays_reports:
+                status_text += f"""   Date: {todays_reports.get('date', 'Unknown')}
+    Local Folder Exists: {'✓ Yes' if todays_reports.get('folder_exists', False) else '✗ No'}
+    Local Files Count: {todays_reports.get('total_files', 0)}
+    Local Total Size: {todays_reports.get('total_size_formatted', '0 B')}
+    File Types: {', '.join(f'{ext}({count})' for ext, count in todays_reports.get('file_types', {}).items()) or 'None'}
+    """
+            else:
+                status_text += "   No information available\n"
+            
+            status_text += f"""
+    🔄 INCREMENTAL BACKUP:
+    Only changed files are uploaded
+    Tracking file: data/backup_tracking.json
+    
+    📂 CLOUD STORAGE STRUCTURE:
+    Records: Agency_Name/Site_Name/Ticket_Number/
+    ├── timestamp.json (vehicle record)
+    └── images/
+        ├── first_front_image.jpg
+        ├── first_back_image.jpg
+        ├── second_front_image.jpg
+        └── second_back_image.jpg
+    
+    Daily Reports: daily_reports/YYYY-MM-DD/
+    ├── report1.pdf
+    ├── report2.xlsx
+    └── [other report files]
 
-                            CLOUD STORAGE STRUCTURE:
-                            {'-' * 30}
-                            Bucket: {config.CLOUD_BUCKET_NAME}
-                            Structure: Agency_Name/Site_Name/Ticket_Number/
-                            ├── timestamp.json (record data)
-                            └── images/
-                                ├── front_image.jpg
-                                └── back_image.jpg
+    💡 FEATURES:
+    ✓ Incremental backup (only new/changed files)
+    ✓ Complete records with both weighments
+    ✓ All 4 vehicle images per record
+    ✓ Today's daily reports
+    ✓ Organized folder structure
+    ✓ Automatic deduplication
 
-                            BACKUP POLICY:
-                            {'-' * 30}
-                            • Only complete records (both weighments) are uploaded
-                            • Images are uploaded with their associated records
-                            • Incremental uploads - only new complete records
-                            • Data is preserved in structured folders
-
-                            STATUS: {'Connected' if summary.get('total_files', 0) >= 0 else 'Error'}
-                            """
+    🌐 CONNECTION STATUS: {'Connected' if summary.get('total_files', -1) >= 0 else 'Error'}
+    """
             
             # Insert text
             text_widget.insert(tk.END, status_text)
@@ -1305,22 +1454,26 @@ class SettingsPanel:
             button_frame = ttk.Frame(status_window)
             button_frame.pack(fill=tk.X, padx=10, pady=5)
             
-            refresh_btn = ttk.Button(button_frame, text="Refresh", 
-                                   command=lambda: self.refresh_cloud_status(text_widget))
+            refresh_btn = ttk.Button(button_frame, text="🔄 Refresh", 
+                                command=lambda: self.refresh_enhanced_cloud_status(text_widget))
             refresh_btn.pack(side=tk.LEFT, padx=5)
             
-            backup_btn = ttk.Button(button_frame, text="Start Backup", 
-                                  command=lambda: [status_window.destroy(), self.backup_to_cloud()])
+            backup_btn = ttk.Button(button_frame, text="📤 Start Backup", 
+                                command=lambda: [status_window.destroy(), self.backup_to_cloud()])
             backup_btn.pack(side=tk.LEFT, padx=5)
             
             close_btn = ttk.Button(button_frame, text="Close", command=status_window.destroy)
             close_btn.pack(side=tk.RIGHT, padx=5)
             
         except Exception as e:
-            messagebox.showerror("Error", f"Error showing cloud status: {str(e)}")
+            messagebox.showerror("Error", f"Error showing enhanced cloud status: {str(e)}")
 
-    def refresh_cloud_status(self, text_widget):
-        """Refresh the cloud status display"""
+    def refresh_enhanced_cloud_status(self, text_widget):
+        """Refresh the enhanced cloud status display
+        
+        Args:
+            text_widget: Text widget to update
+        """
         try:
             # Re-enable text widget for updating
             text_widget.config(state=tk.NORMAL)
@@ -1329,26 +1482,26 @@ class SettingsPanel:
             # Get updated summary
             data_manager = self.find_data_manager()
             if data_manager:
-                summary = data_manager.get_cloud_upload_summary()
+                if hasattr(data_manager, 'get_enhanced_cloud_upload_summary'):
+                    summary = data_manager.get_enhanced_cloud_upload_summary()
+                else:
+                    summary = data_manager.get_cloud_upload_summary()
                 
-                # Update the display (similar to show_cloud_storage_status)
-                status_text = f"""CLOUD STORAGE STATUS REPORT (Refreshed)
-                {'=' * 50}
+                # Update the display with refreshed data
+                status_text = f"""ENHANCED CLOUD STORAGE STATUS (Refreshed)
+    {'=' * 60}
 
-                Context: {summary.get('context', 'Unknown')}
-                Agency: {summary.get('agency', 'Unknown')}
-                Site: {summary.get('site', 'Unknown')}
+    Context: {summary.get('context', 'Unknown')}
+    Total Files: {summary.get('total_files', 0)}
+    JSON Records: {summary.get('json_files', 0)}
+    Image Files: {summary.get('image_files', 0)}
+    Daily Reports: {summary.get('daily_report_files', 0)}
+    Total Size: {summary.get('total_size', 'Unknown')}
 
-                STORAGE STATISTICS:
-                {'-' * 30}
-                Total Files: {summary.get('total_files', 0)}
-                JSON Records: {summary.get('json_files', 0)}
-                Image Files: {summary.get('image_files', 0)}
-                Total Size: {summary.get('total_size', 'Unknown')}
+    Last Updated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-                Last Updated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-                """
-                                
+    Status: Refreshed successfully ✓
+    """
                 text_widget.insert(tk.END, status_text)
             
             # Make read-only again
@@ -1357,6 +1510,137 @@ class SettingsPanel:
         except Exception as e:
             text_widget.insert(tk.END, f"Error refreshing: {str(e)}")
             text_widget.config(state=tk.DISABLED)
+
+    def view_cloud_files_enhanced(self, cloud_storage, prefix):
+        """Show enhanced view of cloud files with categorization"""
+        try:
+            files = cloud_storage.list_files(prefix)
+            
+            if not files:
+                messagebox.showinfo("Cloud Files", "No files found in cloud storage for this agency/site.")
+                return
+            
+            # Create files window
+            files_window = tk.Toplevel(self.parent)
+            files_window.title(f"Cloud Files - {config.CURRENT_AGENCY or 'Unknown'}/{config.CURRENT_SITE or 'Unknown'}")
+            files_window.geometry("800x600")
+            
+            # Create notebook for different file types
+            files_notebook = ttk.Notebook(files_window)
+            files_notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            
+            # Categorize files
+            json_files = [f for f in files if f.endswith('.json')]
+            image_files = [f for f in files if any(f.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp'])]
+            pdf_files = [f for f in files if f.lower().endswith('.pdf')]
+            other_files = [f for f in files if f not in json_files + image_files + pdf_files]
+            
+            # Create tabs for each category
+            categories = [
+                ("JSON Records", json_files),
+                ("Images", image_files), 
+                ("PDF Reports", pdf_files),
+                ("Other Files", other_files)
+            ]
+            
+            for category_name, category_files in categories:
+                if not category_files:
+                    continue
+                    
+                tab_frame = ttk.Frame(files_notebook)
+                files_notebook.add(tab_frame, text=f"{category_name} ({len(category_files)})")
+                
+                # Create listbox for this category
+                list_frame = ttk.Frame(tab_frame)
+                list_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+                
+                listbox = tk.Listbox(list_frame, font=("Courier", 9))
+                scrollbar_cat = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=listbox.yview)
+                listbox.configure(yscrollcommand=scrollbar_cat.set)
+                
+                # Add files to listbox
+                for file in sorted(category_files):
+                    # Show only filename, not full path
+                    display_name = file.replace(prefix, "")
+                    listbox.insert(tk.END, display_name)
+                
+                # Pack widgets
+                listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+                scrollbar_cat.pack(side=tk.RIGHT, fill=tk.Y)
+            
+            # Info label
+            info_label = ttk.Label(files_window, 
+                                 text=f"Total files in cloud: {len(files)} | Bucket: {config.CLOUD_BUCKET_NAME}",
+                                 font=("Segoe UI", 9))
+            info_label.pack(pady=5)
+            
+            # Close button
+            close_btn = ttk.Button(files_window, text="Close", command=files_window.destroy)
+            close_btn.pack(pady=5)
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Error viewing cloud files: {str(e)}")
+
+    def refresh_cloud_status(self, text_widget, data_manager):
+        """Refresh the cloud status display with current information"""
+        try:
+            # Re-enable text widget for updating
+            text_widget.config(state=tk.NORMAL)
+            text_widget.delete(1.0, tk.END)
+            
+            # Get updated cloud storage connection
+            from cloud_storage import CloudStorageService
+            cloud_storage = CloudStorageService(
+                config.CLOUD_BUCKET_NAME,
+                config.CLOUD_CREDENTIALS_PATH
+            )
+            
+            if not cloud_storage.is_connected():
+                text_widget.insert(tk.END, "❌ ERROR: Not connected to cloud storage\n\nPlease check:\n• Internet connection\n• Cloud credentials\n• Bucket permissions")
+                text_widget.config(state=tk.DISABLED)
+                return
+            
+            # Get current context
+            agency_name = config.CURRENT_AGENCY or "Unknown_Agency"
+            site_name = config.CURRENT_SITE or "Unknown_Site"
+            clean_agency = agency_name.replace(' ', '_').replace('/', '_')
+            clean_site = site_name.replace(' ', '_').replace('/', '_')
+            prefix = f"{clean_agency}/{clean_site}/"
+            
+            # Get updated summary
+            summary = cloud_storage.get_upload_summary(prefix)
+            
+            # Update the display
+            status_text = f"""CLOUD STORAGE STATUS (REFRESHED)
+{'=' * 50}
+
+🔄 Last Refreshed: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+📍 Context: {agency_name} - {site_name}
+📊 Total Files: {summary.get('total_files', 0)}
+├── JSON Records: {summary.get('json_files', 0)}
+├── Images: {summary.get('image_files', 0)}
+└── PDF Reports: {summary.get('pdf_files', 0)}
+
+💾 Storage Size: {summary.get('total_size', 'Unknown')}
+⏰ Last Upload: {summary.get('last_upload', 'Never')}
+
+✅ Cloud connection is working properly!
+
+🔄 Auto-refresh available - click refresh button for latest data.
+"""
+                            
+            text_widget.insert(tk.END, status_text)
+            
+            # Make read-only again
+            text_widget.config(state=tk.DISABLED)
+            
+        except Exception as e:
+            error_text = f"❌ ERROR REFRESHING STATUS\n\nError details:\n{str(e)}\n\nTroubleshooting:\n• Check internet connection\n• Verify cloud credentials\n• Ensure bucket exists and is accessible"
+            text_widget.insert(tk.END, error_text)
+            text_widget.config(state=tk.DISABLED)
+
+
 
 
             

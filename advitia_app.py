@@ -11,14 +11,14 @@ from camera import CameraView
 from main_form import MainForm
 from summary_panel import SummaryPanel
 from settings_panel import SettingsPanel
-from data_management import DataManager
+from data_management import DataManager  # This now includes auto PDF generation
 from reports import export_to_excel, export_to_pdf
 from settings_storage import SettingsStorage
 from login_dialog import LoginDialog
 import pandas._libs.testing
 
 class TharuniApp:
-    """Main application class"""
+    """Main application class with automatic PDF generation for complete records"""
     
     def __init__(self, root):
         """Initialize the application with authentication
@@ -27,14 +27,14 @@ class TharuniApp:
             root: Root Tkinter window
         """
         self.root = root
-        self.root.title("Swaccha Andhra Corporation")
+        self.root.title("Swaccha Andhra Corporation - Enhanced with Auto PDF")
         self.root.geometry("900x580")
         self.root.minsize(900, 580)
         
         # Set up initial configuration
         config.setup()
         
-        # Initialize data manager
+        # Initialize data manager with auto PDF generation
         self.data_manager = DataManager()
         
         # Initialize settings storage
@@ -106,6 +106,7 @@ class TharuniApp:
             
             print(f"Data context initialized: Agency='{agency_name}', Site='{site_name}'")
             print(f"Data will be saved to: {self.data_manager.get_current_data_file()}")
+            print(f"PDFs will be saved to: {self.data_manager.today_pdf_folder}")
             
         except Exception as e:
             print(f"Error setting up data context: {e}")
@@ -151,7 +152,7 @@ class TharuniApp:
         main_container = ttk.Frame(self.root, padding="5", style="TFrame")
         main_container.pack(fill=tk.BOTH, expand=True)
         
-        # Title and header section with user and site info
+        # Title and header section with user and site info plus PDF status
         self.create_header(main_container)
         
         # Create notebook for tabs
@@ -174,7 +175,7 @@ class TharuniApp:
         # Create summary panel
         self.summary_panel = SummaryPanel(summary_tab, self.data_manager)
         
-        # Create settings panel with user info and weighbridge callback
+        # Create settings panel with user info, weighbridge callback, and data manager reference
         self.settings_panel = SettingsPanel(
             settings_tab, 
             weighbridge_callback=self.update_weight_from_weighbridge,  # This is the key callback
@@ -182,6 +183,14 @@ class TharuniApp:
             current_user=self.logged_in_user,
             user_role=self.user_role
         )
+        
+        # IMPORTANT: Set data manager reference in settings panel for cloud backup
+        if hasattr(self.settings_panel, '__dict__'):
+            self.settings_panel.app_data_manager = self.data_manager
+            print("✅ Data manager reference set in settings panel")
+        
+        # Also store reference in parent widget for widget hierarchy search
+        settings_tab.data_manager = self.data_manager
         
         # Handle role-based access to settings tabs - with error handling
         try:
@@ -283,7 +292,7 @@ class TharuniApp:
         canvas.configure(scrollregion=canvas.bbox("all"))
     
     def create_header(self, parent):
-        """Create header with title, user info, site info, incharge info, current data file and date/time"""
+        """Create header with title, user info, site info, incharge info, current data file, PDF folder and date/time"""
         # Title with company logo effect
         header_frame = ttk.Frame(parent, style="TFrame")
         header_frame.pack(fill=tk.X, pady=(0, 5))
@@ -293,7 +302,7 @@ class TharuniApp:
         title_box.pack(fill=tk.X)
         
         title_label = tk.Label(title_box, 
-                            text="Swaccha Andhra Corporation", 
+                            text="Swaccha Andhra Corporation - Auto PDF Enabled", 
                             font=("Segoe UI", 14, "bold"),
                             fg=config.COLORS["white"],
                             bg=config.COLORS["header_bg"])
@@ -338,6 +347,15 @@ class TharuniApp:
                                 fg=config.COLORS["primary_light"],
                                 bg=config.COLORS["header_bg"])
             file_label.pack(side=tk.TOP, anchor=tk.W)
+            
+            # Show today's PDF folder
+            if hasattr(self.data_manager, 'today_folder_name'):
+                pdf_label = tk.Label(info_frame, 
+                                   text=f"PDF Folder: {self.data_manager.today_folder_name}",
+                                   font=("Segoe UI", 8, "italic"),
+                                   fg=config.COLORS["secondary"],
+                                   bg=config.COLORS["header_bg"])
+                pdf_label.pack(side=tk.TOP, anchor=tk.W)
         
         # Add logout button
         logout_btn = HoverButton(title_box, 
@@ -381,8 +399,6 @@ class TharuniApp:
                             bg=config.COLORS["header_bg"])
         time_label.grid(row=0, column=3, sticky="w")
 
-
-    
     def load_pending_vehicle(self, ticket_no):
         """Load a pending vehicle when selected from the pending vehicles panel
         
@@ -439,6 +455,10 @@ class TharuniApp:
             # Update pending vehicles list if it exists
             if hasattr(self, 'pending_vehicles') and self.pending_vehicles:
                 self.update_pending_vehicles()
+            
+            # Check if we need to update the daily PDF folder (date changed)
+            if hasattr(self, 'data_manager'):
+                self.data_manager.get_daily_pdf_folder()  # This will create new folder if date changed
             
             # Schedule next refresh and store the job ID so we can cancel it if needed
             self._refresh_job = self.root.after(60000, self.periodic_refresh)  # Refresh every minute
@@ -516,7 +536,7 @@ class TharuniApp:
             print(f"Error updating camera settings: {e}")
         
     def save_record(self):
-        """Save current record to database - FIXED TICKET INCREMENT LOGIC"""
+        """Save current record to database with automatic PDF generation for complete records"""
         # Validate form first
         if not self.main_form.validate_form():
             return
@@ -528,7 +548,9 @@ class TharuniApp:
         # Check if this is a complete record (both weighments)
         is_complete_record = self.main_form.is_record_complete()
         
-        # Save to database
+        # Save to database (this will now auto-generate PDF for complete records)
+        print(f"Saving record {ticket_no} - Complete: {is_complete_record}")
+        
         if self.data_manager.save_record(record_data):
             
             # FIXED: Only commit (increment) ticket number when BOTH weighments are complete
@@ -536,11 +558,12 @@ class TharuniApp:
                 # Both weighments complete - commit the ticket number (increment counter)
                 commit_success = self.main_form.commit_current_ticket_number()
                 if commit_success:
-                    print(f"Ticket {ticket_no} completed - counter incremented")
+                    print(f"✅ Ticket {ticket_no} completed - counter incremented")
+                    print(f"📄 PDF should have been auto-generated and saved to today's folder")
                 else:
-                    print(f"Warning: Failed to commit ticket number {ticket_no}")
+                    print(f"⚠️ Warning: Failed to commit ticket number {ticket_no}")
                 
-                messagebox.showinfo("Success", "Record completed with both weighments!")
+                # The PDF generation message will be shown by the data_manager
                 
                 # Remove from pending vehicles list
                 if hasattr(self, 'pending_vehicles'):
