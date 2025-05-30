@@ -173,6 +173,33 @@ class ContinuousCameraView:
         # Save function reference
         self.save_function = None
     
+    
+    def stop_camera(self):
+        """Backward compatibility method - delegates to stop_continuous_feed"""
+        self.stop_continuous_feed()
+
+    def start_camera(self):
+        """Backward compatibility method - delegates to start_continuous_feed"""
+        self.start_continuous_feed()
+
+    def capture_image(self):
+        """Capture current frame and return success status"""
+        try:
+            self.capture_current_frame()
+            return self.captured_image is not None
+        except Exception as e:
+            print(f"Error in capture_image: {e}")
+            return False
+
+    def reset_display(self):
+        """Reset the camera display to initial state"""
+        try:
+            self.show_status_message("Camera ready\nClick 'Start Feed' to begin")
+            self.captured_image = None
+            self.save_button.config(state=tk.DISABLED)
+        except Exception as e:
+            print(f"Error resetting display: {e}")
+    
     def show_status_message(self, message):
         """Show a status message on the canvas"""
         self.canvas.delete("all")

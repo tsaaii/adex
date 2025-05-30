@@ -8,7 +8,6 @@ import datetime
 import cv2
 from PIL import Image, ImageTk
 import threading
-
 import config
 from ui_components import HoverButton
 from camera import CameraView, add_watermark
@@ -237,6 +236,423 @@ class MainForm:
                               font=("Segoe UI", 8, "italic"), 
                               foreground="green")
         weight_note.pack(side=tk.RIGHT)
+
+
+    def monitor_camera_status(self):
+        """Monitor and update camera feed status - MISSING METHOD FIX"""
+        try:
+            # Update front camera status
+            if hasattr(self, 'front_camera') and self.front_camera:
+                if hasattr(self, 'front_feed_status_var'):
+                    if hasattr(self.front_camera, 'is_capturing_continuous') and self.front_camera.is_capturing_continuous:
+                        if hasattr(self.front_camera, 'connection_stable') and self.front_camera.connection_stable:
+                            status = f"✅ {getattr(self.front_camera, 'camera_type', 'USB')} Active"
+                        else:
+                            status = f"⚠️ {getattr(self.front_camera, 'camera_type', 'USB')} Unstable"
+                    else:
+                        status = f"❌ {getattr(self.front_camera, 'camera_type', 'USB')} Stopped"
+                    self.front_feed_status_var.set(status)
+            
+            # Update back camera status
+            if hasattr(self, 'back_camera') and self.back_camera:
+                if hasattr(self, 'back_feed_status_var'):
+                    if hasattr(self.back_camera, 'is_capturing_continuous') and self.back_camera.is_capturing_continuous:
+                        if hasattr(self.back_camera, 'connection_stable') and self.back_camera.connection_stable:
+                            status = f"✅ {getattr(self.back_camera, 'camera_type', 'USB')} Active"
+                        else:
+                            status = f"⚠️ {getattr(self.back_camera, 'camera_type', 'USB')} Unstable"
+                    else:
+                        status = f"❌ {getattr(self.back_camera, 'camera_type', 'USB')} Stopped"
+                    self.back_feed_status_var.set(status)
+            
+        except Exception as e:
+            print(f"Error monitoring camera status: {e}")
+        
+        # Schedule next status check
+        if hasattr(self, 'parent') and self.parent:
+            self.parent.after(2000, self.monitor_camera_status)  # Check every 2 seconds
+
+    def update_image_status_display(self):
+        """Update the enhanced image status display - ADDITIONAL MISSING METHOD"""
+        if hasattr(self, 'image_handler') and hasattr(self, 'total_image_status_var'):
+            try:
+                # Get current image counts
+                first_front = bool(getattr(self, 'first_front_image_path', None))
+                first_back = bool(getattr(self, 'first_back_image_path', None))
+                second_front = bool(getattr(self, 'second_front_image_path', None))
+                second_back = bool(getattr(self, 'second_back_image_path', None))
+                
+                # Update first weighment status
+                first_status = f"Front: {'✅' if first_front else '❌'} Back: {'✅' if first_back else '❌'}"
+                if hasattr(self, 'first_image_status_var'):
+                    self.first_image_status_var.set(first_status)
+                    if hasattr(self, 'first_image_status'):
+                        color = "green" if (first_front and first_back) else "orange" if (first_front or first_back) else "red"
+                        self.first_image_status.config(foreground=color)
+                
+                # Update second weighment status
+                second_status = f"Front: {'✅' if second_front else '❌'} Back: {'✅' if second_back else '❌'}"
+                if hasattr(self, 'second_image_status_var'):
+                    self.second_image_status_var.set(second_status)
+                    if hasattr(self, 'second_image_status'):
+                        color = "green" if (second_front and second_back) else "orange" if (second_front or second_back) else "red"
+                        self.second_image_status.config(foreground=color)
+                
+                # Update total count
+                total_count = sum([first_front, first_back, second_front, second_back])
+                total_status = f"{total_count}/4 images captured"
+                self.total_image_status_var.set(total_status)
+                
+            except Exception as e:
+                print(f"Error updating image status display: {e}")
+
+
+    def restart_all_camera_feeds(self):
+        """Restart all camera feeds - FIXED METHOD"""
+        try:
+            if hasattr(self, 'front_camera') and self.front_camera:
+                if hasattr(self.front_camera, 'restart_feed'):
+                    self.front_camera.restart_feed()
+                else:
+                    # Fallback for older camera implementations
+                    if hasattr(self.front_camera, 'stop_continuous_feed'):
+                        self.front_camera.stop_continuous_feed()
+                        self.parent.after(500, self.front_camera.start_continuous_feed)
+                    
+            if hasattr(self, 'back_camera') and self.back_camera:
+                if hasattr(self.back_camera, 'restart_feed'):
+                    self.back_camera.restart_feed()
+                else:
+                    # Fallback for older camera implementations
+                    if hasattr(self.back_camera, 'stop_continuous_feed'):
+                        self.back_camera.stop_continuous_feed()
+                        self.parent.after(1000, self.back_camera.start_continuous_feed)
+        except Exception as e:
+            print(f"Error restarting cameras: {e}")
+
+    def stop_all_camera_feeds(self):
+        """Stop all camera feeds - FIXED METHOD"""
+        try:
+            if hasattr(self, 'front_camera') and self.front_camera:
+                if hasattr(self.front_camera, 'stop_continuous_feed'):
+                    self.front_camera.stop_continuous_feed()
+                elif hasattr(self.front_camera, 'stop_camera'):
+                    self.front_camera.stop_camera()
+                    
+            if hasattr(self, 'back_camera') and self.back_camera:
+                if hasattr(self.back_camera, 'stop_continuous_feed'):
+                    self.back_camera.stop_continuous_feed()
+                elif hasattr(self.back_camera, 'stop_camera'):
+                    self.back_camera.stop_camera()
+        except Exception as e:
+            print(f"Error stopping cameras: {e}")
+
+
+    def start_all_camera_feeds(self):
+        """Start all camera feeds - FIXED METHOD"""
+        try:
+            if hasattr(self, 'front_camera') and self.front_camera:
+                if hasattr(self.front_camera, 'start_continuous_feed'):
+                    self.front_camera.start_continuous_feed()
+                elif hasattr(self.front_camera, 'start_camera'):
+                    self.front_camera.start_camera()
+                    
+            if hasattr(self, 'back_camera') and self.back_camera:
+                if hasattr(self.back_camera, 'start_continuous_feed'):
+                    self.back_camera.start_continuous_feed()
+                elif hasattr(self.back_camera, 'start_camera'):
+                    self.back_camera.start_camera()
+        except Exception as e:
+            print(f"Error starting cameras: {e}")
+
+
+# COMPLETE FIX: Add these methods to the MainForm class in main_form.py
+# Insert these methods into the MainForm class, typically near the end of the class definition
+
+    def capture_both_cameras(self):
+        """FIXED: Capture images from both front and back cameras simultaneously
+        
+        This method captures images for the current weighment state (first or second).
+        It's designed to work with the 4-image system where each weighment has front and back images.
+        """
+        try:
+            print(f"capture_both_cameras called for {getattr(self, 'current_weighment', 'unknown')} weighment")
+            
+            # Validate that cameras are available
+            if not hasattr(self, 'front_camera') or not hasattr(self, 'back_camera'):
+                messagebox.showwarning("Camera Error", 
+                                     "Cameras not available. Records can still be saved without images.")
+                return False
+            
+            # Check if vehicle number is entered
+            if not self.form_validator.validate_vehicle_number():
+                return False
+            
+            success_count = 0
+            error_messages = []
+            
+            # Get current weighment state
+            current_weighment = getattr(self, 'current_weighment', 'first')
+            
+            # Capture from front camera
+            try:
+                if self.front_camera:
+                    if hasattr(self.front_camera, 'capture_image'):
+                        # Camera has capture method
+                        if self.front_camera.capture_image():
+                            captured_image = getattr(self.front_camera, 'captured_image', None)
+                            if captured_image is not None:
+                                # Save using image handler
+                                if current_weighment == "first":
+                                    self.image_handler.save_first_front_image(captured_image)
+                                else:
+                                    self.image_handler.save_second_front_image(captured_image)
+                                success_count += 1
+                                print("Front camera image captured successfully")
+                            else:
+                                error_messages.append("Front camera: no image data")
+                        else:
+                            error_messages.append("Front camera: capture failed")
+                    else:
+                        # Camera doesn't have capture method - try alternative
+                        print("Front camera: using alternative capture method")
+                        if hasattr(self, 'save_front_image'):
+                            if self.save_front_image():
+                                success_count += 1
+                        else:
+                            error_messages.append("Front camera: no capture method available")
+            except Exception as e:
+                error_messages.append(f"Front camera error: {str(e)}")
+                print(f"Front camera capture error: {e}")
+            
+            # Capture from back camera
+            try:
+                if self.back_camera:
+                    if hasattr(self.back_camera, 'capture_image'):
+                        # Camera has capture method
+                        if self.back_camera.capture_image():
+                            captured_image = getattr(self.back_camera, 'captured_image', None)
+                            if captured_image is not None:
+                                # Save using image handler
+                                if current_weighment == "first":
+                                    self.image_handler.save_first_back_image(captured_image)
+                                else:
+                                    self.image_handler.save_second_back_image(captured_image)
+                                success_count += 1
+                                print("Back camera image captured successfully")
+                            else:
+                                error_messages.append("Back camera: no image data")
+                        else:
+                            error_messages.append("Back camera: capture failed")
+                    else:
+                        # Camera doesn't have capture method - try alternative
+                        print("Back camera: using alternative capture method")
+                        if hasattr(self, 'save_back_image'):
+                            if self.save_back_image():
+                                success_count += 1
+                        else:
+                            error_messages.append("Back camera: no capture method available")
+            except Exception as e:
+                error_messages.append(f"Back camera error: {str(e)}")
+                print(f"Back camera capture error: {e}")
+            
+            # Update image status display
+            try:
+                self.update_image_status_display()
+            except Exception as e:
+                print(f"Error updating image status: {e}")
+            
+            # Show results to user
+            if success_count > 0:
+                message = f"✅ Captured {success_count} image(s) for {current_weighment} weighment"
+                if error_messages:
+                    message += f"\n\n⚠️ Issues: {'; '.join(error_messages)}"
+                messagebox.showinfo("Capture Results", message)
+                return True
+            else:
+                # No images captured
+                if error_messages:
+                    error_text = "\n".join(error_messages)
+                    messagebox.showwarning("Capture Failed", 
+                                         f"No images were captured.\n\nIssues encountered:\n{error_text}\n\n"
+                                         "Records can still be saved without images.")
+                else:
+                    messagebox.showwarning("Capture Failed", 
+                                         "No images were captured. Check camera connections.\n\n"
+                                         "Records can still be saved without images.")
+                return False
+                
+        except Exception as e:
+            print(f"Critical error in capture_both_cameras: {e}")
+            messagebox.showerror("Error", 
+                               f"Error during image capture:\n{str(e)}\n\n"
+                               "Records can still be saved without images.")
+            return False
+
+    def update_image_status_display(self):
+        """Update the image status indicators based on captured images"""
+        try:
+            # Count images for each weighment
+            first_count = 0
+            second_count = 0
+            
+            # Check first weighment images
+            if hasattr(self, 'first_front_image_path') and self.first_front_image_path:
+                first_count += 1
+            if hasattr(self, 'first_back_image_path') and self.first_back_image_path:
+                first_count += 1
+                
+            # Check second weighment images  
+            if hasattr(self, 'second_front_image_path') and self.second_front_image_path:
+                second_count += 1
+            if hasattr(self, 'second_back_image_path') and self.second_back_image_path:
+                second_count += 1
+            
+            # Update first weighment status
+            if hasattr(self, 'first_image_status_var'):
+                self.first_image_status_var.set(f"1st: {first_count}/2")
+                if hasattr(self, 'first_image_status'):
+                    color = "green" if first_count == 2 else "orange" if first_count == 1 else "red"
+                    self.first_image_status.config(foreground=color)
+            
+            # Update second weighment status
+            if hasattr(self, 'second_image_status_var'):
+                self.second_image_status_var.set(f"2nd: {second_count}/2")
+                if hasattr(self, 'second_image_status'):
+                    color = "green" if second_count == 2 else "orange" if second_count == 1 else "red"
+                    self.second_image_status.config(foreground=color)
+            
+            # Update total status
+            total_count = first_count + second_count
+            if hasattr(self, 'total_image_status_var'):
+                self.total_image_status_var.set(f"Total: {total_count}/4")
+                
+        except Exception as e:
+            print(f"Error updating image status display: {e}")
+
+    def get_weighment_image_count(self):
+        """Get the count of images for the current weighment state
+        
+        Returns:
+            tuple: (current_weighment_count, total_count)
+        """
+        try:
+            current_weighment = getattr(self, 'current_weighment', 'first')
+            
+            if current_weighment == "first":
+                count = 0
+                if hasattr(self, 'first_front_image_path') and self.first_front_image_path:
+                    count += 1
+                if hasattr(self, 'first_back_image_path') and self.first_back_image_path:
+                    count += 1
+                return count, count
+            else:
+                first_count = 0
+                if hasattr(self, 'first_front_image_path') and self.first_front_image_path:
+                    first_count += 1
+                if hasattr(self, 'first_back_image_path') and self.first_back_image_path:
+                    first_count += 1
+                    
+                second_count = 0
+                if hasattr(self, 'second_front_image_path') and self.second_front_image_path:
+                    second_count += 1
+                if hasattr(self, 'second_back_image_path') and self.second_back_image_path:
+                    second_count += 1
+                    
+                return second_count, first_count + second_count
+                
+        except Exception as e:
+            print(f"Error getting image count: {e}")
+            return 0, 0
+
+    def validate_cameras_for_capture(self):
+        """Validate that cameras are ready for image capture
+        
+        Returns:
+            tuple: (is_valid, message)
+        """
+        try:
+            issues = []
+            
+            # Check if cameras exist
+            if not hasattr(self, 'front_camera') or not self.front_camera:
+                issues.append("Front camera not available")
+            
+            if not hasattr(self, 'back_camera') or not self.back_camera:
+                issues.append("Back camera not available")
+            
+            # Check if cameras have capture capability
+            if hasattr(self, 'front_camera') and self.front_camera:
+                if not hasattr(self.front_camera, 'capture_image') and not hasattr(self, 'save_front_image'):
+                    issues.append("Front camera has no capture method")
+            
+            if hasattr(self, 'back_camera') and self.back_camera:
+                if not hasattr(self.back_camera, 'capture_image') and not hasattr(self, 'save_back_image'):
+                    issues.append("Back camera has no capture method")
+            
+            if issues:
+                return False, "; ".join(issues)
+            else:
+                return True, "Cameras ready for capture"
+                
+        except Exception as e:
+            return False, f"Error validating cameras: {str(e)}"
+
+    def reset_camera_display(self):
+        """Reset camera displays to initial state"""
+        try:
+            if hasattr(self, 'front_camera') and self.front_camera:
+                if hasattr(self.front_camera, 'reset_display'):
+                    self.front_camera.reset_display()
+                    
+            if hasattr(self, 'back_camera') and self.back_camera:
+                if hasattr(self.back_camera, 'reset_display'):
+                    self.back_camera.reset_display()
+                    
+        except Exception as e:
+            print(f"Error resetting camera display: {e}")
+
+    def get_camera_status(self):
+        """Get status of both cameras
+        
+        Returns:
+            dict: Status information for both cameras
+        """
+        try:
+            status = {
+                'front_camera': {
+                    'available': hasattr(self, 'front_camera') and self.front_camera is not None,
+                    'type': 'unknown',
+                    'status': 'unknown'
+                },
+                'back_camera': {
+                    'available': hasattr(self, 'back_camera') and self.back_camera is not None,
+                    'type': 'unknown', 
+                    'status': 'unknown'
+                }
+            }
+            
+            # Get front camera details
+            if status['front_camera']['available']:
+                front_cam = self.front_camera
+                status['front_camera']['type'] = getattr(front_cam, 'camera_type', 'USB')
+                status['front_camera']['status'] = 'ready' if hasattr(front_cam, 'capture_image') else 'limited'
+            
+            # Get back camera details  
+            if status['back_camera']['available']:
+                back_cam = self.back_camera
+                status['back_camera']['type'] = getattr(back_cam, 'camera_type', 'USB')
+                status['back_camera']['status'] = 'ready' if hasattr(back_cam, 'capture_image') else 'limited'
+                
+            return status
+            
+        except Exception as e:
+            print(f"Error getting camera status: {e}")
+            return {
+                'front_camera': {'available': False, 'type': 'error', 'status': str(e)},
+                'back_camera': {'available': False, 'type': 'error', 'status': str(e)}
+            }
+
 
     def create_cameras_panel(self, parent):
         """Create the cameras panel with cameras side by side and state-based image capture"""
@@ -745,50 +1161,7 @@ class MainForm:
         self.reserve_next_ticket_number()
 
     def clear_form(self):
-        """Reset form fields except site and Transfer Party Name"""
-        # Reset variables
-        self.vehicle_var.set("")
-        self.agency_var.set("")
-        self.first_weight_var.set("")
-        self.first_timestamp_var.set("")
-        self.second_weight_var.set("")
-        self.second_timestamp_var.set("")
-        self.net_weight_var.set("")
-        self.material_type_var.set("Inert")
-        
-        # Reset weighment state
-        self.current_weighment = "first"
-        self.weighment_state_var.set("First Weighment")
-        
-        # Reset all 4 image paths
-        self.first_front_image_path = None
-        self.first_back_image_path = None
-        self.second_front_image_path = None
-        self.second_back_image_path = None
-        
-        # Reset images using image handler
-        self.image_handler.reset_images()
-        
-        # Reset cameras if they exist
-        if hasattr(self, 'front_camera') and self.front_camera:
-            self.front_camera.stop_camera()
-            self.front_camera.captured_image = None
-            self.front_camera.canvas.delete("all")
-            self.front_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
-            self.front_camera.capture_button.config(text="Capture")
-            
-        if hasattr(self, 'back_camera') and self.back_camera:
-            self.back_camera.stop_camera()
-            self.back_camera.captured_image = None
-            self.back_camera.canvas.delete("all")
-            self.back_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
-            self.back_camera.capture_button.config(text="Capture")
-            
-        # Reserve new ticket number when clearing form
-        self.reserve_next_ticket_number()
-
-    def prepare_for_new_ticket_after_completion(self):
-        """Prepare form for new ticket ONLY after both weighments are complete and saved"""
+        """Reset form fields except site and Transfer Party Name - FIXED METHOD"""
         try:
             # Reset variables
             self.vehicle_var.set("")
@@ -811,22 +1184,112 @@ class MainForm:
             self.second_back_image_path = None
             
             # Reset images using image handler
-            self.image_handler.reset_images()
+            if hasattr(self, 'image_handler'):
+                self.image_handler.reset_images()
             
-            # Reset cameras if they exist
+            # Reset cameras if they exist - FIXED
             if hasattr(self, 'front_camera') and self.front_camera:
-                self.front_camera.stop_camera()
-                self.front_camera.captured_image = None
-                self.front_camera.canvas.delete("all")
-                self.front_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
-                self.front_camera.capture_button.config(text="Capture")
-                
+                try:
+                    if hasattr(self.front_camera, 'stop_continuous_feed'):
+                        self.front_camera.stop_continuous_feed()
+                    elif hasattr(self.front_camera, 'stop_camera'):
+                        self.front_camera.stop_camera()
+                        
+                    # Reset captured image and display
+                    self.front_camera.captured_image = None
+                    if hasattr(self.front_camera, 'canvas'):
+                        self.front_camera.canvas.delete("all")
+                        self.front_camera.show_status_message("Click 'Start Feed' to begin")
+                    if hasattr(self.front_camera, 'save_button'):
+                        self.front_camera.save_button.config(state=tk.DISABLED)
+                except Exception as e:
+                    print(f"Error resetting front camera: {e}")
+                    
             if hasattr(self, 'back_camera') and self.back_camera:
-                self.back_camera.stop_camera()
-                self.back_camera.captured_image = None
-                self.back_camera.canvas.delete("all")
-                self.back_camera.canvas.create_text(75, 60, text="Click Capture", fill="white", justify=tk.CENTER)
-                self.back_camera.capture_button.config(text="Capture")
+                try:
+                    if hasattr(self.back_camera, 'stop_continuous_feed'):
+                        self.back_camera.stop_continuous_feed()
+                    elif hasattr(self.back_camera, 'stop_camera'):
+                        self.back_camera.stop_camera()
+                        
+                    # Reset captured image and display
+                    self.back_camera.captured_image = None
+                    if hasattr(self.back_camera, 'canvas'):
+                        self.back_camera.canvas.delete("all")
+                        self.back_camera.show_status_message("Click 'Start Feed' to begin")
+                    if hasattr(self.back_camera, 'save_button'):
+                        self.back_camera.save_button.config(state=tk.DISABLED)
+                except Exception as e:
+                    print(f"Error resetting back camera: {e}")
+            
+            # Reserve new ticket number when clearing form
+            self.reserve_next_ticket_number()
+            
+        except Exception as e:
+            print(f"Error in clear_form: {e}")
+
+
+    def prepare_for_new_ticket_after_completion(self):
+        """Prepare form for new ticket ONLY after both weighments are complete and saved - FIXED"""
+        try:
+            # Reset variables
+            self.vehicle_var.set("")
+            self.agency_var.set("")
+            self.first_weight_var.set("")
+            self.first_timestamp_var.set("")
+            self.second_weight_var.set("")
+            self.second_timestamp_var.set("")
+            self.net_weight_var.set("")
+            self.material_type_var.set("Inert")
+            
+            # Reset weighment state
+            self.current_weighment = "first"
+            self.weighment_state_var.set("First Weighment")
+            
+            # Reset all 4 image paths
+            self.first_front_image_path = None
+            self.first_back_image_path = None
+            self.second_front_image_path = None
+            self.second_back_image_path = None
+            
+            # Reset images using image handler
+            if hasattr(self, 'image_handler'):
+                self.image_handler.reset_images()
+            
+            # Reset cameras if they exist - FIXED
+            if hasattr(self, 'front_camera') and self.front_camera:
+                try:
+                    if hasattr(self.front_camera, 'stop_continuous_feed'):
+                        self.front_camera.stop_continuous_feed()
+                    elif hasattr(self.front_camera, 'stop_camera'):
+                        self.front_camera.stop_camera()
+                        
+                    # Reset captured image and display
+                    self.front_camera.captured_image = None
+                    if hasattr(self.front_camera, 'canvas'):
+                        self.front_camera.canvas.delete("all")
+                        self.front_camera.show_status_message("Click 'Start Feed' to begin")
+                    if hasattr(self.front_camera, 'save_button'):
+                        self.front_camera.save_button.config(state=tk.DISABLED)
+                except Exception as e:
+                    print(f"Error resetting front camera: {e}")
+                    
+            if hasattr(self, 'back_camera') and self.back_camera:
+                try:
+                    if hasattr(self.back_camera, 'stop_continuous_feed'):
+                        self.back_camera.stop_continuous_feed()
+                    elif hasattr(self.back_camera, 'stop_camera'):
+                        self.back_camera.stop_camera()
+                        
+                    # Reset captured image and display
+                    self.back_camera.captured_image = None
+                    if hasattr(self.back_camera, 'canvas'):
+                        self.back_camera.canvas.delete("all")
+                        self.back_camera.show_status_message("Click 'Start Feed' to begin")
+                    if hasattr(self.back_camera, 'save_button'):
+                        self.back_camera.save_button.config(state=tk.DISABLED)
+                except Exception as e:
+                    print(f"Error resetting back camera: {e}")
             
             # Reserve the next ticket number
             self.reserve_next_ticket_number()
@@ -969,11 +1432,21 @@ class MainForm:
                 self.tpt_var.set(transfer_parties[0])
 
     def on_closing(self):
-        """Handle cleanup when closing"""
-        if hasattr(self, 'front_camera') and self.front_camera:
-            self.front_camera.stop_camera()
-        if hasattr(self, 'back_camera') and self.back_camera:
-            self.back_camera.stop_camera()
+        """Handle cleanup when closing - FIXED METHOD"""
+        try:
+            if hasattr(self, 'front_camera') and self.front_camera:
+                if hasattr(self.front_camera, 'stop_continuous_feed'):
+                    self.front_camera.stop_continuous_feed()
+                elif hasattr(self.front_camera, 'stop_camera'):
+                    self.front_camera.stop_camera()
+                    
+            if hasattr(self, 'back_camera') and self.back_camera:
+                if hasattr(self.back_camera, 'stop_continuous_feed'):
+                    self.back_camera.stop_continuous_feed()
+                elif hasattr(self.back_camera, 'stop_camera'):
+                    self.back_camera.stop_camera()
+        except Exception as e:
+            print(f"Error in camera cleanup: {e}")
 
     # Legacy methods that delegate to component managers
     def handle_weighbridge_weight(self, weight):

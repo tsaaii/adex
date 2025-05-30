@@ -783,9 +783,8 @@ class SettingsPanel:
             
 # Fix for the create_weighbridge_settings method in settings_panel.py
 
-
     def create_weighbridge_settings(self, parent):
-        """Create weighbridge configuration settings with enhanced cloud features"""
+        """UPDATED: Create weighbridge configuration settings with enhanced cloud features including JSON bulk upload"""
         # Initialize the weight status variable
         self.weight_status_var = tk.StringVar(value="Ready")
         
@@ -868,14 +867,19 @@ class SettingsPanel:
                                         foreground="black")
         self.weight_status_label.grid(row=8, column=0, columnspan=3, sticky=tk.W, pady=2)
         
-        # Check if cloud storage is enabled and add enhanced backup section
+        # UPDATED: Check if cloud storage is enabled and add enhanced backup section with JSON support
         if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
+            self.create_enhanced_cloud_backup_section(wb_frame)
+
+    def create_enhanced_cloud_backup_section(self, wb_frame):
+        """UPDATED: Enhanced cloud backup section with JSON bulk upload"""
+        try:
             # Create a separator
             ttk.Separator(wb_frame, orient=tk.HORIZONTAL).grid(
                 row=9, column=0, columnspan=3, sticky=tk.EW, pady=10)
             
             # Enhanced cloud backup section
-            cloud_frame = ttk.LabelFrame(wb_frame, text="Cloud Storage & Backup")
+            cloud_frame = ttk.LabelFrame(wb_frame, text="Cloud Storage & Backup (JSON + Images + Reports)")
             cloud_frame.grid(row=10, column=0, columnspan=3, sticky=tk.EW, pady=5)
             
             # Configure cloud frame columns
@@ -883,48 +887,367 @@ class SettingsPanel:
             cloud_frame.columnconfigure(1, weight=1)
             cloud_frame.columnconfigure(2, weight=1)
             
-            # Row 1: Main backup button and status button
+            # Row 1: Main backup buttons
+            # NEW: Bulk JSON Upload button
+            self.bulk_json_btn = HoverButton(cloud_frame, 
+                                        text="📤 Bulk Upload JSONs", 
+                                        bg=config.COLORS["warning"], 
+                                        fg=config.COLORS["button_text"], 
+                                        padx=8, pady=5,
+                                        command=self.bulk_upload_json_backups)
+            self.bulk_json_btn.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+            
+            # Enhanced comprehensive backup button
             self.backup_btn = HoverButton(cloud_frame, 
-                                        text="📤 Backup Records + Images", 
+                                        text="📤 Full Backup (All)", 
                                         bg=config.COLORS["primary"], 
                                         fg=config.COLORS["button_text"], 
                                         padx=8, pady=5,
-                                        command=self.backup_to_cloud)
-            self.backup_btn.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+                                        command=self.comprehensive_backup_with_json)
+            self.backup_btn.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
             
             # Cloud status button
             status_btn = HoverButton(cloud_frame, 
-                                   text="📊 Cloud Status", 
-                                   bg=config.COLORS["primary_light"], 
-                                   fg=config.COLORS["text"], 
-                                   padx=8, pady=5,
-                                   command=self.show_cloud_storage_status)
-            status_btn.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+                                text="📊 Cloud Status", 
+                                bg=config.COLORS["primary_light"], 
+                                fg=config.COLORS["text"], 
+                                padx=8, pady=5,
+                                command=self.show_enhanced_cloud_status)
+            status_btn.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
             
-            # Settings button
-            cloud_settings_btn = HoverButton(cloud_frame, 
-                                           text="⚙️ Settings", 
-                                           bg=config.COLORS["button_alt"], 
-                                           fg=config.COLORS["button_text"], 
-                                           padx=8, pady=5,
-                                           command=self.show_cloud_settings)
-            cloud_settings_btn.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+            # Row 2: JSON status and management
+            json_status_frame = ttk.Frame(cloud_frame)
+            json_status_frame.grid(row=1, column=0, columnspan=3, sticky="ew", padx=5, pady=5)
             
-            # Row 2: Backup status display
+            ttk.Label(json_status_frame, text="Local JSON Backups:", font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT)
+            
+            # JSON count variable
+            self.json_count_var = tk.StringVar(value="Checking...")
+            json_count_label = ttk.Label(json_status_frame, textvariable=self.json_count_var, 
+                                    font=("Segoe UI", 9), foreground="blue")
+            json_count_label.pack(side=tk.LEFT, padx=(5, 0))
+            
+            # Refresh JSON count button
+            refresh_json_btn = HoverButton(json_status_frame, 
+                                        text="🔄", 
+                                        bg=config.COLORS["button_alt"], 
+                                        fg=config.COLORS["button_text"], 
+                                        padx=3, pady=1,
+                                        command=self.refresh_json_count)
+            refresh_json_btn.pack(side=tk.LEFT, padx=5)
+            
+            # Row 3: Backup status display
             status_frame = ttk.Frame(cloud_frame)
-            status_frame.grid(row=1, column=0, columnspan=3, sticky="ew", padx=5, pady=5)
+            status_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=5, pady=5)
             
             ttk.Label(status_frame, text="Status:", font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT)
             self.backup_status_label = ttk.Label(status_frame, textvariable=self.backup_status_var, 
-                                               font=("Segoe UI", 9), foreground="blue")
+                                            font=("Segoe UI", 9), foreground="blue")
             self.backup_status_label.pack(side=tk.LEFT, padx=(5, 0))
             
-            # Row 3: Information text
-            info_text = ("💡 Cloud backup uploads complete records with images.\n"
-                        "Only records with both weighments are backed up.")
+            # Row 4: Information text
+            info_text = ("💡 JSONs are created locally for complete records (both weighments).\n"
+                        "📤 Use 'Bulk Upload JSONs' for fast upload of all local JSONs.\n"
+                        "📦 Use 'Full Backup' for comprehensive upload including reports.")
             info_label = ttk.Label(cloud_frame, text=info_text, 
-                                 font=("Segoe UI", 8), foreground="gray")
-            info_label.grid(row=2, column=0, columnspan=3, sticky="w", padx=5, pady=(0, 5))
+                                font=("Segoe UI", 8), foreground="gray")
+            info_label.grid(row=3, column=0, columnspan=3, sticky="w", padx=5, pady=(0, 5))
+            
+            # Initialize JSON count
+            self.refresh_json_count()
+            
+        except Exception as e:
+            print(f"Error creating enhanced cloud backup section: {e}")
+
+    # ALSO ADD THESE METHODS to your SettingsPanel class:
+
+    def refresh_json_count(self):
+        """Refresh the count of local JSON backup files"""
+        try:
+            data_manager = self.find_data_manager()
+            if data_manager and hasattr(data_manager, 'get_all_json_backups'):
+                json_files = data_manager.get_all_json_backups()
+                count = len(json_files)
+                
+                if count == 0:
+                    self.json_count_var.set("No JSON backups found")
+                elif count == 1:
+                    self.json_count_var.set("1 JSON backup ready")
+                else:
+                    self.json_count_var.set(f"{count} JSON backups ready")
+            else:
+                self.json_count_var.set("Cannot access JSON backups")
+                
+        except Exception as e:
+            self.json_count_var.set(f"Error: {str(e)}")
+            print(f"Error refreshing JSON count: {e}")
+
+    def bulk_upload_json_backups(self):
+        """Bulk upload all local JSON backups to cloud"""
+        try:
+            # Find data manager
+            data_manager = self.find_data_manager()
+            
+            if not data_manager:
+                self.backup_status_var.set("Error: Data manager not found")
+                return
+            
+            # Set status to uploading
+            self.backup_status_var.set("Starting bulk JSON upload...")
+            
+            # Check if bulk upload method exists
+            if hasattr(data_manager, 'bulk_upload_json_backups_to_cloud'):
+                results = data_manager.bulk_upload_json_backups_to_cloud()
+                
+                if results.get("success", False):
+                    # Show success message
+                    uploaded = results.get("uploaded", 0)
+                    total = results.get("total", 0)
+                    
+                    if uploaded > 0:
+                        status_msg = f"✅ Bulk upload successful! {uploaded}/{total} JSON backups uploaded"
+                        self.backup_status_var.set(status_msg)
+                        
+                        # Show detailed results in popup
+                        messagebox.showinfo("Bulk Upload Complete", 
+                                        f"JSON Bulk Upload Results:\n\n"
+                                        f"✅ Successfully uploaded: {uploaded}/{total} files\n"
+                                        f"📁 Local JSON backups processed\n"
+                                        f"🌐 All complete records now in cloud\n\n"
+                                        f"💡 Images and metadata included with each JSON")
+                    else:
+                        self.backup_status_var.set("ℹ️ No new JSON backups to upload")
+                        messagebox.showinfo("Bulk Upload", "No new JSON backups found to upload.")
+                else:
+                    error_msg = results.get("error", "Unknown error")
+                    self.backup_status_var.set(f"❌ Bulk upload failed: {error_msg}")
+                    messagebox.showerror("Bulk Upload Failed", 
+                                    f"Bulk JSON upload failed:\n\n{error_msg}\n\n"
+                                    "Please check:\n"
+                                    "• Internet connection\n"
+                                    "• Cloud storage credentials\n"
+                                    "• Storage permissions")
+                    
+                # Refresh JSON count after upload
+                self.refresh_json_count()
+                
+            else:
+                # Fallback message
+                self.backup_status_var.set("Bulk upload not available - update data manager")
+                messagebox.showerror("Feature Not Available", 
+                                "Bulk JSON upload feature is not available.\n"
+                                "Please update your data manager module.")
+                                
+        except Exception as e:
+            error_msg = f"Error: {str(e)}"
+            print(f"Error during bulk JSON upload: {e}")
+            self.backup_status_var.set(error_msg)
+            messagebox.showerror("Bulk Upload Error", f"Bulk upload failed with error:\n{error_msg}")
+
+    def comprehensive_backup_with_json(self):
+        """Enhanced comprehensive backup including JSON files"""
+        try:
+            # Find data manager
+            data_manager = self.find_data_manager()
+            
+            if not data_manager:
+                self.backup_status_var.set("Error: Data manager not found")
+                return
+            
+            # Set status to backing up
+            self.backup_status_var.set("Starting comprehensive backup (JSONs + Images + Reports)...")
+            
+            # First do bulk JSON upload
+            if hasattr(data_manager, 'bulk_upload_json_backups_to_cloud'):
+                json_results = data_manager.bulk_upload_json_backups_to_cloud()
+            else:
+                json_results = {"success": False, "uploaded": 0, "total": 0}
+            
+            # Then do comprehensive backup (existing method)
+            if hasattr(data_manager, 'backup_complete_records_to_cloud_with_reports'):
+                backup_results = data_manager.backup_complete_records_to_cloud_with_reports()
+            else:
+                backup_results = {"success": False, "error": "Method not available"}
+            
+            # Combine results
+            total_json_uploaded = json_results.get("uploaded", 0)
+            total_records_uploaded = backup_results.get("records_uploaded", 0)
+            total_images_uploaded = backup_results.get("images_uploaded", 0)
+            total_reports_uploaded = backup_results.get("reports_uploaded", 0)
+            
+            if json_results.get("success", False) or backup_results.get("success", False):
+                # Show combined success message
+                status_parts = []
+                
+                if total_json_uploaded > 0:
+                    status_parts.append(f"✓ {total_json_uploaded} JSON backups")
+                
+                if total_records_uploaded > 0:
+                    status_parts.append(f"✓ {total_records_uploaded} records")
+                
+                if total_images_uploaded > 0:
+                    status_parts.append(f"✓ {total_images_uploaded} images")
+                
+                if total_reports_uploaded > 0:
+                    status_parts.append(f"✓ {total_reports_uploaded} reports")
+                
+                if status_parts:
+                    status_msg = "Comprehensive backup successful! " + ", ".join(status_parts)
+                else:
+                    status_msg = "Backup completed - no new files to upload"
+                
+                self.backup_status_var.set(status_msg)
+                
+                # Show detailed popup
+                messagebox.showinfo("Comprehensive Backup Complete",
+                                f"🎉 Comprehensive Backup Results:\n\n"
+                                f"📄 JSON Backups: {total_json_uploaded}\n"
+                                f"📊 Records: {total_records_uploaded}\n"
+                                f"🖼️ Images: {total_images_uploaded}\n"
+                                f"📋 Reports: {total_reports_uploaded}\n\n"
+                                f"✅ All data backed up to cloud successfully!\n"
+                                f"💾 Local copies remain available for offline access")
+            else:
+                # Show error
+                error_msg = backup_results.get("error", "Unknown error")
+                self.backup_status_var.set(f"❌ Comprehensive backup failed: {error_msg}")
+                messagebox.showerror("Comprehensive Backup Failed", 
+                                f"Backup failed:\n\n{error_msg}\n\n"
+                                "Please check your internet connection and cloud credentials.")
+            
+            # Refresh JSON count
+            self.refresh_json_count()
+            
+        except Exception as e:
+            error_msg = f"Error: {str(e)}"
+            print(f"Error during comprehensive backup: {e}")
+            self.backup_status_var.set(error_msg)
+            messagebox.showerror("Backup Error", f"Comprehensive backup failed:\n{error_msg}")
+
+    def show_enhanced_cloud_status(self):
+        """Show enhanced cloud status including JSON backup information"""
+        try:
+            data_manager = self.find_data_manager()
+            if not data_manager:
+                messagebox.showerror("Error", "Data manager not found")
+                return
+            
+            # Get cloud upload summary
+            if hasattr(data_manager, 'get_enhanced_cloud_upload_summary'):
+                summary = data_manager.get_enhanced_cloud_upload_summary()
+            else:
+                summary = {"error": "Enhanced summary not available"}
+            
+            if "error" in summary:
+                messagebox.showerror("Cloud Storage Status", f"Error: {summary['error']}")
+                return
+            
+            # Get JSON backup count
+            json_count = 0
+            if hasattr(data_manager, 'get_all_json_backups'):
+                json_files = data_manager.get_all_json_backups()
+                json_count = len(json_files)
+            
+            # Create enhanced status window
+            status_window = tk.Toplevel(self.parent)
+            status_window.title("Enhanced Cloud Storage Status")
+            status_window.geometry("700x600")
+            status_window.resizable(True, True)
+            
+            # Create scrollable text widget
+            text_frame = ttk.Frame(status_window)
+            text_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            
+            text_widget = tk.Text(text_frame, wrap=tk.WORD, font=("Consolas", 10))
+            scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=text_widget.yview)
+            text_widget.configure(yscrollcommand=scrollbar.set)
+            
+            # Pack text widget and scrollbar
+            text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            
+            # Format enhanced status information
+            status_text = f"""ENHANCED CLOUD STORAGE STATUS WITH JSON BACKUPS
+    {'=' * 70}
+
+    🏢 CONTEXT INFORMATION:
+    Agency: {summary.get('agency', 'Unknown')}
+    Site: {summary.get('site', 'Unknown')}
+    Data Context: {summary.get('context', 'Unknown')}
+
+    📊 CLOUD STORAGE STATISTICS:
+    Total Files in Cloud: {summary.get('total_files', 0)}
+    JSON Records: {summary.get('json_files', 0)}
+    Image Files: {summary.get('image_files', 0)}
+    Daily Report Files: {summary.get('daily_report_files', 0)}
+    Total Storage Used: {summary.get('total_size', 'Unknown')}
+
+    📄 LOCAL JSON BACKUPS:
+    Local JSON Files Ready: {json_count}
+    Status: {'✅ Ready for bulk upload' if json_count > 0 else '⭕ No JSON backups found'}
+
+    ⏰ UPLOAD INFORMATION:
+    Last Upload: {summary.get('last_upload', 'Never')}
+
+    💡 FEATURES:
+    ✓ Offline-first operation (no delays during saves)
+    ✓ Local JSON backups for complete records
+    ✓ Bulk JSON upload for efficient cloud sync
+    ✓ Auto PDF generation for complete records
+    ✓ Incremental cloud backup (only new/changed files)
+    ✓ Organized folder structure (no duplicates)
+
+    🌐 CONNECTION STATUS: {'✅ Connected' if summary.get('total_files', -1) >= 0 else '❌ Error'}
+    """
+            
+            # Insert text
+            text_widget.insert(tk.END, status_text)
+            text_widget.config(state=tk.DISABLED)  # Make read-only
+            
+            # Add buttons
+            button_frame = ttk.Frame(status_window)
+            button_frame.pack(fill=tk.X, padx=10, pady=5)
+            
+            refresh_btn = ttk.Button(button_frame, text="🔄 Refresh", 
+                                command=lambda: self.refresh_enhanced_cloud_status_simple(text_widget, json_count))
+            refresh_btn.pack(side=tk.LEFT, padx=5)
+            
+            bulk_upload_btn = ttk.Button(button_frame, text="📤 Bulk Upload JSONs", 
+                                    command=lambda: [status_window.destroy(), self.bulk_upload_json_backups()])
+            bulk_upload_btn.pack(side=tk.LEFT, padx=5)
+            
+            close_btn = ttk.Button(button_frame, text="Close", command=status_window.destroy)
+            close_btn.pack(side=tk.RIGHT, padx=5)
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Error showing enhanced cloud status: {str(e)}")
+
+    def refresh_enhanced_cloud_status_simple(self, text_widget, json_count):
+        """Simple refresh for enhanced cloud status"""
+        try:
+            # Re-enable text widget for updating
+            text_widget.config(state=tk.NORMAL)
+            text_widget.delete(1.0, tk.END)
+            
+            # Simple refresh message
+            refresh_text = f"""STATUS REFRESHED AT {datetime.datetime.now().strftime('%H:%M:%S')}
+
+    Local JSON Backups: {json_count} files ready
+    Cloud Connection: Testing...
+
+    Click 'Bulk Upload JSONs' to upload all local JSON backups.
+    Click 'Full Backup' for comprehensive backup including reports.
+    """
+            text_widget.insert(tk.END, refresh_text)
+            
+            # Make read-only again
+            text_widget.config(state=tk.DISABLED)
+            
+        except Exception as e:
+            text_widget.insert(tk.END, f"Error refreshing: {str(e)}")
+            text_widget.config(state=tk.DISABLED)
+
+# REMOVE the old backup_to_cloud method if it exists, and replace any references to it with comprehensive_backup_with_json
 
     def show_cloud_settings(self):
         """Show cloud storage settings and configuration"""
@@ -1185,79 +1508,7 @@ class SettingsPanel:
 
 # Add these methods to your existing settings_panel.py class
 
-    def backup_to_cloud(self):
-        """Enhanced backup: records, images, and daily reports with incremental backup"""
-        try:
-            # Find data manager
-            data_manager = self.find_data_manager()
-            
-            if not data_manager:
-                self.backup_status_var.set("Error: Data manager not found")
-                return
-            
-            # Set status to backing up
-            self.backup_status_var.set("Starting comprehensive backup (records + images + daily reports)...")
-            
-            # Use the enhanced backup method
-            if hasattr(data_manager, 'backup_complete_records_to_cloud_with_reports'):
-                results = data_manager.backup_complete_records_to_cloud_with_reports()
-                
-                if results.get("success", False):
-                    # Prepare detailed status message
-                    status_parts = []
-                    
-                    # Records and images
-                    if results.get("records_uploaded", 0) > 0:
-                        status_parts.append(f"✓ {results['records_uploaded']}/{results['total_records']} records")
-                    
-                    if results.get("images_uploaded", 0) > 0:
-                        status_parts.append(f"✓ {results['images_uploaded']}/{results['total_images']} images")
-                    
-                    # Daily reports
-                    if results.get("reports_uploaded", 0) > 0:
-                        status_parts.append(f"✓ {results['reports_uploaded']} daily reports")
-                    elif results.get("total_reports", 0) == 0:
-                        status_parts.append("ℹ No daily reports found for today")
-                    
-                    if status_parts:
-                        status_msg = "Backup successful! " + ", ".join(status_parts)
-                    else:
-                        status_msg = "Backup completed - no new files to upload"
-                    
-                    self.backup_status_var.set(status_msg)
-                    
-                    # Show detailed results in popup
-                    self.show_backup_results_dialog(results)
-                    
-                else:
-                    error_msg = results.get("error", "Unknown error")
-                    self.backup_status_var.set(f"Backup failed: {error_msg}")
-                    messagebox.showerror("Backup Failed", 
-                                    f"Backup failed: {error_msg}\n\n"
-                                    "Please check:\n"
-                                    "• Cloud storage connection\n"
-                                    "• Internet connectivity\n"
-                                    "• Storage permissions")
-            else:
-                # Fallback to old method if enhanced method not available
-                self.backup_status_var.set("Using legacy backup method...")
-                success_count, total_complete, images_uploaded, total_images = data_manager.backup_complete_records_to_cloud()
-                
-                if success_count > 0:
-                    status_msg = f"Legacy backup: {success_count}/{total_complete} records, {images_uploaded}/{total_images} images"
-                    self.backup_status_var.set(status_msg)
-                    messagebox.showinfo("Backup Complete", 
-                                    f"Records: {success_count}/{total_complete} uploaded\n"
-                                    f"Images: {images_uploaded}/{total_images} uploaded")
-                else:
-                    self.backup_status_var.set("Legacy backup failed")
-                    messagebox.showwarning("Backup Failed", "No records were uploaded using legacy method")
-                    
-        except Exception as e:
-            error_msg = f"Error: {str(e)}"
-            print(f"Error during backup: {e}")
-            self.backup_status_var.set(error_msg)
-            messagebox.showerror("Backup Error", f"Backup failed with error:\n{error_msg}")
+
 
     def show_backup_results_dialog(self, results):
         """Show detailed backup results in a dialog
@@ -1351,128 +1602,7 @@ class SettingsPanel:
         except Exception as e:
             messagebox.showerror("Error", f"Error showing backup results: {str(e)}")
 
-    def show_cloud_storage_status(self):
-        """Show enhanced cloud storage status including daily reports"""
-        try:
-            data_manager = self.find_data_manager()
-            if not data_manager:
-                messagebox.showerror("Error", "Data manager not found")
-                return
-            
-            # Get enhanced cloud upload summary
-            if hasattr(data_manager, 'get_enhanced_cloud_upload_summary'):
-                summary = data_manager.get_enhanced_cloud_upload_summary()
-            else:
-                # Fallback to regular summary
-                summary = data_manager.get_cloud_upload_summary()
-            
-            if "error" in summary:
-                messagebox.showerror("Cloud Storage Status", f"Error: {summary['error']}")
-                return
-            
-            # Create status window
-            status_window = tk.Toplevel(self.parent)
-            status_window.title("Enhanced Cloud Storage Status")
-            status_window.geometry("600x500")
-            status_window.resizable(True, True)
-            
-            # Create scrollable text widget
-            text_frame = ttk.Frame(status_window)
-            text_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-            
-            text_widget = tk.Text(text_frame, wrap=tk.WORD, font=("Consolas", 10))
-            scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=text_widget.yview)
-            text_widget.configure(yscrollcommand=scrollbar.set)
-            
-            # Pack text widget and scrollbar
-            text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-            
-            # Format enhanced status information
-            status_text = f"""ENHANCED CLOUD STORAGE STATUS
-    {'=' * 60}
 
-    🏢 CONTEXT INFORMATION:
-    Agency: {summary.get('agency', 'Unknown')}
-    Site: {summary.get('site', 'Unknown')}
-    Data Context: {summary.get('context', 'Unknown')}
-
-    📊 CLOUD STORAGE STATISTICS:
-    Total Files: {summary.get('total_files', 0)}
-    JSON Records: {summary.get('json_files', 0)}
-    Image Files: {summary.get('image_files', 0)}
-    Daily Report Files: {summary.get('daily_report_files', 0)}
-    Total Storage Used: {summary.get('total_size', 'Unknown')}
-
-    ⏰ UPLOAD INFORMATION:
-    Last Upload: {summary.get('last_upload', 'Never')}
-
-    📁 TODAY'S DAILY REPORTS:
-    """
-            
-            # Add today's reports info if available
-            todays_reports = summary.get('todays_reports', {})
-            if todays_reports:
-                status_text += f"""   Date: {todays_reports.get('date', 'Unknown')}
-    Local Folder Exists: {'✓ Yes' if todays_reports.get('folder_exists', False) else '✗ No'}
-    Local Files Count: {todays_reports.get('total_files', 0)}
-    Local Total Size: {todays_reports.get('total_size_formatted', '0 B')}
-    File Types: {', '.join(f'{ext}({count})' for ext, count in todays_reports.get('file_types', {}).items()) or 'None'}
-    """
-            else:
-                status_text += "   No information available\n"
-            
-            status_text += f"""
-    🔄 INCREMENTAL BACKUP:
-    Only changed files are uploaded
-    Tracking file: data/backup_tracking.json
-    
-    📂 CLOUD STORAGE STRUCTURE:
-    Records: Agency_Name/Site_Name/Ticket_Number/
-    ├── timestamp.json (vehicle record)
-    └── images/
-        ├── first_front_image.jpg
-        ├── first_back_image.jpg
-        ├── second_front_image.jpg
-        └── second_back_image.jpg
-    
-    Daily Reports: daily_reports/YYYY-MM-DD/
-    ├── report1.pdf
-    ├── report2.xlsx
-    └── [other report files]
-
-    💡 FEATURES:
-    ✓ Incremental backup (only new/changed files)
-    ✓ Complete records with both weighments
-    ✓ All 4 vehicle images per record
-    ✓ Today's daily reports
-    ✓ Organized folder structure
-    ✓ Automatic deduplication
-
-    🌐 CONNECTION STATUS: {'Connected' if summary.get('total_files', -1) >= 0 else 'Error'}
-    """
-            
-            # Insert text
-            text_widget.insert(tk.END, status_text)
-            text_widget.config(state=tk.DISABLED)  # Make read-only
-            
-            # Add buttons
-            button_frame = ttk.Frame(status_window)
-            button_frame.pack(fill=tk.X, padx=10, pady=5)
-            
-            refresh_btn = ttk.Button(button_frame, text="🔄 Refresh", 
-                                command=lambda: self.refresh_enhanced_cloud_status(text_widget))
-            refresh_btn.pack(side=tk.LEFT, padx=5)
-            
-            backup_btn = ttk.Button(button_frame, text="📤 Start Backup", 
-                                command=lambda: [status_window.destroy(), self.backup_to_cloud()])
-            backup_btn.pack(side=tk.LEFT, padx=5)
-            
-            close_btn = ttk.Button(button_frame, text="Close", command=status_window.destroy)
-            close_btn.pack(side=tk.RIGHT, padx=5)
-            
-        except Exception as e:
-            messagebox.showerror("Error", f"Error showing enhanced cloud status: {str(e)}")
 
     def refresh_enhanced_cloud_status(self, text_widget):
         """Refresh the enhanced cloud status display

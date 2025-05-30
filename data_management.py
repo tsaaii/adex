@@ -3,11 +3,11 @@ import csv
 import pandas as pd
 import datetime
 import logging
+import json
 from tkinter import messagebox, filedialog
 import config
-import json
-from cloud_storage import CloudStorageService
 import shutil
+from cloud_storage import CloudStorageService
 
 # Import PDF generation capabilities
 try:
@@ -46,19 +46,30 @@ def setup_logging():
     return logging.getLogger('DataManager')
 
 class DataManager:
-    """Class for managing data operations with OFFLINE-FIRST approach"""
+    """FIXED: Class for managing data operations with JSON local storage and proper net weight calculation"""
     
     def __init__(self):
-        """Initialize data manager with logging"""
+        """Initialize data manager with logging and JSON storage"""
         # Set up logging first
         self.logger = setup_logging()
-        self.logger.info("DataManager initialized with OFFLINE-FIRST approach")
+        self.logger.info("DataManager initialized with OFFLINE-FIRST approach + JSON local storage")
         
         self.data_file = config.DATA_FILE
+        self.reports_folder = config.REPORTS_FOLDER
+        self.json_backup_folder = config.JSON_BACKUPS_FOLDER
         self.initialize_new_csv_structure()
-        
-        # Create daily PDF folder structure
-        self.setup_daily_pdf_folders()
+
+        try:
+            self.setup_daily_pdf_folders()
+        except Exception as e:
+            self.logger.error(f"Error setting up PDF folders: {e}")
+            # Set fallback attributes to prevent AttributeError
+            self.today_pdf_folder = config.DATA_FOLDER
+            self.today_folder_name = datetime.datetime.now().strftime("%d-%m")
+            self.pdf_reports_folder = config.DATA_FOLDER 
+              
+            # FIXED: Setup unified folder structure
+            self.setup_unified_folder_structure()
         
         # Load address config for PDF generation
         self.address_config = self.load_address_config()
@@ -67,8 +78,12 @@ class DataManager:
         self.cloud_storage = None
         
         self.logger.info(f"Data file: {self.data_file}")
+        self.logger.info(f"Reports folder: {self.reports_folder}")
+        self.logger.info(f"JSON backup folder: {self.json_backup_folder}")
+        self.logger.info(f"PDF folder: {getattr(self, 'today_pdf_folder', 'Not set')}")
         self.logger.info("Cloud storage will only be initialized when backup is requested")
     
+
     def setup_daily_pdf_folders(self):
         """Set up daily folder structure for PDF generation"""
         try:
@@ -86,7 +101,226 @@ class DataManager:
             
         except Exception as e:
             self.logger.error(f"Error setting up daily PDF folders: {e}")
-            self.today_pdf_folder = config.DATA_FOLDER  # Fallback
+            # Fallback to main data folder
+            self.today_pdf_folder = config.DATA_FOLDER
+            self.today_folder_name = "fallback"
+
+
+    def get_daily_pdf_folder(self):
+        """Get or create today's PDF folder"""
+        try:
+            today = datetime.datetime.now()
+            folder_name = today.strftime("%d-%m")  # Format: 28-05
+            
+            # Check if we need to create a new folder (date changed)
+            if not hasattr(self, 'today_folder_name') or self.today_folder_name != folder_name:
+                self.today_folder_name = folder_name
+                
+                # Ensure base folder exists
+                if not hasattr(self, 'pdf_reports_folder'):
+                    self.pdf_reports_folder = os.path.join(config.DATA_FOLDER, 'daily_reports')
+                    os.makedirs(self.pdf_reports_folder, exist_ok=True)
+                
+                # Create today's folder
+                self.today_pdf_folder = os.path.join(self.pdf_reports_folder, folder_name)
+                os.makedirs(self.today_pdf_folder, exist_ok=True)
+                self.logger.info(f"Created new daily folder: {self.today_pdf_folder}")
+            
+            return self.today_pdf_folder
+            
+        except Exception as e:
+            self.logger.error(f"Error getting daily PDF folder: {e}")
+            # Fallback
+            fallback_folder = os.path.join(config.DATA_FOLDER, 'reports')
+            os.makedirs(fallback_folder, exist_ok=True)
+            return fallback_folder
+
+    def setup_unified_folder_structure(self):
+        """FIXED: Set up unified folder structure - no duplicates"""
+        try:
+            # Create base folders
+            self.reports_folder = os.path.join(config.DATA_FOLDER, 'reports')
+            self.json_backup_folder = os.path.join(config.DATA_FOLDER, 'json_backups')
+            
+            os.makedirs(self.reports_folder, exist_ok=True)
+            os.makedirs(self.json_backup_folder, exist_ok=True)
+            
+            # FIXED: Use consistent date format YYYY-MM-DD for all folders
+            today = datetime.datetime.now()
+            self.today_folder_name = today.strftime("%Y-%m-%d")  # Format: 2024-05-29
+            
+            # Create today's subfolders
+            self.today_reports_folder = os.path.join(self.reports_folder, self.today_folder_name)
+            self.today_json_folder = os.path.join(self.json_backup_folder, self.today_folder_name)
+            
+            os.makedirs(self.today_reports_folder, exist_ok=True)
+            os.makedirs(self.today_json_folder, exist_ok=True)
+            
+            self.logger.info(f"Unified folder structure ready:")
+            self.logger.info(f"  Reports: {self.today_reports_folder}")
+            self.logger.info(f"  JSON Backups: {self.today_json_folder}")
+            
+            # Create README files
+            self.create_folder_readme_files()
+            
+        except Exception as e:
+            self.logger.error(f"Error setting up folder structure: {e}")
+            # Fallback
+            self.today_reports_folder = config.DATA_FOLDER
+            self.today_json_folder = config.DATA_FOLDER
+
+    def create_folder_readme_files(self):
+        """Create README files explaining folder structure"""
+        try:
+            # Main reports folder README
+            reports_readme = os.path.join(self.reports_folder, "README.txt")
+            if not os.path.exists(reports_readme):
+                with open(reports_readme, 'w') as f:
+                    f.write("""REPORTS FOLDER STRUCTURE
+=========================
+
+This folder contains daily PDF reports organized by date.
+
+Structure:
+reports/
+├── YYYY-MM-DD/          # Daily folder (e.g., 2024-05-29)
+│   ├── AgencyName_SiteName_T0001_VehicleNo_123456.pdf
+│   ├── AgencyName_SiteName_T0002_VehicleNo_234567.pdf
+│   └── [more PDFs...]
+├── 2024-05-30/
+│   └── [next day PDFs...]
+└── README.txt           # This file
+
+OFFLINE-FIRST BEHAVIOR:
+- PDFs are auto-generated locally when both weighments complete
+- Cloud backup is only attempted when explicitly requested via Settings
+- This prevents internet connection delays during normal operations
+
+GENERATED BY: Swaccha Andhra Corporation Weighbridge System
+""")
+            
+            # JSON backup folder README
+            json_readme = os.path.join(self.json_backup_folder, "README.txt")
+            if not os.path.exists(json_readme):
+                with open(json_readme, 'w') as f:
+                    f.write("""JSON BACKUPS FOLDER STRUCTURE
+===============================
+
+This folder contains daily JSON backups of complete records.
+
+Structure:
+json_backups/
+├── YYYY-MM-DD/          # Daily folder (e.g., 2024-05-29)
+│   ├── T0001_AgencyName_SiteName_123456.json
+│   ├── T0002_AgencyName_SiteName_234567.json
+│   └── [more JSONs...]
+├── 2024-05-30/
+│   └── [next day JSONs...]
+└── README.txt           # This file
+
+PURPOSE:
+- Local JSON backup of complete records (both weighments done)
+- Used for bulk cloud upload when internet is available
+- Redundant backup in case CSV gets corrupted
+- Easy to parse for data analysis
+
+BULK UPLOAD:
+- Use Settings > Cloud Storage > Backup to upload all JSONs to cloud
+- Only complete records are backed up
+- Incremental upload (only new/changed files)
+
+GENERATED BY: Swaccha Andhra Corporation Weighbridge System
+""")
+                
+        except Exception as e:
+            self.logger.error(f"Error creating README files: {e}")
+
+
+    def get_daily_reports_info(self):
+        """Get information about today's daily reports"""
+        try:
+            import datetime
+            import os
+            
+            today_str = datetime.datetime.now().strftime("%Y-%m-%d")
+            reports_folder = "data/daily_reports"
+            today_reports_folder = os.path.join(reports_folder, today_str)
+            
+            info = {
+                "date": today_str,
+                "folder_exists": os.path.exists(today_reports_folder),
+                "total_files": 0,
+                "total_size": 0,
+                "file_types": {}
+            }
+            
+            if info["folder_exists"]:
+                # Count files and calculate size
+                for root, dirs, files in os.walk(today_reports_folder):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        if os.path.exists(file_path):
+                            info["total_files"] += 1
+                            info["total_size"] += os.path.getsize(file_path)
+                            
+                            # Track file types
+                            ext = os.path.splitext(file)[1].lower()
+                            info["file_types"][ext] = info["file_types"].get(ext, 0) + 1
+                
+                # Format size
+                size_bytes = info["total_size"]
+                if size_bytes < 1024:
+                    info["total_size_formatted"] = f"{size_bytes} B"
+                elif size_bytes < 1024 * 1024:
+                    info["total_size_formatted"] = f"{size_bytes / 1024:.1f} KB"
+                else:
+                    info["total_size_formatted"] = f"{size_bytes / (1024 * 1024):.1f} MB"
+            else:
+                info["total_size_formatted"] = "0 B"
+            
+            return info
+            
+        except Exception as e:
+            print(f"Error getting daily reports info: {e}")
+            return {
+                "date": datetime.datetime.now().strftime("%Y-%m-%d"),
+                "folder_exists": False,
+                "total_files": 0,
+                "total_size": 0,
+                "total_size_formatted": "0 B",
+                "file_types": {},
+                "error": str(e)
+            }
+
+
+    def get_daily_folder(self, folder_type="reports"):
+        """FIXED: Get or create today's folder with consistent date format"""
+        today = datetime.datetime.now()
+        folder_name = today.strftime("%Y-%m-%d")  # Consistent format
+        
+        # Check if we need to create a new folder (date changed)
+        if not hasattr(self, 'today_folder_name') or self.today_folder_name != folder_name:
+            self.today_folder_name = folder_name
+            
+            if folder_type == "reports":
+                self.today_reports_folder = os.path.join(self.reports_folder, folder_name)
+                os.makedirs(self.today_reports_folder, exist_ok=True)
+                self.logger.info(f"Created new daily reports folder: {self.today_reports_folder}")
+                return self.today_reports_folder
+            elif folder_type == "json":
+                self.today_json_folder = os.path.join(self.json_backup_folder, folder_name)
+                os.makedirs(self.today_json_folder, exist_ok=True)
+                self.logger.info(f"Created new daily JSON folder: {self.today_json_folder}")
+                return self.today_json_folder
+        
+        # Return existing folder
+        if folder_type == "reports":
+            return self.today_reports_folder
+        elif folder_type == "json":
+            return self.today_json_folder
+        else:
+            return self.today_reports_folder  # Default
+
     
     def load_address_config(self):
         """Load address configuration for PDF generation"""
@@ -232,12 +466,17 @@ class DataManager:
         self.logger.info(f"Data context set to: Agency='{agency_name}', Site='{site_name}'")
         self.logger.info(f"Data file: {self.data_file}")
 
+
+
     def save_record(self, data):
-        """FIXED: OFFLINE-FIRST record saving - NO cloud attempts during regular save"""
+        """FIXED: Save record with proper net weight calculation and JSON local backup"""
         try:
             self.logger.info("="*50)
-            self.logger.info("STARTING OFFLINE-FIRST RECORD SAVE")
+            self.logger.info("STARTING OFFLINE-FIRST RECORD SAVE WITH JSON BACKUP")
             self.logger.info(f"Input data keys: {list(data.keys())}")
+            
+            # FIXED: Calculate and set net weight properly
+            data = self.calculate_and_set_net_weight(data)
             
             # Enhanced validation with detailed logging
             validation_result = self.validate_record_data(data)
@@ -271,10 +510,8 @@ class DataManager:
             csv_success = False
             try:
                 if is_update:
-                    # Update existing record
                     csv_success = self.update_record(data)
                 else:
-                    # Add new record
                     csv_success = self.add_new_record(data)
                 
                 if csv_success:
@@ -287,19 +524,24 @@ class DataManager:
                 return False
             
             # Check if this is a complete record (both weighments)
-            first_weight = data.get('first_weight', '').strip()
-            first_timestamp = data.get('first_timestamp', '').strip()
-            second_weight = data.get('second_weight', '').strip()
-            second_timestamp = data.get('second_timestamp', '').strip()
-            
-            is_complete_record = (first_weight and first_timestamp and 
-                                second_weight and second_timestamp)
+            is_complete_record = self.is_record_complete(data)
             
             self.logger.info(f"Record completion status: {is_complete_record}")
-            self.logger.info(f"First weight: '{first_weight}', timestamp: '{first_timestamp}'")
-            self.logger.info(f"Second weight: '{second_weight}', timestamp: '{second_timestamp}'")
             
-            # PRIORITY 2: Auto-generate PDF for complete records (ALWAYS ATTEMPT - OFFLINE)
+            # PRIORITY 2: Save complete records as JSON locally
+            json_saved = False
+            if is_complete_record:
+                self.logger.info(f"Complete record detected - saving JSON backup locally...")
+                try:
+                    json_saved = self.save_json_backup_locally(data)
+                    if json_saved:
+                        self.logger.info(f"✅ JSON backup saved locally for {ticket_no}")
+                    else:
+                        self.logger.warning(f"⚠️ Failed to save JSON backup for {ticket_no}")
+                except Exception as json_error:
+                    self.logger.error(f"⚠️ JSON backup error (non-critical): {json_error}")
+            
+            # PRIORITY 3: Auto-generate PDF for complete records
             pdf_generated = False
             pdf_path = None
             if is_complete_record:
@@ -311,20 +553,22 @@ class DataManager:
                         # Show success message to user
                         try:
                             if messagebox:
-                                messagebox.showinfo("Record Saved + PDF Generated", 
+                                messagebox.showinfo("Record Saved + PDF + JSON Generated", 
                                                 f"✅ Record saved successfully!\n"
-                                                f"✅ PDF generated: {os.path.basename(pdf_path)}\n\n"
-                                                f"📂 Location: {os.path.dirname(pdf_path)}\n\n"
-                                                f"💡 Use Settings > Cloud Storage > Backup to upload to cloud when internet is available.")
+                                                f"✅ PDF generated: {os.path.basename(pdf_path)}\n"
+                                                f"✅ JSON backup created locally\n\n"
+                                                f"📂 PDF Location: {os.path.dirname(pdf_path)}\n\n"
+                                                f"💡 Use Settings > Cloud Storage > Backup to upload all data when internet is available.")
                         except Exception as msg_error:
                             self.logger.warning(f"Could not show messagebox: {msg_error}")
                     else:
-                        self.logger.warning("⚠️ PDF generation failed, but record was saved locally")
+                        self.logger.warning("⚠️ PDF generation failed, but record and JSON were saved locally")
                         # Still show success for record save
                         try:
                             if messagebox:
-                                messagebox.showinfo("Record Saved", 
+                                messagebox.showinfo("Record Saved + JSON Created", 
                                                 f"✅ Record saved successfully!\n"
+                                                f"✅ JSON backup created locally\n"
                                                 f"⚠️ PDF generation failed - check logs\n\n"
                                                 f"💡 Use Settings > Cloud Storage > Backup to upload when internet is available.")
                         except Exception as msg_error:
@@ -334,8 +578,9 @@ class DataManager:
                     # Still show success for record save
                     try:
                         if messagebox:
-                            messagebox.showinfo("Record Saved", 
+                            messagebox.showinfo("Record Saved + JSON Created", 
                                             f"✅ Record saved successfully!\n"
+                                            f"✅ JSON backup created locally\n"
                                             f"⚠️ PDF generation error: {str(pdf_error)}\n\n"
                                             f"💡 Use Settings > Cloud Storage > Backup to upload when internet is available.")
                     except Exception as msg_error:
@@ -346,18 +591,16 @@ class DataManager:
                     if messagebox:
                         messagebox.showinfo("Record Saved", 
                                         f"✅ Record saved locally!\n"
-                                        f"ℹ️ Incomplete weighments - PDF will generate after second weighment\n\n"
-                                        f"💡 Complete both weighments for auto PDF generation")
+                                        f"ℹ️ Incomplete weighments - PDF and JSON will be created after second weighment\n\n"
+                                        f"💡 Complete both weighments for auto PDF + JSON generation")
                 except Exception as msg_error:
                     self.logger.warning(f"Could not show messagebox: {msg_error}")
             
             # IMPORTANT: NO CLOUD STORAGE ATTEMPTS HERE
-            # Cloud storage will only be used when explicitly requested via backup
-            self.logger.info("✅ OFFLINE-FIRST SAVE COMPLETED - No cloud attempts made")
+            self.logger.info("✅ OFFLINE-FIRST SAVE COMPLETED - Local CSV, JSON backup, and PDF generated")
             self.logger.info("💡 Cloud backup available via Settings > Cloud Storage > Backup")
             self.logger.info("="*50)
             
-            # Return success since CSV save worked (the critical operation)
             return csv_success
                     
         except Exception as e:
@@ -368,6 +611,201 @@ class DataManager:
             except:
                 pass
             return False
+
+    def calculate_and_set_net_weight(self, data):
+        """FIXED: Properly calculate and set net weight in the data"""
+        try:
+            first_weight_str = data.get('first_weight', '').strip()
+            second_weight_str = data.get('second_weight', '').strip()
+            
+            # Only calculate if both weights are present
+            if first_weight_str and second_weight_str:
+                try:
+                    first_weight = float(first_weight_str)
+                    second_weight = float(second_weight_str)
+                    net_weight = abs(first_weight - second_weight)
+                    
+                    # FIXED: Set the calculated net weight in the data
+                    data['net_weight'] = f"{net_weight:.2f}"
+                    
+                    self.logger.info(f"Net weight calculated: {first_weight} - {second_weight} = {net_weight:.2f}")
+                    
+                except (ValueError, TypeError) as e:
+                    self.logger.error(f"Error calculating net weight: {e}")
+                    data['net_weight'] = ""
+            else:
+                # If either weight is missing, clear net weight
+                data['net_weight'] = ""
+                self.logger.info("Net weight cleared - incomplete weighments")
+            
+            return data
+            
+        except Exception as e:
+            self.logger.error(f"Error in calculate_and_set_net_weight: {e}")
+            return data
+
+    def is_record_complete(self, data):
+        """Check if record has both weighments complete"""
+        first_weight = data.get('first_weight', '').strip()
+        first_timestamp = data.get('first_timestamp', '').strip()
+        second_weight = data.get('second_weight', '').strip()
+        second_timestamp = data.get('second_timestamp', '').strip()
+        
+        return bool(first_weight and first_timestamp and second_weight and second_timestamp)
+
+    def save_json_backup_locally(self, data):
+        """FIXED: Save complete record as JSON backup locally"""
+        try:
+            # Get today's JSON folder
+            json_folder = self.get_daily_folder("json")
+            
+            # Generate JSON filename: TicketNo_AgencyName_SiteName_Timestamp.json
+            ticket_no = data.get('ticket_no', 'Unknown').replace('/', '_')
+            agency_name = data.get('agency_name', 'Unknown').replace(' ', '_').replace('/', '_')
+            site_name = data.get('site_name', 'Unknown').replace(' ', '_').replace('/', '_')
+            timestamp = datetime.datetime.now().strftime("%H%M%S")
+            
+            json_filename = f"{ticket_no}_{agency_name}_{site_name}_{timestamp}.json"
+            json_path = os.path.join(json_folder, json_filename)
+            
+            # Add metadata to JSON
+            json_data = data.copy()
+            json_data['json_backup_timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            json_data['record_status'] = 'complete'
+            json_data['backup_type'] = 'local'
+            
+            # FIXED: Ensure net weight is properly included
+            if not json_data.get('net_weight'):
+                json_data = self.calculate_and_set_net_weight(json_data)
+            
+            # Save JSON file
+            with open(json_path, 'w', encoding='utf-8') as f:
+                json.dump(json_data, f, indent=4, ensure_ascii=False)
+            
+            self.logger.info(f"JSON backup saved: {json_path}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error saving JSON backup: {e}")
+            return False
+
+    def get_all_json_backups(self):
+        """Get all JSON backup files for bulk upload"""
+        try:
+            json_files = []
+            
+            if not os.path.exists(self.json_backup_folder):
+                return json_files
+            
+            # Walk through all date folders
+            for date_folder in os.listdir(self.json_backup_folder):
+                date_path = os.path.join(self.json_backup_folder, date_folder)
+                
+                if os.path.isdir(date_path):
+                    # Get all JSON files in this date folder
+                    for json_file in os.listdir(date_path):
+                        if json_file.endswith('.json'):
+                            json_path = os.path.join(date_path, json_file)
+                            json_files.append(json_path)
+            
+            self.logger.info(f"Found {len(json_files)} JSON backup files for bulk upload")
+            return json_files
+            
+        except Exception as e:
+            self.logger.error(f"Error getting JSON backup files: {e}")
+            return []
+
+    def bulk_upload_json_backups_to_cloud(self):
+        """FIXED: Bulk upload all JSON backups to cloud when internet is available"""
+        try:
+            # Initialize cloud storage if needed
+            if not self.init_cloud_storage_if_needed():
+                return {
+                    "success": False,
+                    "error": "Failed to initialize cloud storage",
+                    "uploaded": 0,
+                    "total": 0
+                }
+            
+            # Check if connected to cloud storage
+            if not self.cloud_storage.is_connected():
+                return {
+                    "success": False,
+                    "error": "Not connected to cloud storage",
+                    "uploaded": 0,
+                    "total": 0
+                }
+            
+            # Get all JSON backup files
+            json_files = self.get_all_json_backups()
+            
+            if not json_files:
+                return {
+                    "success": True,
+                    "message": "No JSON backups found to upload",
+                    "uploaded": 0,
+                    "total": 0
+                }
+            
+            uploaded_count = 0
+            errors = []
+            
+            for json_path in json_files:
+                try:
+                    # Load JSON data
+                    with open(json_path, 'r', encoding='utf-8') as f:
+                        record_data = json.load(f)
+                    
+                    # Generate cloud path
+                    agency_name = record_data.get('agency_name', 'Unknown_Agency').replace(' ', '_').replace('/', '_')
+                    site_name = record_data.get('site_name', 'Unknown_Site').replace(' ', '_').replace('/', '_')
+                    ticket_no = record_data.get('ticket_no', 'unknown')
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    
+                    cloud_json_path = f"{agency_name}/{site_name}/{ticket_no}/{timestamp}.json"
+                    
+                    # Upload to cloud with images
+                    json_success, images_uploaded, total_images = self.cloud_storage.upload_record_with_images(
+                        record_data, 
+                        cloud_json_path, 
+                        config.IMAGES_FOLDER
+                    )
+                    
+                    if json_success:
+                        uploaded_count += 1
+                        self.logger.info(f"Uploaded JSON backup: {os.path.basename(json_path)}")
+                        
+                        # Optional: Mark as uploaded (add metadata or move to uploaded folder)
+                        record_data['cloud_upload_timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        record_data['cloud_upload_status'] = 'success'
+                        
+                        # Update the JSON file with upload status
+                        with open(json_path, 'w', encoding='utf-8') as f:
+                            json.dump(record_data, f, indent=4, ensure_ascii=False)
+                    else:
+                        errors.append(f"Failed to upload {os.path.basename(json_path)}")
+                        
+                except Exception as file_error:
+                    error_msg = f"Error uploading {os.path.basename(json_path)}: {str(file_error)}"
+                    errors.append(error_msg)
+                    self.logger.error(error_msg)
+            
+            return {
+                "success": uploaded_count > 0,
+                "uploaded": uploaded_count,
+                "total": len(json_files),
+                "errors": errors
+            }
+            
+        except Exception as e:
+            error_msg = f"Error during bulk JSON upload: {str(e)}"
+            self.logger.error(error_msg)
+            return {
+                "success": False,
+                "error": error_msg,
+                "uploaded": 0,
+                "total": 0
+            }
 
     def validate_record_data(self, data):
         """Enhanced validation with detailed error reporting"""
@@ -638,7 +1076,7 @@ class DataManager:
             return []
 
     def auto_generate_pdf_for_complete_record(self, record_data):
-        """Automatically generate PDF for a complete record - OFFLINE OPERATION"""
+        """FIXED: Auto-generate PDF with proper net weight from record data"""
         # Check if ReportLab is available
         try:
             global REPORTLAB_AVAILABLE
@@ -651,14 +1089,12 @@ class DataManager:
         
         try:
             # Check if record is complete (both weighments)
-            first_weight = record_data.get('first_weight', '').strip()
-            first_timestamp = record_data.get('first_timestamp', '').strip()
-            second_weight = record_data.get('second_weight', '').strip()
-            second_timestamp = record_data.get('second_timestamp', '').strip()
-            
-            if not (first_weight and first_timestamp and second_weight and second_timestamp):
+            if not self.is_record_complete(record_data):
                 self.logger.info("Record incomplete - skipping PDF generation")
                 return False, None
+            
+            # FIXED: Ensure net weight is calculated before PDF generation
+            record_data = self.calculate_and_set_net_weight(record_data)
             
             # Generate PDF filename
             ticket_no = record_data.get('ticket_no', 'Unknown').replace('/', '_')
@@ -670,8 +1106,8 @@ class DataManager:
             # PDF filename format: AgencyName_SiteName_TicketNo_VehicleNo_HHMMSS.pdf
             pdf_filename = f"{agency_name}_{site_name}_{ticket_no}_{vehicle_no}_{timestamp}.pdf"
             
-            # Get today's folder
-            daily_folder = self.get_daily_pdf_folder()
+            # Get today's reports folder
+            daily_folder = self.get_daily_folder("reports")
             pdf_path = os.path.join(daily_folder, pdf_filename)
             
             # Generate the PDF
@@ -1254,61 +1690,7 @@ class DataManager:
         except Exception as e:
             return {"error": f"Error getting enhanced cloud summary: {str(e)}"}
 
-    def get_daily_reports_info(self):
-        """Get information about today's daily reports"""
-        try:
-            import datetime
-            import os
-            
-            today_str = datetime.datetime.now().strftime("%Y-%m-%d")
-            reports_folder = "data/daily_reports"
-            today_reports_folder = os.path.join(reports_folder, today_str)
-            
-            info = {
-                "date": today_str,
-                "folder_exists": os.path.exists(today_reports_folder),
-                "total_files": 0,
-                "total_size": 0,
-                "file_types": {}
-            }
-            
-            if info["folder_exists"]:
-                # Count files and calculate size
-                for root, dirs, files in os.walk(today_reports_folder):
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        if os.path.exists(file_path):
-                            info["total_files"] += 1
-                            info["total_size"] += os.path.getsize(file_path)
-                            
-                            # Track file types
-                            ext = os.path.splitext(file)[1].lower()
-                            info["file_types"][ext] = info["file_types"].get(ext, 0) + 1
-                
-                # Format size
-                size_bytes = info["total_size"]
-                if size_bytes < 1024:
-                    info["total_size_formatted"] = f"{size_bytes} B"
-                elif size_bytes < 1024 * 1024:
-                    info["total_size_formatted"] = f"{size_bytes / 1024:.1f} KB"
-                else:
-                    info["total_size_formatted"] = f"{size_bytes / (1024 * 1024):.1f} MB"
-            else:
-                info["total_size_formatted"] = "0 B"
-            
-            return info
-            
-        except Exception as e:
-            print(f"Error getting daily reports info: {e}")
-            return {
-                "date": datetime.datetime.now().strftime("%Y-%m-%d"),
-                "folder_exists": False,
-                "total_files": 0,
-                "total_size": 0,
-                "total_size_formatted": "0 B",
-                "file_types": {},
-                "error": str(e)
-            }
+
 
     # Update the existing backup_complete_records_to_cloud method to use the new enhanced version
     def backup_complete_records_to_cloud(self):
