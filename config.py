@@ -30,7 +30,8 @@ DATA_FOLDER = 'data'
 # FIXED: Unified folder structure - no more confusion
 REPORTS_FOLDER = os.path.join(DATA_FOLDER, 'reports')  # Only one reports folder
 JSON_BACKUPS_FOLDER = os.path.join(DATA_FOLDER, 'json_backups')  # Local JSON backups
-
+today_str = datetime.datetime.now().strftime("%Y-%m-%d")
+LOGS_FOLDER = os.path.join(REPORTS_FOLDER, today_str)
 # Ticket Number Configuration
 TICKET_PREFIX = "T"  # Prefix for ticket numbers (e.g., "T" for T0001, T0002, etc.)
 TICKET_START_NUMBER = 1  # Starting ticket number (will be incremented from here)
@@ -244,26 +245,27 @@ CSV_HEADER = ['Date', 'Time', 'Site Name', 'Agency Name', 'Material', 'Ticket No
 # Updated color scheme - Light yellow, light orange, and pinkish red
 # Optimized for visibility on sunny screens
 COLORS = {
-    "primary": "#006400",         # Dark forest green (high contrast)
-    "primary_light": "#228B22",   # Forest green (visible highlights)
-    "secondary": "#B8860B",       # Dark golden rod (strong yellow)
-    "background": "#F5F5DC",      # Beige (reduces glare, high contrast)
-    "text": "#000000",            # Pure black (maximum contrast)
-    "white": "#FFFFFF",           # Pure white
-    "error": "#8B0000",           # Dark red (high visibility)
-    "warning": "#FF8C00",         # Dark orange (bright warning)
-    "header_bg": "#DBBE9B",       # Very dark forest green (maximum header contrast)
-    "button_hover": "#004000",    # Very dark green (clear hover state)
-    "button_text": "#FFFFFF",     # White text (maximum contrast on dark buttons)
-    "form_bg": "#FFFEF0",         # Off-white (reduces glare while maintaining contrast)
-    "section_bg": "#F0F8E8",      # Very light green (subtle section separation)
-    "button_alt": "#8B4513",      # Saddle brown (high contrast alternative)
-    "button_alt_hover": "#5D2F0A", # Darker brown (clear hover feedback)
-    "table_header_bg": "#E6F3E6", # Light green (clear header distinction)
-    "table_row_even": "#F9F9F9",  # Light gray (subtle row separation)
-    "table_row_odd": "#FFFFFF",   # Pure white (maximum contrast)
-    "table_border": "#228B22"     # Forest green (clear borders)
+    "primary": "#FA541C",         # Volcano (orange-red)
+    "primary_light": "#FFBB96",   # Light volcano
+    "secondary": "#FA8C16",       # Orange
+    "background": "#F0F2F5",      # Light gray background
+    "text": "#262626",            # Dark gray text for contrast
+    "white": "#FFFFFF",           # White
+    "error": "#F5222D",           # Red
+    "warning": "#FAAD14",         # Gold/amber
+    "header_bg": "#873800",       # Dark brown (volcano-9)
+    "button_hover": "#D4380D",    # Darker volcano (volcano-7)
+    "button_text": "#FFFFFF",     # Button text (White)
+    "form_bg": "#FFFFFF",         # Form background
+    "section_bg": "#FFF7E6",      # Very light orange
+    "button_alt": "#D46B08",      # Orange-7
+    "button_alt_hover": "#AD4E00", # Orange-8
+    "table_header_bg": "#FFF1E6",  # Light volcano background
+    "table_row_even": "#FAFAFA",   # Light gray for even rows
+    "table_row_odd": "#FFFFFF",    # White for odd rows
+    "table_border": "#FFD8BF"      # Light volcano for borders
 }
+
 
 # Standard width for UI components - reduced for smaller windows
 STD_WIDTH = 20

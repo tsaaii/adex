@@ -27,7 +27,7 @@ except ImportError:
 # Set up logging for the entire application
 def setup_app_logging():
     """Set up application-wide logging"""
-    logs_dir = "logs"
+    logs_dir = config.LOGS_FOLDER
     os.makedirs(logs_dir, exist_ok=True)
     
     # Create log filename with current date

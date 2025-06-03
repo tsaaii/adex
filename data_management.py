@@ -8,6 +8,7 @@ from tkinter import messagebox, filedialog
 import config
 import shutil
 from cloud_storage import CloudStorageService
+import config
 
 # Import PDF generation capabilities
 try:
@@ -27,7 +28,7 @@ except ImportError:
 # Set up logging
 def setup_logging():
     """Set up logging directory and configuration"""
-    logs_dir = "logs"
+    logs_dir = config.LOGS_FOLDER
     os.makedirs(logs_dir, exist_ok=True)
     
     # Create log filename with current date
