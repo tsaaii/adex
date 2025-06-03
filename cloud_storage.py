@@ -4,6 +4,7 @@ import datetime
 import shutil
 from google.cloud import storage
 from google.api_core.exceptions import Forbidden, NotFound
+import hashlib
 
 class CloudStorageService:
     """Enhanced service for Google Cloud Storage operations with agency/site/date organization and auto-cleanup"""

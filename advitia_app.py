@@ -1,4 +1,4 @@
-#pyinstaller --onedir --windowed --add-data "data;data" --collect-all=cv2 --collect-all=pandas --collect-all=PIL --hidden-import=serial --hidden-import=google.cloud --hidden-import=psutil --optimize=2 --strip --noupx --name="Swaccha_Andhra_SW" --icon=right.ico advitia_app.py
+#pyinstaller --onedir --windowed --add-data "data;data" --collect-all=cv2 --collect-all=pandas --collect-all=PIL --hidden-import=serial --hidden-import=google.cloud --hidden-import=psutil --optimize=2 --strip --noupx --name="Swaccha_Andhra2.0" --icon=right.ico advitia_app.py
 import tkinter as tk
 import os
 import datetime
@@ -17,6 +17,12 @@ from reports import export_to_excel, export_to_pdf
 from settings_storage import SettingsStorage
 from login_dialog import LoginDialog
 import pandas._libs.testing
+
+try:
+    from simple_connectivity import add_connectivity_to_app, add_to_queue_if_available, cleanup_connectivity
+    CONNECTIVITY_AVAILABLE = True
+except ImportError:
+    CONNECTIVITY_AVAILABLE = False
 
 # Set up logging for the entire application
 def setup_app_logging():
@@ -96,13 +102,14 @@ class TharuniApp:
                 self.setup_data_context()
                 
                 self.create_widgets()
-                
+
                 # Start time update
                 self.update_datetime()
                 
                 # Start periodic refresh for pending vehicles
                 self.periodic_refresh()
-                
+                if CONNECTIVITY_AVAILABLE:
+                    add_connectivity_to_app(self)                
                 # Add window close handler with settings persistence
                 self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
                 
@@ -386,6 +393,8 @@ class TharuniApp:
                 is_first_weighment_save = save_result.get('is_first_weighment_save', False)
                 pdf_generated = save_result.get('pdf_generated', False)
                 pdf_path = save_result.get('pdf_path', '')
+                if CONNECTIVITY_AVAILABLE:
+                    add_to_queue_if_available(self, record_data, pdf_path)
                 todays_reports_folder = save_result.get('todays_reports_folder', '')
                 
                 print(f"🎫 TICKET FLOW DEBUG: Save result analysis:")
@@ -710,93 +719,93 @@ class TharuniApp:
             messagebox.showerror("Error", f"Error loading vehicle: {str(e)}")
 
     def create_header(self, parent):
-        """Create compressed header with all info in single line"""
-        # Main header frame
-        header_frame = ttk.Frame(parent, style="TFrame")
-        header_frame.pack(fill=tk.X, pady=(0, 3))
-        
-        # Single styled header bar with all elements in one line
-        title_box = tk.Frame(header_frame, bg=config.COLORS["header_bg"], padx=8, pady=3)
-        title_box.pack(fill=tk.X)
-        
-        # Left side - Title
-        title_label = tk.Label(title_box, 
-                            text="Swaccha Andhra Corporation - RealTime Tracker", 
-                            font=("Segoe UI", 12, "bold"),
-                            fg=config.COLORS["white"],
-                            bg=config.COLORS["header_bg"])
-        title_label.pack(side=tk.LEFT)
-        
-        # Center - All info in single line with separators
-        info_frame = tk.Frame(title_box, bg=config.COLORS["header_bg"])
-        info_frame.pack(side=tk.LEFT, expand=True, padx=15)
-        
-        # Build info text parts
-        info_parts = []
-        
-        # User info
-        user_text = f"User: {self.logged_in_user}"
-        if self.user_role == 'admin':
-            user_text += " (Admin)"
-        info_parts.append(user_text)
-        
-        # Site info
-        if self.selected_site:
-            info_parts.append(f"Site: {self.selected_site}")
-        
-        # Incharge info
-        if self.selected_incharge:
-            info_parts.append(f"Incharge: {self.selected_incharge}")
-        
-        # Data file info
-        if hasattr(self, 'data_manager'):
-            current_file = os.path.basename(self.data_manager.get_current_data_file())
-            info_parts.append(f"Data: {current_file}")
+            """Create compressed header with all info in single line"""
+            # Main header frame
+            header_frame = ttk.Frame(parent, style="TFrame")
+            header_frame.pack(fill=tk.X, pady=(0, 3))
             
-            # PDF folder info
-            if hasattr(self.data_manager, 'today_folder_name'):
-                info_parts.append(f"PDF: {self.data_manager.today_folder_name}")
-        
-        # Join all info with separators
-        info_text = " • ".join(info_parts)
-        
-        # Single info label with all details
-        info_label = tk.Label(info_frame, 
-                            text=info_text,
-                            font=("Segoe UI", 8),
-                            fg=config.COLORS["primary_light"],
-                            bg=config.COLORS["header_bg"],
-                            anchor="center")
-        info_label.pack(expand=True)
-        
-        # Right side - Date, Time and Logout
-        right_frame = tk.Frame(title_box, bg=config.COLORS["header_bg"])
-        right_frame.pack(side=tk.RIGHT)
-        
-        # Date and time variables
-        self.date_var = tk.StringVar()
-        self.time_var = tk.StringVar()
-        
-        # Date and time in single line
-        datetime_label = tk.Label(right_frame, 
-                                text="",  # Will be updated by update_datetime
-                                font=("Segoe UI", 8, "bold"),
+            # Single styled header bar with all elements in one line
+            self.title_box = tk.Frame(header_frame, bg=config.COLORS["header_bg"], padx=8, pady=3)
+            self.title_box.pack(fill=tk.X)
+            
+            # Left side - Title - FIXED: changed title_box to self.title_box
+            title_label = tk.Label(self.title_box, 
+                                text="Swaccha Andhra Corporation - RealTime Tracker", 
+                                font=("Segoe UI", 12, "bold"),
                                 fg=config.COLORS["white"],
                                 bg=config.COLORS["header_bg"])
-        datetime_label.pack(side=tk.LEFT, padx=(0, 10))
-        
-        # Store reference for datetime updates
-        self.datetime_label = datetime_label
-        
-        # Logout button (smaller)
-        logout_btn = HoverButton(right_frame, 
-                            text="Logout", 
-                            font=("Segoe UI", 8),
-                            bg=config.COLORS["button_alt"],
-                            fg=config.COLORS["white"],
-                            padx=8, pady=2,
-                            command=self.logout)
-        logout_btn.pack(side=tk.RIGHT)
+            title_label.pack(side=tk.LEFT)
+            
+            # Center - All info in single line with separators - FIXED: changed title_box to self.title_box
+            info_frame = tk.Frame(self.title_box, bg=config.COLORS["header_bg"])
+            info_frame.pack(side=tk.LEFT, expand=True, padx=15)
+            
+            # Build info text parts
+            info_parts = []
+            
+            # User info
+            user_text = f"User: {self.logged_in_user}"
+            if self.user_role == 'admin':
+                user_text += " (Admin)"
+            info_parts.append(user_text)
+            
+            # Site info
+            if self.selected_site:
+                info_parts.append(f"Site: {self.selected_site}")
+            
+            # Incharge info
+            if self.selected_incharge:
+                info_parts.append(f"Incharge: {self.selected_incharge}")
+            
+            # Data file info
+            if hasattr(self, 'data_manager'):
+                current_file = os.path.basename(self.data_manager.get_current_data_file())
+                info_parts.append(f"Data: {current_file}")
+                
+                # PDF folder info
+                if hasattr(self.data_manager, 'today_folder_name'):
+                    info_parts.append(f"PDF: {self.data_manager.today_folder_name}")
+            
+            # Join all info with separators
+            info_text = " • ".join(info_parts)
+            
+            # Single info label with all details
+            info_label = tk.Label(info_frame, 
+                                text=info_text,
+                                font=("Segoe UI", 8),
+                                fg=config.COLORS["primary_light"],
+                                bg=config.COLORS["header_bg"],
+                                anchor="center")
+            info_label.pack(expand=True)
+            
+            # Right side - Date, Time and Logout - FIXED: changed title_box to self.title_box
+            right_frame = tk.Frame(self.title_box, bg=config.COLORS["header_bg"])
+            right_frame.pack(side=tk.RIGHT)
+            
+            # Date and time variables
+            self.date_var = tk.StringVar()
+            self.time_var = tk.StringVar()
+            
+            # Date and time in single line
+            datetime_label = tk.Label(right_frame, 
+                                    text="",  # Will be updated by update_datetime
+                                    font=("Segoe UI", 8, "bold"),
+                                    fg=config.COLORS["white"],
+                                    bg=config.COLORS["header_bg"])
+            datetime_label.pack(side=tk.LEFT, padx=(0, 10))
+            
+            # Store reference for datetime updates
+            self.datetime_label = datetime_label
+            
+            # Logout button (smaller)
+            logout_btn = HoverButton(right_frame, 
+                                text="Logout", 
+                                font=("Segoe UI", 8),
+                                bg=config.COLORS["button_alt"],
+                                fg=config.COLORS["white"],
+                                padx=8, pady=2,
+                                command=self.logout)
+            logout_btn.pack(side=tk.RIGHT)
 
     def update_datetime(self):
         """Update date and time display in compressed format"""
@@ -988,6 +997,9 @@ class TharuniApp:
             self.logger.error(f"Error clearing form: {e}")
 
     def on_closing(self):
+
+        if CONNECTIVITY_AVAILABLE:
+            cleanup_connectivity(self)
         """Handle application closing with enhanced logging"""
         try:
             self.logger.info("Application closing - saving settings...")
