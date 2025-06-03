@@ -459,112 +459,121 @@ class TharuniApp:
 
 
     def create_header(self, parent):
-        """Create header with title, user info, site info, incharge info, current data file, PDF folder and date/time"""
-        # Title with company logo effect
+        """Create compressed header with all info in single line"""
+        # Main header frame
         header_frame = ttk.Frame(parent, style="TFrame")
-        header_frame.pack(fill=tk.X, pady=(0, 5))
+        header_frame.pack(fill=tk.X, pady=(0, 3))
         
-        # Create a styled header with gradient-like background
-        title_box = tk.Frame(header_frame, bg=config.COLORS["header_bg"], padx=10, pady=5)
+        # Single styled header bar with all elements in one line
+        title_box = tk.Frame(header_frame, bg=config.COLORS["header_bg"], padx=8, pady=3)
         title_box.pack(fill=tk.X)
         
+        # Left side - Title
         title_label = tk.Label(title_box, 
-                            text="Swaccha Andhra Corporation- RealTime tracker", 
-                            font=("Segoe UI", 14, "bold"),
+                            text="Swaccha Andhra Corporation - RealTime Tracker", 
+                            font=("Segoe UI", 12, "bold"),
                             fg=config.COLORS["white"],
                             bg=config.COLORS["header_bg"])
         title_label.pack(side=tk.LEFT)
         
-        # User and Site info
+        # Center - All info in single line with separators
         info_frame = tk.Frame(title_box, bg=config.COLORS["header_bg"])
-        info_frame.pack(side=tk.LEFT, padx=20)
+        info_frame.pack(side=tk.LEFT, expand=True, padx=15)
         
-        # Show user info
-        user_label = tk.Label(info_frame, 
-                        text=f"User: {self.logged_in_user}" + (" (Admin)" if self.user_role == 'admin' else ""),
-                        font=("Segoe UI", 9, "italic"),
-                        fg=config.COLORS["white"],
-                        bg=config.COLORS["header_bg"])
-        user_label.pack(side=tk.TOP, anchor=tk.W)
+        # Build info text parts
+        info_parts = []
         
-        # Show site info if available
+        # User info
+        user_text = f"User: {self.logged_in_user}"
+        if self.user_role == 'admin':
+            user_text += " (Admin)"
+        info_parts.append(user_text)
+        
+        # Site info
         if self.selected_site:
-            site_label = tk.Label(info_frame, 
-                            text=f"Site: {self.selected_site}",
-                            font=("Segoe UI", 9, "italic"),
-                            fg=config.COLORS["white"],
-                            bg=config.COLORS["header_bg"])
-            site_label.pack(side=tk.TOP, anchor=tk.W)
+            info_parts.append(f"Site: {self.selected_site}")
         
-        # Show incharge info if available
+        # Incharge info
         if self.selected_incharge:
-            incharge_label = tk.Label(info_frame, 
-                                text=f"Incharge: {self.selected_incharge}",
-                                font=("Segoe UI", 9, "italic"),
-                                fg=config.COLORS["white"],
-                                bg=config.COLORS["header_bg"])
-            incharge_label.pack(side=tk.TOP, anchor=tk.W)
+            info_parts.append(f"Incharge: {self.selected_incharge}")
         
-        # Show current data file
+        # Data file info
         if hasattr(self, 'data_manager'):
             current_file = os.path.basename(self.data_manager.get_current_data_file())
-            file_label = tk.Label(info_frame, 
-                                text=f"Data: {current_file}",
-                                font=("Segoe UI", 8, "italic"),
-                                fg=config.COLORS["primary_light"],
-                                bg=config.COLORS["header_bg"])
-            file_label.pack(side=tk.TOP, anchor=tk.W)
+            info_parts.append(f"Data: {current_file}")
             
-            # Show today's PDF folder
+            # PDF folder info
             if hasattr(self.data_manager, 'today_folder_name'):
-                pdf_label = tk.Label(info_frame, 
-                                   text=f"PDF Folder: {self.data_manager.today_folder_name}",
-                                   font=("Segoe UI", 8, "italic"),
-                                   fg=config.COLORS["secondary"],
-                                   bg=config.COLORS["header_bg"])
-                pdf_label.pack(side=tk.TOP, anchor=tk.W)
+                info_parts.append(f"PDF: {self.data_manager.today_folder_name}")
         
-        # Add logout button
-        logout_btn = HoverButton(title_box, 
-                            text="Logout", 
-                            font=("Segoe UI", 9),
-                            bg=config.COLORS["button_alt"],
-                            fg=config.COLORS["white"],
-                            padx=5, pady=1,
-                            command=self.logout)
-        logout_btn.pack(side=tk.RIGHT, padx=(0, 10))
+        # Join all info with separators
+        info_text = " • ".join(info_parts)
         
-        # Date and time frame (right side of header)
-        datetime_frame = tk.Frame(title_box, bg=config.COLORS["header_bg"])
-        datetime_frame.pack(side=tk.RIGHT)
+        # Single info label with all details
+        info_label = tk.Label(info_frame, 
+                            text=info_text,
+                            font=("Segoe UI", 8),
+                            fg=config.COLORS["primary_light"],
+                            bg=config.COLORS["header_bg"],
+                            anchor="center")
+        info_label.pack(expand=True)
+        
+        # Right side - Date, Time and Logout
+        right_frame = tk.Frame(title_box, bg=config.COLORS["header_bg"])
+        right_frame.pack(side=tk.RIGHT)
         
         # Date and time variables
         self.date_var = tk.StringVar()
         self.time_var = tk.StringVar()
         
-        date_label_desc = tk.Label(datetime_frame, text="Date:", 
-                                font=("Segoe UI", 9),
+        # Date and time in single line
+        datetime_label = tk.Label(right_frame, 
+                                text="",  # Will be updated by update_datetime
+                                font=("Segoe UI", 8, "bold"),
                                 fg=config.COLORS["white"],
                                 bg=config.COLORS["header_bg"])
-        date_label_desc.grid(row=0, column=0, sticky="w", padx=(0, 2))
+        datetime_label.pack(side=tk.LEFT, padx=(0, 10))
         
-        date_label = tk.Label(datetime_frame, textvariable=self.date_var, 
-                            font=("Segoe UI", 9, "bold"),
+        # Store reference for datetime updates
+        self.datetime_label = datetime_label
+        
+        # Logout button (smaller)
+        logout_btn = HoverButton(right_frame, 
+                            text="Logout", 
+                            font=("Segoe UI", 8),
+                            bg=config.COLORS["button_alt"],
                             fg=config.COLORS["white"],
-                            bg=config.COLORS["header_bg"])
-        date_label.grid(row=0, column=1, sticky="w", padx=(0, 10))
-        
-        time_label_desc = tk.Label(datetime_frame, text="Time:", 
-                                font=("Segoe UI", 9),
-                                fg=config.COLORS["white"],
-                                bg=config.COLORS["header_bg"])
-        time_label_desc.grid(row=0, column=2, sticky="w", padx=(0, 2))
-        
-        time_label = tk.Label(datetime_frame, textvariable=self.time_var, 
-                            font=("Segoe UI", 9, "bold"),
-                            fg=config.COLORS["white"],
-                            bg=config.COLORS["header_bg"])
-        time_label.grid(row=0, column=3, sticky="w")
+                            padx=8, pady=2,
+                            command=self.logout)
+        logout_btn.pack(side=tk.RIGHT)
+
+    def update_datetime(self):
+        """Update date and time display in compressed format"""
+        try:
+            now = datetime.datetime.now()
+            
+            # Format: DD-MM-YYYY • HH:MM:SS
+            date_str = now.strftime("%d-%m-%Y")
+            time_str = now.strftime("%H:%M:%S")
+            datetime_str = f"{date_str} • {time_str}"
+            
+            # Update individual variables if they exist (for compatibility)
+            if hasattr(self, 'date_var'):
+                self.date_var.set(date_str)
+            if hasattr(self, 'time_var'):
+                self.time_var.set(time_str)
+            
+            # Update combined datetime label
+            if hasattr(self, 'datetime_label'):
+                self.datetime_label.config(text=datetime_str)
+            
+            # Schedule next update
+            if hasattr(self, 'root'):
+                self.root.after(1000, self.update_datetime)
+                
+        except Exception as e:
+            print(f"Error updating datetime: {e}")
+
 
     def logout(self):
         """Restart the entire application on logout for a clean slate"""
@@ -597,16 +606,7 @@ class TharuniApp:
         # Exit this process
         sys.exit(0)
 
-    def update_datetime(self):
-        """Update date and time display"""
-        try:
-            now = datetime.datetime.now()
-            self.date_var.set(now.strftime("%d-%m-%Y"))
-            self.time_var.set(now.strftime("%H:%M:%S"))
-        except Exception as e:
-            self.logger.error(f"Error updating datetime: {e}")
-        finally:
-            self.root.after(1000, self.update_datetime)  # Update every second
+
 
     def periodic_refresh(self):
         """Periodically refresh data displays with error handling"""
