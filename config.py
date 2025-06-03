@@ -99,56 +99,9 @@ def get_current_agency_site():
     """
     return CURRENT_AGENCY, CURRENT_SITE
 
-def reserve_next_ticket_number():
-    """Reserve (peek at) the next ticket number WITHOUT incrementing the counter
-    
-    Returns:
-        str: Next ticket number (e.g., "T0001", "T0002")
-    """
-    from settings_storage import SettingsStorage
-    
-    try:
-        settings_storage = SettingsStorage()
-        
-        # Get current ticket counter from settings (don't increment)
-        current_number = settings_storage.get_ticket_counter()
-        
-        # Generate the ticket number without incrementing
-        next_ticket = f"{TICKET_PREFIX}{current_number:0{TICKET_NUMBER_DIGITS}d}"
-        
-        print(f"Reserved ticket number: {next_ticket}")
-        return next_ticket
-        
-    except Exception as e:
-        print(f"Error reserving ticket number: {e}")
-        # Fallback to default format if settings fail
-        return f"{TICKET_PREFIX}{TICKET_START_NUMBER:0{TICKET_NUMBER_DIGITS}d}"
 
-def commit_next_ticket_number():
-    """Actually increment and commit the ticket counter (only after successful save)
-    
-    Returns:
-        bool: True if successful, False otherwise
-    """
-    from settings_storage import SettingsStorage
-    
-    try:
-        settings_storage = SettingsStorage()
-        
-        # Get current ticket counter from settings
-        current_number = settings_storage.get_ticket_counter()
-        
-        # Increment and save the counter
-        success = settings_storage.save_ticket_counter(current_number + 1)
-        
-        if success:
-            print(f"Committed ticket number: T{current_number:0{TICKET_NUMBER_DIGITS}d}, next will be: T{(current_number + 1):0{TICKET_NUMBER_DIGITS}d}")
-        
-        return success
-        
-    except Exception as e:
-        print(f"Error committing ticket number: {e}")
-        return False
+
+
 
 def get_next_ticket_number():
     """Get the next ticket number and increment the counter
@@ -180,6 +133,69 @@ def reset_ticket_counter(start_number=None):
         print(f"Error resetting ticket counter: {e}")
         return False
 
+def reserve_next_ticket_number():
+    """Reserve (peek at) the next ticket number WITHOUT incrementing the counter
+    
+    Returns:
+        str: Next ticket number (e.g., "T0001", "T0002")
+    """
+    from settings_storage import SettingsStorage
+    
+    try:
+        print(f"🎫 CONFIG DEBUG: Reserving next ticket number...")
+        settings_storage = SettingsStorage()
+        
+        # Get current ticket counter from settings (don't increment)
+        current_number = settings_storage.get_ticket_counter()
+        print(f"🎫 CONFIG DEBUG: Current ticket counter value: {current_number}")
+        
+        # Generate the ticket number without incrementing
+        next_ticket = f"{TICKET_PREFIX}{current_number:0{TICKET_NUMBER_DIGITS}d}"
+        
+        print(f"🎫 CONFIG DEBUG: Reserved ticket number: {next_ticket}")
+        return next_ticket
+        
+    except Exception as e:
+        print(f"🎫 CONFIG DEBUG: Error reserving ticket number: {e}")
+        # Fallback to default format if settings fail
+        fallback_ticket = f"{TICKET_PREFIX}{TICKET_START_NUMBER:0{TICKET_NUMBER_DIGITS}d}"
+        print(f"🎫 CONFIG DEBUG: Using fallback ticket: {fallback_ticket}")
+        return fallback_ticket
+
+def commit_next_ticket_number():
+    """Actually increment and commit the ticket counter (only after successful save)
+    
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    from settings_storage import SettingsStorage
+    
+    try:
+        print(f"🎫 CONFIG DEBUG: Committing ticket number increment...")
+        settings_storage = SettingsStorage()
+        
+        # Get current ticket counter from settings
+        current_number = settings_storage.get_ticket_counter()
+        next_number = current_number + 1
+        
+        print(f"🎫 CONFIG DEBUG: Incrementing counter from {current_number} to {next_number}")
+        
+        # Increment and save the counter
+        success = settings_storage.save_ticket_counter(next_number)
+        
+        if success:
+            current_ticket = f"T{current_number:0{TICKET_NUMBER_DIGITS}d}"
+            next_ticket = f"T{next_number:0{TICKET_NUMBER_DIGITS}d}"
+            print(f"🎫 CONFIG DEBUG: ✅ Committed ticket number: {current_ticket}, next will be: {next_ticket}")
+        else:
+            print(f"🎫 CONFIG DEBUG: ❌ Failed to commit ticket number increment")
+        
+        return success
+        
+    except Exception as e:
+        print(f"🎫 CONFIG DEBUG: Error committing ticket number: {e}")
+        return False
+
 def get_current_ticket_number():
     """Get the current ticket number without incrementing
     
@@ -189,13 +205,19 @@ def get_current_ticket_number():
     from settings_storage import SettingsStorage
     
     try:
+        print(f"🎫 CONFIG DEBUG: Getting current ticket number...")
         settings_storage = SettingsStorage()
         current_number = settings_storage.get_ticket_counter()
-        return f"{TICKET_PREFIX}{current_number:0{TICKET_NUMBER_DIGITS}d}"
+        current_ticket = f"{TICKET_PREFIX}{current_number:0{TICKET_NUMBER_DIGITS}d}"
+        print(f"🎫 CONFIG DEBUG: Current ticket number: {current_ticket}")
+        return current_ticket
         
     except Exception as e:
-        print(f"Error getting current ticket number: {e}")
-        return f"{TICKET_PREFIX}{TICKET_START_NUMBER:0{TICKET_NUMBER_DIGITS}d}"
+        print(f"🎫 CONFIG DEBUG: Error getting current ticket number: {e}")
+        fallback_ticket = f"{TICKET_PREFIX}{TICKET_START_NUMBER:0{TICKET_NUMBER_DIGITS}d}"
+        print(f"🎫 CONFIG DEBUG: Using fallback current ticket: {fallback_ticket}")
+        return fallback_ticket
+
 
 def set_ticket_format(prefix=None, digits=None):
     """Update ticket format settings

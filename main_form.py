@@ -1352,18 +1352,102 @@ class MainForm:
 
 
 
+
+    def prepare_for_next_vehicle_after_first_weighment(self):
+        """Prepare form for next vehicle AFTER first weighment is saved"""
+        try:
+            print(f"🎫 FORM DEBUG: Preparing for next vehicle after first weighment")
+            
+            # Reset form fields for next vehicle but keep site settings
+            self.vehicle_var.set("")
+            self.agency_var.set("")  # Reset agency for next vehicle
+            
+            # Clear weighment data
+            self.first_weight_var.set("")
+            self.first_timestamp_var.set("")
+            self.second_weight_var.set("")
+            self.second_timestamp_var.set("")
+            self.net_weight_var.set("")
+            self.material_type_var.set("Inert")  # Reset to default
+            
+            # Reset weighment state to first weighment
+            self.current_weighment = "first"
+            self.weighment_state_var.set("First Weighment")
+            
+            # Reset all 4 image paths for next vehicle
+            self.first_front_image_path = None
+            self.first_back_image_path = None
+            self.second_front_image_path = None
+            self.second_back_image_path = None
+            
+            # Reset images using image handler
+            if hasattr(self, 'image_handler'):
+                self.image_handler.reset_images()
+            
+            # Reserve the NEXT ticket number for the next vehicle
+            self.reserve_next_ticket_number()
+            new_ticket = self.rst_var.get()
+            print(f"🎫 FORM DEBUG: New ticket number reserved: {new_ticket}")
+            
+            # Update image status display
+            if hasattr(self, 'update_image_status_display'):
+                self.update_image_status_display()
+            
+            print(f"🎫 FORM DEBUG: Form prepared for next vehicle - new ticket: {new_ticket}")
+            
+        except Exception as e:
+            print(f"🎫 FORM DEBUG: Error preparing form for next vehicle: {e}")
+
+    def find_main_app(self):
+        """Find the main app instance to access data manager and pending vehicles panel"""
+        # Start with the parent widget
+        widget = self.parent
+        while widget:
+            # Check if this widget has the attributes we need (data_manager and pending_vehicles)
+            if hasattr(widget, 'data_manager') and hasattr(widget, 'pending_vehicles'):
+                return widget
+            
+            # Try to traverse up the widget hierarchy
+            if hasattr(widget, 'master'):
+                widget = widget.master
+            elif hasattr(widget, 'parent'):
+                widget = widget.parent
+            elif hasattr(widget, 'tk'):
+                # Sometimes we need to go through tk
+                widget = widget.tk
+            else:
+                break
+                
+        # If we can't find through normal traversal, try a different approach
+        # Look for any callback that might have the app reference
+        if hasattr(self, 'save_callback'):
+            # The save_callback is bound to the app's save_record method
+            # Try to get the app instance from the callback
+            try:
+                if hasattr(self.save_callback, '__self__'):
+                    callback_owner = self.save_callback.__self__
+                    if hasattr(callback_owner, 'data_manager') and hasattr(callback_owner, 'pending_vehicles'):
+                        return callback_owner
+            except:
+                pass
+                
+        return None
+
+
     # Import methods from modular files
     from form_ui import create_form
     from camera_ui import create_cameras_panel, load_camera_settings, get_settings_storage, update_camera_settings
 
     def find_main_app(self):
-        """Find the main app instance to access data manager"""
+        """Find the main app instance to access data manager and pending vehicles panel"""
         widget = self.parent
         while widget:
-            if hasattr(widget, 'data_manager'):
+            if hasattr(widget, 'data_manager') and hasattr(widget, 'pending_vehicles'):
                 return widget
             if hasattr(widget, 'master'):
                 widget = widget.master
+            elif hasattr(widget, 'parent'):
+                widget = widget.parent
             else:
                 break
         return None
@@ -1394,49 +1478,42 @@ class MainForm:
     def reserve_next_ticket_number(self):
         """Reserve (peek at) the next ticket number WITHOUT incrementing counter"""
         try:
+            print(f"🎫 FORM DEBUG: Reserving next ticket number...")
+            
             # Use the new config function to reserve (not increment) ticket number
             next_ticket = config.reserve_next_ticket_number()
             self.rst_var.set(next_ticket)
-            print(f"Reserved ticket number: {next_ticket}")
+            print(f"🎫 FORM DEBUG: Reserved ticket number: {next_ticket}")
             
             # Reset the form to first weighment state for new ticket
             self.current_weighment = "first"
             self.weighment_state_var.set("First Weighment")
             
         except Exception as e:
-            print(f"Error reserving ticket number: {e}")
+            print(f"🎫 FORM DEBUG: Error reserving ticket number: {e}")
             # Fallback to old method if new system fails
             self._generate_fallback_ticket()
 
     def generate_next_ticket_number(self):
         """Generate the next ticket number (for manual new ticket button)"""
         try:
+            print(f"🎫 FORM DEBUG: Manually generating next ticket number...")
+            
             # Use the new config function to reserve next ticket number
             next_ticket = config.reserve_next_ticket_number()
             self.rst_var.set(next_ticket)
-            print(f"Generated new ticket number: {next_ticket}")
+            print(f"🎫 FORM DEBUG: Generated new ticket number: {next_ticket}")
             
             # Reset the form to first weighment state for new ticket
             self.current_weighment = "first"
             self.weighment_state_var.set("First Weighment")
-            
+
         except Exception as e:
-            print(f"Error generating ticket number: {e}")
+            print(f"🎫 FORM DEBUG: Error generating ticket number: {e}")
             # Fallback to old method if new system fails
             self._generate_fallback_ticket()
 
-    def commit_current_ticket_number(self):
-        """Commit the current ticket number (increment the counter) - only after successful save with both weighments"""
-        try:
-            success = config.commit_next_ticket_number()
-            if success:
-                print(f"Successfully committed ticket number: {self.rst_var.get()}")
-            else:
-                print("Failed to commit ticket number")
-            return success
-        except Exception as e:
-            print(f"Error committing ticket number: {e}")
-            return False
+
     
     def _generate_fallback_ticket(self):
         """Fallback ticket generation method (legacy support)"""
@@ -1591,9 +1668,27 @@ class MainForm:
         except Exception as e:
             print(f"Error setting up weight traces: {e}")
 
+    def commit_current_ticket_number(self):
+        """Commit the current ticket number (increment the counter) - called after successful save"""
+        try:
+            current_ticket = self.rst_var.get()
+            print(f"🎫 FORM DEBUG: Committing current ticket number: {current_ticket}")
+            
+            success = config.commit_next_ticket_number()
+            if success:
+                print(f"🎫 FORM DEBUG: ✅ Successfully committed ticket number: {current_ticket}")
+            else:
+                print(f"🎫 FORM DEBUG: ❌ Failed to commit ticket number: {current_ticket}")
+            return success
+        except Exception as e:
+            print(f"🎫 FORM DEBUG: Error committing ticket number: {e}")
+            return False
+
     def clear_form(self):
         """Reset form fields except site and Transfer Party Name - FIXED METHOD"""
         try:
+            print(f"🎫 FORM DEBUG: Clearing form and generating new ticket...")
+            
             # Reset variables
             self.vehicle_var.set("")
             self.agency_var.set("")
@@ -1618,7 +1713,7 @@ class MainForm:
             if hasattr(self, 'image_handler'):
                 self.image_handler.reset_images()
             
-            # Reset cameras if they exist - FIXED
+            # Reset cameras if they exist
             if hasattr(self, 'front_camera') and self.front_camera:
                 try:
                     if hasattr(self.front_camera, 'stop_continuous_feed'):
@@ -1634,7 +1729,7 @@ class MainForm:
                     if hasattr(self.front_camera, 'save_button'):
                         self.front_camera.save_button.config(state=tk.DISABLED)
                 except Exception as e:
-                    print(f"Error resetting front camera: {e}")
+                    print(f"🎫 FORM DEBUG: Error resetting front camera: {e}")
                     
             if hasattr(self, 'back_camera') and self.back_camera:
                 try:
@@ -1651,18 +1746,22 @@ class MainForm:
                     if hasattr(self.back_camera, 'save_button'):
                         self.back_camera.save_button.config(state=tk.DISABLED)
                 except Exception as e:
-                    print(f"Error resetting back camera: {e}")
+                    print(f"🎫 FORM DEBUG: Error resetting back camera: {e}")
             
             # Reserve new ticket number when clearing form
             self.reserve_next_ticket_number()
+            new_ticket = self.rst_var.get()
+            print(f"🎫 FORM DEBUG: New ticket number after clear: {new_ticket}")
             
         except Exception as e:
-            print(f"Error in clear_form: {e}")
+            print(f"🎫 FORM DEBUG: Error in clear_form: {e}")
 
 
     def prepare_for_new_ticket_after_completion(self):
-        """Prepare form for new ticket ONLY after both weighments are complete and saved - FIXED"""
+        """Prepare form for new ticket AFTER both weighments are complete and saved"""
         try:
+            print(f"🎫 FORM DEBUG: Preparing for new ticket after completion")
+            
             # Reset variables
             self.vehicle_var.set("")
             self.agency_var.set("")
@@ -1687,7 +1786,7 @@ class MainForm:
             if hasattr(self, 'image_handler'):
                 self.image_handler.reset_images()
             
-            # Reset cameras if they exist - FIXED
+            # Reset cameras if they exist
             if hasattr(self, 'front_camera') and self.front_camera:
                 try:
                     if hasattr(self.front_camera, 'stop_continuous_feed'):
@@ -1703,7 +1802,7 @@ class MainForm:
                     if hasattr(self.front_camera, 'save_button'):
                         self.front_camera.save_button.config(state=tk.DISABLED)
                 except Exception as e:
-                    print(f"Error resetting front camera: {e}")
+                    print(f"🎫 FORM DEBUG: Error resetting front camera: {e}")
                     
             if hasattr(self, 'back_camera') and self.back_camera:
                 try:
@@ -1720,15 +1819,18 @@ class MainForm:
                     if hasattr(self.back_camera, 'save_button'):
                         self.back_camera.save_button.config(state=tk.DISABLED)
                 except Exception as e:
-                    print(f"Error resetting back camera: {e}")
+                    print(f"🎫 FORM DEBUG: Error resetting back camera: {e}")
             
             # Reserve the next ticket number
             self.reserve_next_ticket_number()
+            new_ticket = self.rst_var.get()
+            print(f"🎫 FORM DEBUG: New ticket number reserved after completion: {new_ticket}")
             
-            print("Form prepared for new ticket after completion")
+            print(f"🎫 FORM DEBUG: Form prepared for new ticket after completion - ticket: {new_ticket}")
             
         except Exception as e:
-            print(f"Error preparing form for new ticket: {e}")
+            print(f"🎫 FORM DEBUG: Error preparing form for new ticket: {e}")
+
 
     def get_form_data(self):
         """Get form data as a dictionary with all 4 image fields"""

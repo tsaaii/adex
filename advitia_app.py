@@ -337,10 +337,10 @@ class TharuniApp:
             raise
 
     def save_record(self):
-        """FIXED: Save current record to database with enhanced logging and error handling"""
+        """FIXED: Save current record - smart ticket increment logic"""
         try:
             self.logger.info("="*50)
-            self.logger.info("SAVE RECORD OPERATION STARTED")
+            self.logger.info("SAVE RECORD OPERATION STARTED WITH SMART TICKET FLOW")
             
             # Validate form first
             if not self.main_form.validate_form():
@@ -351,64 +351,315 @@ class TharuniApp:
             record_data = self.main_form.get_form_data()
             ticket_no = record_data.get('ticket_no', '')
             
+            print(f"🎫 TICKET FLOW DEBUG: Starting save for ticket: {ticket_no}")
             self.logger.info(f"Saving record for ticket: {ticket_no}")
-            self.logger.info(f"Form data keys: {list(record_data.keys())}")
             
-            # Check if this is a complete record (both weighments)
-            is_complete_record = self.main_form.is_record_complete()
-            self.logger.info(f"Record is complete: {is_complete_record}")
+            # Check if this is a new ticket or updating existing pending ticket
+            is_update = False
+            existing_record = None
             
-            # Save to database (this will now auto-generate PDF for complete records)
+            if ticket_no:
+                # Check if record with this ticket number exists
+                records = self.data_manager.get_filtered_records(ticket_no)
+                for record in records:
+                    if record.get('ticket_no') == ticket_no:
+                        is_update = True
+                        existing_record = record
+                        print(f"🎫 TICKET FLOW DEBUG: This is an UPDATE to existing ticket: {ticket_no}")
+                        self.logger.info(f"Updating existing record: {ticket_no}")
+                        break
+            
+            if not is_update:
+                print(f"🎫 TICKET FLOW DEBUG: This is a NEW record: {ticket_no}")
+                self.logger.info(f"Adding new record: {ticket_no}")
+            
+            # Save to database
             self.logger.info(f"Calling data_manager.save_record for {ticket_no}")
+            save_result = self.data_manager.save_record(record_data)
             
-            if self.data_manager.save_record(record_data):
+            # Handle the save result
+            if isinstance(save_result, dict) and save_result.get('success', False):
                 self.logger.info(f"✅ Record {ticket_no} saved successfully")
                 
-                # FIXED: Only commit (increment) ticket number when BOTH weighments are complete
-                if is_complete_record:
-                    # Both weighments complete - commit the ticket number (increment counter)
+                # Extract weighment analysis from save result
+                is_complete_record = save_result.get('is_complete_record', False)
+                is_first_weighment_save = save_result.get('is_first_weighment_save', False)
+                pdf_generated = save_result.get('pdf_generated', False)
+                pdf_path = save_result.get('pdf_path', '')
+                todays_reports_folder = save_result.get('todays_reports_folder', '')
+                
+                print(f"🎫 TICKET FLOW DEBUG: Save result analysis:")
+                print(f"   - is_complete_record: {is_complete_record}")
+                print(f"   - is_first_weighment_save: {is_first_weighment_save}")
+                print(f"   - is_update: {is_update}")
+                
+                # SMART TICKET LOGIC: Only increment counter when we actually "consume" a ticket number
+                should_increment_counter = False
+                
+                if not is_update:
+                    # This is a brand new record using a fresh ticket number
+                    should_increment_counter = True
+                    print(f"🎫 TICKET FLOW DEBUG: NEW record - will increment counter")
+                elif is_update and is_complete_record:
+                    # This is completing an existing pending record - the ticket was already "consumed"
+                    # when the first weighment was saved, so don't increment again
+                    should_increment_counter = False
+                    print(f"🎫 TICKET FLOW DEBUG: Completing existing record - will NOT increment counter")
+                elif is_update and is_first_weighment_save:
+                    # This is adding first weighment to an existing record (edge case)
+                    # Check if the existing record was empty before
+                    if existing_record:
+                        existing_first_weight = existing_record.get('first_weight', '').strip()
+                        existing_first_timestamp = existing_record.get('first_timestamp', '').strip()
+                        was_empty_before = not (existing_first_weight and existing_first_timestamp)
+                        
+                        if was_empty_before:
+                            # This existing record was empty, so now we're actually using the ticket
+                            should_increment_counter = True
+                            print(f"🎫 TICKET FLOW DEBUG: Adding first weighment to empty record - will increment counter")
+                        else:
+                            # This existing record already had data, so ticket was already consumed
+                            should_increment_counter = False
+                            print(f"🎫 TICKET FLOW DEBUG: Updating existing record with data - will NOT increment counter")
+                    else:
+                        # Fallback - treat as new
+                        should_increment_counter = True
+                        print(f"🎫 TICKET FLOW DEBUG: Fallback for first weighment - will increment counter")
+                
+                # Apply the increment logic
+                ticket_incremented = False
+                if should_increment_counter:
+                    print(f"🎫 TICKET FLOW DEBUG: INCREMENTING ticket counter after save of {ticket_no}")
                     commit_success = self.main_form.commit_current_ticket_number()
                     if commit_success:
-                        self.logger.info(f"✅ Ticket {ticket_no} completed - counter incremented")
+                        print(f"🎫 TICKET FLOW DEBUG: ✅ Ticket counter incremented from {ticket_no}")
+                        ticket_incremented = True
                     else:
-                        self.logger.warning(f"⚠️ Warning: Failed to commit ticket number {ticket_no}")
+                        print(f"🎫 TICKET FLOW DEBUG: ❌ Failed to increment ticket counter")
+                        self.logger.warning(f"Failed to commit ticket number {ticket_no}")
+                else:
+                    print(f"🎫 TICKET FLOW DEBUG: NOT incrementing counter - ticket {ticket_no} was already consumed")
+                
+                # Handle different scenarios for UI updates and user feedback
+                if is_first_weighment_save and not is_update:
+                    # NEW first-only weighment record
+                    print(f"🎫 TICKET FLOW DEBUG: First weighment saved for NEW ticket {ticket_no}")
                     
-                    # FIXED: Remove from pending vehicles list AFTER successful save
+                    # Generate new ticket for next vehicle
+                    self.main_form.prepare_for_next_vehicle_after_first_weighment()
+                    new_ticket = self.main_form.rst_var.get()
+                    print(f"🎫 TICKET FLOW DEBUG: Generated next ticket number: {new_ticket}")
+                    
+                    # Show success message
+                    try:
+                        messagebox.showinfo("First Weighment Saved", 
+                                        f"✅ First weighment saved for ticket {ticket_no}!\n"
+                                        f"🚛 Vehicle added to pending queue\n"
+                                        f"🎫 New ticket number: {new_ticket}\n\n"
+                                        f"💡 Vehicle can return later for second weighment")
+                    except Exception as msg_error:
+                        self.logger.warning(f"Could not show messagebox: {msg_error}")
+                        
+                elif is_complete_record and not is_update:
+                    # NEW complete record (both weighments at once)
+                    print(f"🎫 TICKET FLOW DEBUG: Complete record saved for NEW ticket {ticket_no}")
+                    
+                    # Generate new ticket for next vehicle
+                    self.main_form.prepare_for_new_ticket_after_completion()
+                    new_ticket = self.main_form.rst_var.get()
+                    print(f"🎫 TICKET FLOW DEBUG: Generated next ticket number: {new_ticket}")
+                    
+                    # Switch to summary tab
+                    self.notebook.select(1)
+                    
+                    # Show completion message
+                    try:
+                        if pdf_generated and pdf_path:
+                            relative_folder = os.path.relpath(todays_reports_folder, os.getcwd()) if todays_reports_folder else "reports"
+                            messagebox.showinfo("Complete Record Saved + PDF Generated", 
+                                            f"✅ Complete weighment saved for ticket {ticket_no}!\n"
+                                            f"✅ PDF generated: {os.path.basename(pdf_path)}\n"
+                                            f"🎫 New ticket number: {new_ticket}\n\n"
+                                            f"📂 PDF Location: {relative_folder}")
+                        else:
+                            messagebox.showinfo("Complete Record Saved", 
+                                            f"✅ Complete weighment saved for ticket {ticket_no}!\n"
+                                            f"🎫 New ticket number: {new_ticket}")
+                    except Exception as msg_error:
+                        self.logger.warning(f"Could not show messagebox: {msg_error}")
+                        
+                elif is_update and is_complete_record:
+                    # UPDATE: Completing second weighment for existing pending record
+                    print(f"🎫 TICKET FLOW DEBUG: Second weighment completed for existing ticket {ticket_no}")
+                    
+                    # Remove from pending vehicles list AFTER successful save
                     self.logger.info(f"Removing {ticket_no} from pending vehicles list")
                     if hasattr(self, 'pending_vehicles'):
                         self.pending_vehicles.remove_saved_record(ticket_no)
                     
-                    # Prepare form for new ticket (this will reserve the next ticket number)
+                    # Generate new ticket for next vehicle (always show next available ticket)
                     self.main_form.prepare_for_new_ticket_after_completion()
+                    new_ticket = self.main_form.rst_var.get()
+                    print(f"🎫 TICKET FLOW DEBUG: Generated next ticket number after completing {ticket_no}: {new_ticket}")
                     
-                    # Switch to summary tab to show completed record
+                    # Switch to summary tab
                     self.notebook.select(1)
                     
-                    self.logger.info(f"✅ Complete record processing finished for {ticket_no}")
+                    # Show completion message
+                    try:
+                        if pdf_generated and pdf_path:
+                            relative_folder = os.path.relpath(todays_reports_folder, os.getcwd()) if todays_reports_folder else "reports"
+                            messagebox.showinfo("Second Weighment Completed + PDF Generated", 
+                                            f"✅ Second weighment completed for ticket {ticket_no}!\n"
+                                            f"✅ PDF generated: {os.path.basename(pdf_path)}\n"
+                                            f"🎫 Ready for next vehicle: {new_ticket}\n\n"
+                                            f"📂 PDF Location: {relative_folder}")
+                        else:
+                            messagebox.showinfo("Second Weighment Completed", 
+                                            f"✅ Second weighment completed for ticket {ticket_no}!\n"
+                                            f"🎫 Ready for next vehicle: {new_ticket}")
+                    except Exception as msg_error:
+                        self.logger.warning(f"Could not show messagebox: {msg_error}")
+                        
+                elif is_update and is_first_weighment_save:
+                    # UPDATE: Adding first weighment to existing record
+                    print(f"🎫 TICKET FLOW DEBUG: First weighment added to existing ticket {ticket_no}")
                     
+                    # Generate new ticket for next vehicle (only if we incremented)
+                    if ticket_incremented:
+                        self.main_form.prepare_for_next_vehicle_after_first_weighment()
+                        new_ticket = self.main_form.rst_var.get()
+                        print(f"🎫 TICKET FLOW DEBUG: Generated next ticket number: {new_ticket}")
+                    else:
+                        # Don't change the current ticket display
+                        new_ticket = self.main_form.rst_var.get()
+                        print(f"🎫 TICKET FLOW DEBUG: Keeping current ticket number: {new_ticket}")
+                    
+                    try:
+                        messagebox.showinfo("First Weighment Updated", 
+                                        f"✅ First weighment updated for ticket {ticket_no}!\n"
+                                        f"🎫 Current ticket: {new_ticket}")
+                    except Exception as msg_error:
+                        self.logger.warning(f"Could not show messagebox: {msg_error}")
+                
                 else:
-                    # Only first weighment - DON'T increment ticket counter yet
-                    self.logger.info(f"First weighment saved for ticket {ticket_no} - counter NOT incremented")
-                    messagebox.showinfo("Success", "First weighment saved! Vehicle added to pending queue.")
+                    # Catch-all: Any other successful save
+                    print(f"🎫 TICKET FLOW DEBUG: Other successful save scenario for ticket {ticket_no}")
                     
-                    # Clear form for next entry but DON'T increment ticket counter
-                    self.clear_form()
+                    # Generate new ticket for next vehicle (only if we incremented)
+                    if ticket_incremented:
+                        self.main_form.prepare_for_new_ticket_after_completion()
+                        new_ticket = self.main_form.rst_var.get()
+                        print(f"🎫 TICKET FLOW DEBUG: Generated next ticket number: {new_ticket}")
+                    else:
+                        new_ticket = self.main_form.rst_var.get()
+                        print(f"🎫 TICKET FLOW DEBUG: Keeping current ticket number: {new_ticket}")
+                    
+                    try:
+                        messagebox.showinfo("Record Saved", 
+                                        f"✅ Record saved for ticket {ticket_no}!\n"
+                                        f"🎫 Current ticket: {new_ticket}")
+                    except Exception as msg_error:
+                        self.logger.warning(f"Could not show messagebox: {msg_error}")
                 
                 # Always update the summary and pending vehicles list when saving
                 self.update_summary()
                 self.update_pending_vehicles()
                 
-                self.logger.info("SAVE RECORD OPERATION COMPLETED SUCCESSFULLY")
+                print(f"🎫 TICKET FLOW DEBUG: Save operation completed successfully")
+                self.logger.info("SAVE RECORD OPERATION COMPLETED SUCCESSFULLY WITH SMART TICKET FLOW")
                 
             else:
-                self.logger.error(f"❌ Failed to save record {ticket_no}")
-                messagebox.showerror("Error", "Failed to save record. Check logs for details.")
+                # Handle error case
+                error_msg = save_result.get('error', 'Unknown error') if isinstance(save_result, dict) else 'Save operation failed'
+                print(f"🎫 TICKET FLOW DEBUG: ❌ Save failed: {error_msg}")
+                self.logger.error(f"❌ Failed to save record {ticket_no}: {error_msg}")
+                messagebox.showerror("Error", f"Failed to save record: {error_msg}")
                 
         except Exception as e:
+            print(f"🎫 TICKET FLOW DEBUG: ❌ Critical error in save_record: {e}")
             self.logger.error(f"❌ Critical error in save_record: {e}")
             messagebox.showerror("Save Error", f"Critical error saving record:\n{str(e)}\n\nCheck logs for details.")
         finally:
+            print("🎫 TICKET FLOW DEBUG: " + "="*50)
             self.logger.info("="*50)
+
+    def prepare_for_next_vehicle_after_first_weighment(self):
+        """Prepare form for next vehicle AFTER first weighment is saved and ticket is committed"""
+        try:
+            # Reset form fields for next vehicle but keep site settings
+            self.vehicle_var.set("")
+            self.agency_var.set("")  # Reset agency for next vehicle
+            
+            # Clear weighment data
+            self.first_weight_var.set("")
+            self.first_timestamp_var.set("")
+            self.second_weight_var.set("")
+            self.second_timestamp_var.set("")
+            self.net_weight_var.set("")
+            self.material_type_var.set("Inert")  # Reset to default
+            
+            # Reset weighment state to first weighment
+            self.current_weighment = "first"
+            self.weighment_state_var.set("First Weighment")
+            
+            # Reset all 4 image paths for next vehicle
+            self.first_front_image_path = None
+            self.first_back_image_path = None
+            self.second_front_image_path = None
+            self.second_back_image_path = None
+            
+            # Reset images using image handler
+            if hasattr(self, 'image_handler'):
+                self.image_handler.reset_images()
+            
+            # Reserve the NEXT ticket number for the next vehicle
+            # This is critical - the counter was already incremented, so this gets the next number
+            self.reserve_next_ticket_number()
+            
+            # Update image status display
+            if hasattr(self, 'update_image_status_display'):
+                self.update_image_status_display()
+            
+            print(f"Form prepared for next vehicle - new ticket: {self.rst_var.get()}")
+            
+        except Exception as e:
+            print(f"Error preparing form for next vehicle: {e}")
+
+    def find_main_app(self):
+        """Find the main app instance to access data manager and pending vehicles panel"""
+        # Start with the parent widget
+        widget = self.parent
+        while widget:
+            # Check if this widget has the attributes we need (data_manager and pending_vehicles)
+            if hasattr(widget, 'data_manager') and hasattr(widget, 'pending_vehicles'):
+                return widget
+            
+            # Try to traverse up the widget hierarchy
+            if hasattr(widget, 'master'):
+                widget = widget.master
+            elif hasattr(widget, 'parent'):
+                widget = widget.parent
+            elif hasattr(widget, 'tk'):
+                # Sometimes we need to go through tk
+                widget = widget.tk
+            else:
+                break
+                
+        # If we can't find through normal traversal, try a different approach
+        # Look for any callback that might have the app reference
+        if hasattr(self, 'save_callback'):
+            # The save_callback is bound to the app's save_record method
+            # Try to get the app instance from the callback
+            try:
+                if hasattr(self.save_callback, '__self__'):
+                    callback_owner = self.save_callback.__self__
+                    if hasattr(callback_owner, 'data_manager') and hasattr(callback_owner, 'pending_vehicles'):
+                        return callback_owner
+            except:
+                pass
+                
+        return None
 
     def update_pending_vehicles(self):
         """FIXED: Update the pending vehicles panel with error handling"""
@@ -423,6 +674,7 @@ class TharuniApp:
                     self.logger.warning("Pending vehicles tree widget no longer exists")
         except Exception as e:
             self.logger.error(f"Error updating pending vehicles: {e}")
+
 
     def load_pending_vehicle(self, ticket_no):
         """FIXED: Load a pending vehicle when selected from the pending vehicles panel"""
@@ -456,7 +708,6 @@ class TharuniApp:
         except Exception as e:
             self.logger.error(f"Error loading pending vehicle {ticket_no}: {e}")
             messagebox.showerror("Error", f"Error loading vehicle: {str(e)}")
-
 
     def create_header(self, parent):
         """Create compressed header with all info in single line"""

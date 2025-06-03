@@ -85,12 +85,11 @@ class DataManager:
         self.logger.info(f"PDF folder: {getattr(self, 'today_pdf_folder', 'Not set')}")
         self.logger.info("Cloud storage will only be initialized when backup is requested")
     
-
     def save_record(self, data):
-        """FIXED: Save record with proper net weight calculation and JSON local backup - Reports to data/reports/date folder"""
+        """FIXED: Save record - DataManager only handles data persistence, app handles ticket flow"""
         try:
             self.logger.info("="*50)
-            self.logger.info("STARTING OFFLINE-FIRST RECORD SAVE WITH JSON BACKUP")
+            self.logger.info("STARTING OFFLINE-FIRST RECORD SAVE")
             self.logger.info(f"Input data keys: {list(data.keys())}")
             
             # FIXED: Calculate and set net weight properly
@@ -102,7 +101,7 @@ class DataManager:
                 self.logger.error(f"Validation failed: {validation_result['errors']}")
                 if messagebox:
                     messagebox.showerror("Validation Error", f"Record validation failed:\n" + "\n".join(validation_result['errors']))
-                return False
+                return {'success': False, 'error': 'Validation failed'}
             
             # Use the current data file
             current_file = self.get_current_data_file()
@@ -136,15 +135,30 @@ class DataManager:
                     self.logger.info(f"✅ Record {ticket_no} saved to local CSV successfully")
                 else:
                     self.logger.error(f"❌ Failed to save record {ticket_no} to local CSV")
-                    return False
+                    return {'success': False, 'error': 'Failed to save to CSV'}
             except Exception as csv_error:
                 self.logger.error(f"❌ Critical error saving to CSV: {csv_error}")
-                return False
+                return {'success': False, 'error': f'CSV error: {str(csv_error)}'}
             
             # Check if this is a complete record (both weighments)
             is_complete_record = self.is_record_complete(data)
             
-            self.logger.info(f"Record completion status: {is_complete_record}")
+            # Analyze weighment state for logging
+            first_weight = data.get('first_weight', '').strip()
+            first_timestamp = data.get('first_timestamp', '').strip()
+            second_weight = data.get('second_weight', '').strip()
+            second_timestamp = data.get('second_timestamp', '').strip()
+            
+            has_first_weighment = bool(first_weight and first_timestamp)
+            has_second_weighment = bool(second_weight and second_timestamp)
+            is_first_weighment_save = has_first_weighment and not has_second_weighment
+            
+            self.logger.info(f"Weighment analysis:")
+            self.logger.info(f"  - Has first weighment: {has_first_weighment}")
+            self.logger.info(f"  - Has second weighment: {has_second_weighment}")
+            self.logger.info(f"  - Is first weighment save: {is_first_weighment_save}")
+            self.logger.info(f"  - Is complete record: {is_complete_record}")
+            self.logger.info(f"  - Is update: {is_update}")
             
             # PRIORITY 2: Save complete records as JSON locally
             json_saved = False
@@ -174,53 +188,10 @@ class DataManager:
                     pdf_generated, pdf_path = self.auto_generate_pdf_for_complete_record(data)
                     if pdf_generated:
                         self.logger.info(f"✅ PDF auto-generated locally: {pdf_path}")
-                        # Show success message to user with updated folder info
-                        try:
-                            if messagebox:
-                                relative_folder = os.path.relpath(todays_reports_folder, os.getcwd())
-                                messagebox.showinfo("Record Saved + PDF + JSON Generated", 
-                                                f"✅ Record saved successfully!\n"
-                                                f"✅ PDF generated: {os.path.basename(pdf_path)}\n"
-                                                f"✅ JSON backup created locally\n\n"
-                                                f"📂 PDF Location: {relative_folder}\n"
-                                                f"📅 Today's Reports Folder\n\n"
-                                                f"💡 Use Settings > Cloud Storage > Backup to upload all data when internet is available.")
-                        except Exception as msg_error:
-                            self.logger.warning(f"Could not show messagebox: {msg_error}")
                     else:
                         self.logger.warning("⚠️ PDF generation failed, but record and JSON were saved locally")
-                        # Still show success for record save
-                        try:
-                            if messagebox:
-                                messagebox.showinfo("Record Saved + JSON Created", 
-                                                f"✅ Record saved successfully!\n"
-                                                f"✅ JSON backup created locally\n"
-                                                f"⚠️ PDF generation failed - check logs\n\n"
-                                                f"💡 Use Settings > Cloud Storage > Backup to upload when internet is available.")
-                        except Exception as msg_error:
-                            self.logger.warning(f"Could not show messagebox: {msg_error}")
                 except Exception as pdf_error:
                     self.logger.error(f"⚠️ PDF generation error (non-critical): {pdf_error}")
-                    # Still show success for record save
-                    try:
-                        if messagebox:
-                            messagebox.showinfo("Record Saved + JSON Created", 
-                                            f"✅ Record saved successfully!\n"
-                                            f"✅ JSON backup created locally\n"
-                                            f"⚠️ PDF generation error: {str(pdf_error)}\n\n"
-                                            f"💡 Use Settings > Cloud Storage > Backup to upload when internet is available.")
-                    except Exception as msg_error:
-                        self.logger.warning(f"Could not show messagebox: {msg_error}")
-            else:
-                # Incomplete record - just show save success
-                try:
-                    if messagebox:
-                        messagebox.showinfo("Record Saved", 
-                                        f"✅ Record saved locally!\n"
-                                        f"ℹ️ Incomplete weighments - PDF and JSON will be created after second weighment\n\n"
-                                        f"💡 Complete both weighments for auto PDF + JSON generation")
-                except Exception as msg_error:
-                    self.logger.warning(f"Could not show messagebox: {msg_error}")
             
             # IMPORTANT: NO CLOUD STORAGE ATTEMPTS HERE
             self.logger.info("✅ OFFLINE-FIRST SAVE COMPLETED - Local CSV, JSON backup, and PDF generated")
@@ -229,7 +200,17 @@ class DataManager:
             self.logger.info("💡 Cloud backup available via Settings > Cloud Storage > Backup")
             self.logger.info("="*50)
             
-            return csv_success
+            # Return success and weighment info for the app to handle ticket flow
+            return {
+                'success': True,
+                'is_complete_record': is_complete_record,
+                'is_first_weighment_save': is_first_weighment_save,
+                'is_update': is_update,
+                'ticket_no': ticket_no,
+                'pdf_generated': pdf_generated,
+                'pdf_path': pdf_path,
+                'todays_reports_folder': todays_reports_folder
+            }
                     
         except Exception as e:
             self.logger.error(f"❌ Critical error saving record: {e}")
@@ -238,7 +219,7 @@ class DataManager:
                     messagebox.showerror("Save Error", f"Failed to save record:\n{str(e)}")
             except:
                 pass
-            return False
+            return {'success': False, 'error': str(e)}
 
     def get_todays_reports_folder(self):
         """Get or create today's reports folder in data/reports/YYYY-MM-DD format
