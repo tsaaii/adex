@@ -308,16 +308,21 @@ class SettingsStorage:
             return False
 
     def get_weighbridge_settings(self):
-        """Get weighbridge settings from file
+        """Get weighbridge settings from file including test mode
         
         Returns:
-            dict: Weighbridge settings
+            dict: Weighbridge settings with test_mode flag
         """
         try:
             print(f"Reading weighbridge settings from: {self.settings_file}")
             with open(self.settings_file, 'r') as f:
                 settings = json.load(f)
                 wb_settings = settings.get("weighbridge", {})
+                
+                # Add test_mode if it doesn't exist
+                if "test_mode" not in wb_settings:
+                    wb_settings["test_mode"] = False
+                    
                 print(f"Loaded weighbridge settings: {wb_settings}")
                 return wb_settings
         except Exception as e:
@@ -327,9 +332,10 @@ class SettingsStorage:
                 "baud_rate": 9600,
                 "data_bits": 8,
                 "parity": "None",
-                "stop_bits": 1.0
+                "stop_bits": 1.0,
+                "test_mode": False  # Default to real weighbridge mode
             }
-    
+        
     def save_weighbridge_settings(self, settings):
         """Save weighbridge settings to file
         

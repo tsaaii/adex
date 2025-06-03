@@ -215,9 +215,19 @@ class MainForm:
             row=3, column=0, sticky=tk.W, padx=5, pady=5)
 
         # Net Weight Display (read-only)
-        net_weight_display = ttk.Entry(weighment_frame, textvariable=self.net_weight_var, 
-                                    width=12, state="readonly", style="Weight.TEntry")
+        # Replace the existing net weight Entry with this enhanced Label
+        net_weight_display = ttk.Label(weighment_frame, 
+                                    textvariable=self.net_weight_var,
+                                    font=("Segoe UI", 14, "bold"),
+                                    foreground=config.COLORS["secondary"],
+                                    background=config.COLORS["background"],
+                                    width=12)
         net_weight_display.grid(row=3, column=1, sticky=tk.W, padx=5, pady=5)
+
+        # Add kg unit label
+        ttk.Label(weighment_frame, text="kg", 
+                font=("Segoe UI", 10),
+                foreground="gray").grid(row=3, column=1, sticky=tk.W, padx=(80, 5), pady=5)
 
         # Current weighment state indicator
         state_frame = ttk.Frame(weighment_frame)
@@ -1159,6 +1169,43 @@ class MainForm:
         
         # Reserve next ticket number WITHOUT incrementing counter
         self.reserve_next_ticket_number()
+
+    def update_net_weight_display(self):
+        """Calculate and update net weight display when weights change"""
+        try:
+            first_weight_str = self.first_weight_var.get().strip()
+            second_weight_str = self.second_weight_var.get().strip()
+            
+            if first_weight_str and second_weight_str:
+                try:
+                    first_weight = float(first_weight_str)
+                    second_weight = float(second_weight_str)
+                    net_weight = abs(first_weight - second_weight)
+                    
+                    # Update the net weight display
+                    self.net_weight_var.set(f"{net_weight:.2f}")
+                    
+                    print(f"Net weight calculated and displayed: {net_weight:.2f}")
+                    
+                except (ValueError, TypeError) as e:
+                    print(f"Error calculating net weight: {e}")
+                    self.net_weight_var.set("")
+            else:
+                # Clear net weight if either weight is missing
+                self.net_weight_var.set("")
+        except Exception as e:
+            print(f"Error updating net weight display: {e}")
+
+    def setup_weight_variable_traces(self):
+        """Set up trace callbacks to auto-update net weight when weights change"""
+        try:
+            # Add trace callbacks to first and second weight variables
+            self.first_weight_var.trace_add("write", lambda *args: self.update_net_weight_display())
+            self.second_weight_var.trace_add("write", lambda *args: self.update_net_weight_display())
+            
+            print("Weight variable traces set up for auto net weight calculation")
+        except Exception as e:
+            print(f"Error setting up weight traces: {e}")
 
     def clear_form(self):
         """Reset form fields except site and Transfer Party Name - FIXED METHOD"""

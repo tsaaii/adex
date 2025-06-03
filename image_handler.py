@@ -1,4 +1,4 @@
-# Fixed image_handler.py - Enhanced for continuous camera system
+# Fixed image_handler.py - Enhanced for better weighment flow
 
 import tkinter as tk
 from tkinter import messagebox
@@ -9,7 +9,7 @@ import config
 from camera import add_watermark
 
 class ImageHandler:
-    """Enhanced image handler for continuous camera system with better debugging"""
+    """Enhanced image handler with improved weighment flow logic"""
     
     def __init__(self, main_form):
         """Initialize image handler
@@ -19,6 +19,58 @@ class ImageHandler:
         """
         self.main_form = main_form
         print("ImageHandler initialized")
+    
+    def determine_current_image_weighment(self):
+        """FIXED: Determine which weighment images should be saved for based on actual weighment completion
+        
+        Logic:
+        - If no weights captured yet -> first weighment images
+        - If first weight captured but no second weight -> first weighment images  
+        - If both weights captured -> second weighment images
+        - If only second weight captured (edge case) -> second weighment images
+        
+        Returns:
+            str: "first" or "second"
+        """
+        try:
+            # Check what weighments are actually completed
+            first_weight = self.main_form.first_weight_var.get().strip()
+            first_timestamp = self.main_form.first_timestamp_var.get().strip()
+            second_weight = self.main_form.second_weight_var.get().strip()
+            second_timestamp = self.main_form.second_timestamp_var.get().strip()
+            
+            first_complete = bool(first_weight and first_timestamp)
+            second_complete = bool(second_weight and second_timestamp)
+            
+            print(f"Weighment status - First: {first_complete}, Second: {second_complete}")
+            
+            # Decision logic for image weighment
+            if not first_complete and not second_complete:
+                # No weighments yet - images go to first
+                image_weighment = "first"
+                print("No weighments completed - images for FIRST weighment")
+            elif first_complete and not second_complete:
+                # First weighment done, second not done - images still go to first (until second weight is captured)
+                image_weighment = "first"
+                print("First weighment completed, second not done - images for FIRST weighment")
+            elif first_complete and second_complete:
+                # Both weighments done - images go to second
+                image_weighment = "second"  
+                print("Both weighments completed - images for SECOND weighment")
+            elif not first_complete and second_complete:
+                # Edge case: only second weighment (unusual) - images go to second
+                image_weighment = "second"
+                print("Only second weighment completed - images for SECOND weighment")
+            else:
+                # Default fallback
+                image_weighment = "first"
+                print("Default fallback - images for FIRST weighment")
+            
+            return image_weighment
+            
+        except Exception as e:
+            print(f"Error determining image weighment: {e}")
+            return "first"  # Safe fallback
     
     def load_images_from_record(self, record):
         """Load images from a record into the form"""
@@ -105,20 +157,19 @@ class ImageHandler:
             print(f"Error updating image status: {e}")
     
     def save_front_image(self, captured_image=None):
-        """Save front view camera image based on current weighment state"""
+        """FIXED: Save front view camera image based on ACTUAL weighment completion status"""
         print("=== SAVE FRONT IMAGE CALLED ===")
         print(f"Captured image provided: {captured_image is not None}")
-        print(f"Current weighment: {getattr(self.main_form, 'current_weighment', 'unknown')}")
         
         # Validate vehicle number first
         if not self.main_form.form_validator.validate_vehicle_number():
             print("Vehicle number validation failed")
             return False
         
-        # Determine which weighment we're in
-        current_weighment = getattr(self.main_form, 'current_weighment', 'first')
-        weighment_label = "1st" if current_weighment == "first" else "2nd"
-        print(f"Saving {weighment_label} weighment front image")
+        # FIXED: Determine which weighment these images are for based on actual completion
+        image_weighment = self.determine_current_image_weighment()
+        weighment_label = "1st" if image_weighment == "first" else "2nd"
+        print(f"FIXED: Saving {weighment_label} weighment front image (based on actual weighment status)")
         
         # Use captured image if provided, otherwise try to get from camera
         image = captured_image
@@ -180,8 +231,8 @@ class ImageHandler:
             file_size = os.path.getsize(filepath)
             print(f"File created successfully, size: {file_size} bytes")
             
-            # Update the appropriate image path based on weighment
-            if current_weighment == "first":
+            # FIXED: Update the appropriate image path based on ACTUAL weighment determination
+            if image_weighment == "first":
                 self.main_form.first_front_image_path = filepath
                 print(f"Set first_front_image_path: {filepath}")
             else:
@@ -207,20 +258,19 @@ class ImageHandler:
             return False
     
     def save_back_image(self, captured_image=None):
-        """Save back view camera image based on current weighment state"""
+        """FIXED: Save back view camera image based on ACTUAL weighment completion status"""
         print("=== SAVE BACK IMAGE CALLED ===")
         print(f"Captured image provided: {captured_image is not None}")
-        print(f"Current weighment: {getattr(self.main_form, 'current_weighment', 'unknown')}")
         
         # Validate vehicle number first
         if not self.main_form.form_validator.validate_vehicle_number():
             print("Vehicle number validation failed")
             return False
         
-        # Determine which weighment we're in
-        current_weighment = getattr(self.main_form, 'current_weighment', 'first')
-        weighment_label = "1st" if current_weighment == "first" else "2nd"
-        print(f"Saving {weighment_label} weighment back image")
+        # FIXED: Determine which weighment these images are for based on actual completion
+        image_weighment = self.determine_current_image_weighment()
+        weighment_label = "1st" if image_weighment == "first" else "2nd"
+        print(f"FIXED: Saving {weighment_label} weighment back image (based on actual weighment status)")
         
         # Use captured image if provided, otherwise try to get from camera
         image = captured_image
@@ -282,8 +332,8 @@ class ImageHandler:
             file_size = os.path.getsize(filepath)
             print(f"File created successfully, size: {file_size} bytes")
             
-            # Update the appropriate image path based on weighment
-            if current_weighment == "first":
+            # FIXED: Update the appropriate image path based on ACTUAL weighment determination
+            if image_weighment == "first":
                 self.main_form.first_back_image_path = filepath
                 print(f"Set first_back_image_path: {filepath}")
             else:
@@ -308,6 +358,182 @@ class ImageHandler:
             messagebox.showerror("Error", error_msg)
             return False
     
+    def save_first_front_image(self, captured_image):
+        """Save image specifically for first weighment front - used by continuous camera system"""
+        print("=== SAVE FIRST FRONT IMAGE (SPECIFIC) ===")
+        
+        # Validate vehicle number first
+        if not self.main_form.form_validator.validate_vehicle_number():
+            print("Vehicle number validation failed")
+            return False
+        
+        if captured_image is None:
+            print("ERROR: No captured image provided")
+            return False
+        
+        try:
+            # Generate filename
+            site_name = self.main_form.site_var.get().replace(" ", "_")
+            vehicle_no = self.main_form.vehicle_var.get().replace(" ", "_")
+            ticket_id = self.main_form.rst_var.get().strip()
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            filename = f"{site_name}_{vehicle_no}_{timestamp}_1st_front.jpg"
+            watermark_text = f"{site_name} - {vehicle_no} - {timestamp} - 1ST FRONT"
+            
+            # Add watermark
+            watermarked_image = add_watermark(captured_image, watermark_text, ticket_id)
+            
+            # Save image
+            os.makedirs(config.IMAGES_FOLDER, exist_ok=True)
+            filepath = os.path.join(config.IMAGES_FOLDER, filename)
+            
+            success = cv2.imwrite(filepath, watermarked_image)
+            if success and os.path.exists(filepath):
+                self.main_form.first_front_image_path = filepath
+                self.update_image_status()
+                print(f"✅ First front image saved: {filename}")
+                return True
+            else:
+                print("ERROR: Failed to save first front image")
+                return False
+                
+        except Exception as e:
+            print(f"Error saving first front image: {e}")
+            return False
+    
+    def save_first_back_image(self, captured_image):
+        """Save image specifically for first weighment back - used by continuous camera system"""
+        print("=== SAVE FIRST BACK IMAGE (SPECIFIC) ===")
+        
+        # Validate vehicle number first
+        if not self.main_form.form_validator.validate_vehicle_number():
+            print("Vehicle number validation failed")
+            return False
+        
+        if captured_image is None:
+            print("ERROR: No captured image provided")
+            return False
+        
+        try:
+            # Generate filename
+            site_name = self.main_form.site_var.get().replace(" ", "_")
+            vehicle_no = self.main_form.vehicle_var.get().replace(" ", "_")
+            ticket_id = self.main_form.rst_var.get().strip()
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            filename = f"{site_name}_{vehicle_no}_{timestamp}_1st_back.jpg"
+            watermark_text = f"{site_name} - {vehicle_no} - {timestamp} - 1ST BACK"
+            
+            # Add watermark
+            watermarked_image = add_watermark(captured_image, watermark_text, ticket_id)
+            
+            # Save image
+            os.makedirs(config.IMAGES_FOLDER, exist_ok=True)
+            filepath = os.path.join(config.IMAGES_FOLDER, filename)
+            
+            success = cv2.imwrite(filepath, watermarked_image)
+            if success and os.path.exists(filepath):
+                self.main_form.first_back_image_path = filepath
+                self.update_image_status()
+                print(f"✅ First back image saved: {filename}")
+                return True
+            else:
+                print("ERROR: Failed to save first back image")
+                return False
+                
+        except Exception as e:
+            print(f"Error saving first back image: {e}")
+            return False
+    
+    def save_second_front_image(self, captured_image):
+        """Save image specifically for second weighment front - used by continuous camera system"""
+        print("=== SAVE SECOND FRONT IMAGE (SPECIFIC) ===")
+        
+        # Validate vehicle number first
+        if not self.main_form.form_validator.validate_vehicle_number():
+            print("Vehicle number validation failed")
+            return False
+        
+        if captured_image is None:
+            print("ERROR: No captured image provided")
+            return False
+        
+        try:
+            # Generate filename
+            site_name = self.main_form.site_var.get().replace(" ", "_")
+            vehicle_no = self.main_form.vehicle_var.get().replace(" ", "_")
+            ticket_id = self.main_form.rst_var.get().strip()
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            filename = f"{site_name}_{vehicle_no}_{timestamp}_2nd_front.jpg"
+            watermark_text = f"{site_name} - {vehicle_no} - {timestamp} - 2ND FRONT"
+            
+            # Add watermark
+            watermarked_image = add_watermark(captured_image, watermark_text, ticket_id)
+            
+            # Save image
+            os.makedirs(config.IMAGES_FOLDER, exist_ok=True)
+            filepath = os.path.join(config.IMAGES_FOLDER, filename)
+            
+            success = cv2.imwrite(filepath, watermarked_image)
+            if success and os.path.exists(filepath):
+                self.main_form.second_front_image_path = filepath
+                self.update_image_status()
+                print(f"✅ Second front image saved: {filename}")
+                return True
+            else:
+                print("ERROR: Failed to save second front image")
+                return False
+                
+        except Exception as e:
+            print(f"Error saving second front image: {e}")
+            return False
+    
+    def save_second_back_image(self, captured_image):
+        """Save image specifically for second weighment back - used by continuous camera system"""
+        print("=== SAVE SECOND BACK IMAGE (SPECIFIC) ===")
+        
+        # Validate vehicle number first
+        if not self.main_form.form_validator.validate_vehicle_number():
+            print("Vehicle number validation failed")
+            return False
+        
+        if captured_image is None:
+            print("ERROR: No captured image provided")
+            return False
+        
+        try:
+            # Generate filename
+            site_name = self.main_form.site_var.get().replace(" ", "_")
+            vehicle_no = self.main_form.vehicle_var.get().replace(" ", "_")
+            ticket_id = self.main_form.rst_var.get().strip()
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            filename = f"{site_name}_{vehicle_no}_{timestamp}_2nd_back.jpg"
+            watermark_text = f"{site_name} - {vehicle_no} - {timestamp} - 2ND BACK"
+            
+            # Add watermark
+            watermarked_image = add_watermark(captured_image, watermark_text, ticket_id)
+            
+            # Save image
+            os.makedirs(config.IMAGES_FOLDER, exist_ok=True)
+            filepath = os.path.join(config.IMAGES_FOLDER, filename)
+            
+            success = cv2.imwrite(filepath, watermarked_image)
+            if success and os.path.exists(filepath):
+                self.main_form.second_back_image_path = filepath
+                self.update_image_status()
+                print(f"✅ Second back image saved: {filename}")
+                return True
+            else:
+                print("ERROR: Failed to save second back image")
+                return False
+                
+        except Exception as e:
+            print(f"Error saving second back image: {e}")
+            return False
+    
     def get_all_image_filenames(self):
         """Get all image filenames for database storage
         
@@ -324,14 +550,14 @@ class ImageHandler:
         return result
     
     def get_current_weighment_images(self):
-        """Get images for current weighment state
+        """Get images for current weighment state based on actual completion
         
         Returns:
             dict: Front and back image paths for current weighment
         """
-        current_weighment = getattr(self.main_form, 'current_weighment', 'first')
+        image_weighment = self.determine_current_image_weighment()
         
-        if current_weighment == "first":
+        if image_weighment == "first":
             return {
                 'front_image': self.main_form.first_front_image_path,
                 'back_image': self.main_form.first_back_image_path

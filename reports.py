@@ -31,6 +31,8 @@ except ImportError:
     REPORTLAB_AVAILABLE = False
     print("ReportLab not available - PDF generation will be limited")
 
+
+
 class ReportGenerator:
     """Enhanced report generator with selection and filtering capabilities"""
     
@@ -48,7 +50,7 @@ class ReportGenerator:
         self.all_records = []
         
         # Ensure reports folder exists
-        self.reports_folder = os.path.join(config.DATA_FOLDER, 'reports')
+        self.reports_folder = config.REPORTS_FOLDER
         os.makedirs(self.reports_folder, exist_ok=True)
         
     def load_address_config(self):
@@ -747,13 +749,10 @@ class ReportGenerator:
 
             # Weighment Information
             elements.append(Paragraph("WEIGHMENT DETAILS", section_header_style))
-            
-            # Weighment Information with proper net weight calculation
             first_weight_str = record.get('first_weight', '').strip()
             second_weight_str = record.get('second_weight', '').strip()
             net_weight_str = record.get('net_weight', '').strip()
-            
-            # If net weight is empty but we have both weights, calculate it
+
             if not net_weight_str and first_weight_str and second_weight_str:
                 try:
                     first_weight = float(first_weight_str)
@@ -762,18 +761,30 @@ class ReportGenerator:
                     net_weight_str = f"{calculated_net:.2f}"
                 except (ValueError, TypeError):
                     net_weight_str = "Calculation Error"
-            
-            # If still empty, show as not available
-            if not net_weight_str:
-                net_weight_str = "Not Available"
-            
+
+            # If we still don't have net weight, try to calculate from available data
+            if not net_weight_str or net_weight_str == "Calculation Error":
+                if first_weight_str and second_weight_str:
+                    try:
+                        first_weight = float(first_weight_str)
+                        second_weight = float(second_weight_str)
+                        calculated_net = abs(first_weight - second_weight)
+                        net_weight_str = f"{calculated_net:.2f}"
+                    except (ValueError, TypeError):
+                        net_weight_str = "Unable to calculate"
+                else:
+                    net_weight_str = "Not Available"
+
+            # Format display weights
+            first_weight_display = f"{first_weight_str} kg" if first_weight_str else "Not captured"
+            second_weight_display = f"{second_weight_str} kg" if second_weight_str else "Not captured"
+            net_weight_display = f"{net_weight_str} kg" if net_weight_str and net_weight_str not in ["Not Available", "Unable to calculate", "Calculation Error"] else net_weight_str
             weighment_data = [
-                [Paragraph("<b>First Weight:</b>", label_style), Paragraph(f"{first_weight_str} kg" if first_weight_str else "Not captured", value_style), 
+                [Paragraph("<b>First Weight:</b>", label_style), Paragraph(first_weight_display, value_style), 
                 Paragraph("<b>First Time:</b>", label_style), Paragraph(record.get('first_timestamp', '') or "Not captured", value_style)],
-                [Paragraph("<b>Second Weight:</b>", label_style), Paragraph(f"{second_weight_str} kg" if second_weight_str else "Not captured", value_style), 
+                [Paragraph("<b>Second Weight:</b>", label_style), Paragraph(second_weight_display, value_style), 
                 Paragraph("<b>Second Time:</b>", label_style), Paragraph(record.get('second_timestamp', '') or "Not captured", value_style)],
-                ["", "", Paragraph("<b>Net Weight:</b>", label_style), Paragraph(f"{net_weight_str} Kgs", 
-                                ParagraphStyle(name='NetWeightCorner', fontSize=14, fontName='Helvetica-Bold', textColor=colors.black))]
+                [Paragraph("<b>Net Weight:</b>", label_style), Paragraph(net_weight_display, value_style)]
             ]
             
             weighment_inner_table = Table(weighment_data, colWidths=[1.5*inch, 1.5*inch, 1.2*inch, 2.8*inch])

@@ -56,7 +56,9 @@ class DataManager:
         
         self.data_file = config.DATA_FILE
         self.reports_folder = config.REPORTS_FOLDER
+        self.pdf_reports_folder = config.REPORTS_FOLDER
         self.json_backup_folder = config.JSON_BACKUPS_FOLDER
+        self.today_reports_folder = config.DATA_FOLDER
         self.initialize_new_csv_structure()
 
         try:
@@ -66,7 +68,7 @@ class DataManager:
             # Set fallback attributes to prevent AttributeError
             self.today_pdf_folder = config.DATA_FOLDER
             self.today_folder_name = datetime.datetime.now().strftime("%d-%m")
-            self.pdf_reports_folder = config.DATA_FOLDER 
+            self.pdf_reports_folder = config.REPORTS_FOLDER
               
             # FIXED: Setup unified folder structure
             self.setup_unified_folder_structure()
@@ -84,26 +86,325 @@ class DataManager:
         self.logger.info("Cloud storage will only be initialized when backup is requested")
     
 
-    def setup_daily_pdf_folders(self):
-        """Set up daily folder structure for PDF generation"""
+    def save_record(self, data):
+        """FIXED: Save record with proper net weight calculation and JSON local backup - Reports to data/reports/date folder"""
         try:
-            # Create base PDF reports folder
-            self.pdf_reports_folder = os.path.join(config.DATA_FOLDER, 'daily_reports')
-            os.makedirs(self.pdf_reports_folder, exist_ok=True)
+            self.logger.info("="*50)
+            self.logger.info("STARTING OFFLINE-FIRST RECORD SAVE WITH JSON BACKUP")
+            self.logger.info(f"Input data keys: {list(data.keys())}")
             
-            # Create today's folder
+            # FIXED: Calculate and set net weight properly
+            data = self.calculate_and_set_net_weight(data)
+            
+            # Enhanced validation with detailed logging
+            validation_result = self.validate_record_data(data)
+            if not validation_result['valid']:
+                self.logger.error(f"Validation failed: {validation_result['errors']}")
+                if messagebox:
+                    messagebox.showerror("Validation Error", f"Record validation failed:\n" + "\n".join(validation_result['errors']))
+                return False
+            
+            # Use the current data file
+            current_file = self.get_current_data_file()
+            self.logger.info(f"Using data file: {current_file}")
+            
+            # Check if this is an update to an existing record
+            ticket_no = data.get('ticket_no', '')
+            is_update = False
+            
+            if ticket_no:
+                # Check if record with this ticket number exists
+                records = self.get_filtered_records(ticket_no)
+                for record in records:
+                    if record.get('ticket_no') == ticket_no:
+                        is_update = True
+                        self.logger.info(f"Updating existing record: {ticket_no}")
+                        break
+            
+            if not is_update:
+                self.logger.info(f"Adding new record: {ticket_no}")
+            
+            # PRIORITY 1: Save to CSV locally (this MUST work)
+            csv_success = False
+            try:
+                if is_update:
+                    csv_success = self.update_record(data)
+                else:
+                    csv_success = self.add_new_record(data)
+                
+                if csv_success:
+                    self.logger.info(f"✅ Record {ticket_no} saved to local CSV successfully")
+                else:
+                    self.logger.error(f"❌ Failed to save record {ticket_no} to local CSV")
+                    return False
+            except Exception as csv_error:
+                self.logger.error(f"❌ Critical error saving to CSV: {csv_error}")
+                return False
+            
+            # Check if this is a complete record (both weighments)
+            is_complete_record = self.is_record_complete(data)
+            
+            self.logger.info(f"Record completion status: {is_complete_record}")
+            
+            # PRIORITY 2: Save complete records as JSON locally
+            json_saved = False
+            if is_complete_record:
+                self.logger.info(f"Complete record detected - saving JSON backup locally...")
+                try:
+                    json_saved = self.save_json_backup_locally(data)
+                    if json_saved:
+                        self.logger.info(f"✅ JSON backup saved locally for {ticket_no}")
+                    else:
+                        self.logger.warning(f"⚠️ Failed to save JSON backup for {ticket_no}")
+                except Exception as json_error:
+                    self.logger.error(f"⚠️ JSON backup error (non-critical): {json_error}")
+            
+            # PRIORITY 3: Auto-generate PDF for complete records - Save to data/reports/today folder
+            pdf_generated = False
+            pdf_path = None
+            todays_reports_folder = None
+            
+            if is_complete_record:
+                self.logger.info(f"Complete record detected for ticket {ticket_no} - generating PDF locally...")
+                try:
+                    # Get today's reports folder path
+                    todays_reports_folder = self.get_todays_reports_folder()
+                    self.logger.info(f"Reports will be saved to: {todays_reports_folder}")
+                    
+                    pdf_generated, pdf_path = self.auto_generate_pdf_for_complete_record(data)
+                    if pdf_generated:
+                        self.logger.info(f"✅ PDF auto-generated locally: {pdf_path}")
+                        # Show success message to user with updated folder info
+                        try:
+                            if messagebox:
+                                relative_folder = os.path.relpath(todays_reports_folder, os.getcwd())
+                                messagebox.showinfo("Record Saved + PDF + JSON Generated", 
+                                                f"✅ Record saved successfully!\n"
+                                                f"✅ PDF generated: {os.path.basename(pdf_path)}\n"
+                                                f"✅ JSON backup created locally\n\n"
+                                                f"📂 PDF Location: {relative_folder}\n"
+                                                f"📅 Today's Reports Folder\n\n"
+                                                f"💡 Use Settings > Cloud Storage > Backup to upload all data when internet is available.")
+                        except Exception as msg_error:
+                            self.logger.warning(f"Could not show messagebox: {msg_error}")
+                    else:
+                        self.logger.warning("⚠️ PDF generation failed, but record and JSON were saved locally")
+                        # Still show success for record save
+                        try:
+                            if messagebox:
+                                messagebox.showinfo("Record Saved + JSON Created", 
+                                                f"✅ Record saved successfully!\n"
+                                                f"✅ JSON backup created locally\n"
+                                                f"⚠️ PDF generation failed - check logs\n\n"
+                                                f"💡 Use Settings > Cloud Storage > Backup to upload when internet is available.")
+                        except Exception as msg_error:
+                            self.logger.warning(f"Could not show messagebox: {msg_error}")
+                except Exception as pdf_error:
+                    self.logger.error(f"⚠️ PDF generation error (non-critical): {pdf_error}")
+                    # Still show success for record save
+                    try:
+                        if messagebox:
+                            messagebox.showinfo("Record Saved + JSON Created", 
+                                            f"✅ Record saved successfully!\n"
+                                            f"✅ JSON backup created locally\n"
+                                            f"⚠️ PDF generation error: {str(pdf_error)}\n\n"
+                                            f"💡 Use Settings > Cloud Storage > Backup to upload when internet is available.")
+                    except Exception as msg_error:
+                        self.logger.warning(f"Could not show messagebox: {msg_error}")
+            else:
+                # Incomplete record - just show save success
+                try:
+                    if messagebox:
+                        messagebox.showinfo("Record Saved", 
+                                        f"✅ Record saved locally!\n"
+                                        f"ℹ️ Incomplete weighments - PDF and JSON will be created after second weighment\n\n"
+                                        f"💡 Complete both weighments for auto PDF + JSON generation")
+                except Exception as msg_error:
+                    self.logger.warning(f"Could not show messagebox: {msg_error}")
+            
+            # IMPORTANT: NO CLOUD STORAGE ATTEMPTS HERE
+            self.logger.info("✅ OFFLINE-FIRST SAVE COMPLETED - Local CSV, JSON backup, and PDF generated")
+            if todays_reports_folder:
+                self.logger.info(f"📂 PDF saved to today's reports folder: {todays_reports_folder}")
+            self.logger.info("💡 Cloud backup available via Settings > Cloud Storage > Backup")
+            self.logger.info("="*50)
+            
+            return csv_success
+                    
+        except Exception as e:
+            self.logger.error(f"❌ Critical error saving record: {e}")
+            try:
+                if messagebox:
+                    messagebox.showerror("Save Error", f"Failed to save record:\n{str(e)}")
+            except:
+                pass
+            return False
+
+    def get_todays_reports_folder(self):
+        """Get or create today's reports folder in data/reports/YYYY-MM-DD format
+        
+        Returns:
+            str: Path to today's reports folder
+        """
+        try:
+            import datetime
+            
+            # Create base reports folder structure
+            base_reports_folder = os.path.join(config.DATA_FOLDER, 'reports')
+            os.makedirs(base_reports_folder, exist_ok=True)
+            
+            # Create today's folder with YYYY-MM-DD format
             today = datetime.datetime.now()
-            self.today_folder_name = today.strftime("%d-%m")  # Format: 28-05
-            self.today_pdf_folder = os.path.join(self.pdf_reports_folder, self.today_folder_name)
+            today_folder_name = today.strftime("%Y-%m-%d")  # Format: 2025-05-29
+            todays_folder = os.path.join(base_reports_folder, today_folder_name)
+            
+            # Ensure today's folder exists
+            os.makedirs(todays_folder, exist_ok=True)
+            
+            self.logger.info(f"Today's reports folder ensured: {todays_folder}")
+            
+            # Update the DataManager's today_pdf_folder reference
+            self.today_pdf_folder = todays_folder
+            
+            return todays_folder
+            
+        except Exception as e:
+            self.logger.error(f"Error creating today's reports folder: {e}")
+            # Fallback to data folder
+            fallback_folder = config.DATA_FOLDER
+            os.makedirs(fallback_folder, exist_ok=True)
+            return fallback_folder
+
+    def auto_generate_pdf_for_complete_record(self, record_data):
+        """Automatically generate PDF for a complete record - Save to today's reports folder
+        
+        Args:
+            record_data: Complete record data dictionary
+            
+        Returns:
+            tuple: (success, pdf_path)
+        """
+        # Check if ReportLab is available
+        try:
+            global REPORTLAB_AVAILABLE
+            if not REPORTLAB_AVAILABLE:
+                self.logger.warning("ReportLab not available - skipping PDF generation")
+                return False, None
+        except:
+            self.logger.warning("PDF generation not available")
+            return False, None
+        
+        try:
+            # Check if record is complete (both weighments)
+            if not self.is_record_complete(record_data):
+                self.logger.info("Record incomplete - skipping PDF generation")
+                return False, None
+            
+            # Get today's reports folder
+            todays_reports_folder = self.get_todays_reports_folder()
+            
+            # Generate PDF filename
+            ticket_no = record_data.get('ticket_no', 'Unknown').replace('/', '_')
+            vehicle_no = record_data.get('vehicle_no', 'Unknown').replace('/', '_').replace(' ', '_')
+            site_name = record_data.get('site_name', 'Unknown').replace(' ', '_').replace('/', '_')
+            agency_name = record_data.get('agency_name', 'Unknown').replace(' ', '_').replace('/', '_')
+            timestamp = datetime.datetime.now().strftime("%H%M%S")
+            
+            # PDF filename format: AgencyName_SiteName_TicketNo_VehicleNo_HHMMSS.pdf
+            pdf_filename = f"{agency_name}_{site_name}_{ticket_no}_{vehicle_no}_{timestamp}.pdf"
+            
+            # Full path to save PDF in today's reports folder
+            pdf_path = os.path.join(todays_reports_folder, pdf_filename)
+            
+            # Generate the PDF
+            success = self.create_pdf_report([record_data], pdf_path)
+            
+            if success:
+                self.logger.info(f"Auto-generated PDF: {pdf_path}")
+                self.logger.info(f"PDF saved to today's reports folder: {todays_reports_folder}")
+                return True, pdf_path
+            else:
+                self.logger.error("Failed to generate PDF")
+                return False, None
+                
+        except Exception as e:
+            self.logger.error(f"Error in auto PDF generation (non-critical): {e}")
+            return False, None
+
+    def setup_daily_pdf_folders(self):
+        """Set up daily folder structure for PDF generation - Updated for data/reports structure"""
+        try:
+            # Create base reports folder structure
+            self.base_reports_folder = os.path.join(config.DATA_FOLDER, 'reports')
+            os.makedirs(self.base_reports_folder, exist_ok=True)
+            
+            # Get today's folder
+            today = datetime.datetime.now()
+            self.today_folder_name = today.strftime("%Y-%m-%d")  # Format: 2025-05-29
+            self.today_pdf_folder = os.path.join(self.base_reports_folder, self.today_folder_name)
             os.makedirs(self.today_pdf_folder, exist_ok=True)
             
-            self.logger.info(f"Daily PDF folder ready: {self.today_pdf_folder}")
+            self.logger.info(f"Daily PDF folder structure ready:")
+            self.logger.info(f"  Base reports folder: {self.base_reports_folder}")
+            self.logger.info(f"  Today's folder: {self.today_pdf_folder}")
+            
+            # Create a README file in the base reports folder if it doesn't exist
+            readme_path = os.path.join(self.base_reports_folder, "README.txt")
+            if not os.path.exists(readme_path):
+                with open(readme_path, 'w') as f:
+                    f.write("""REPORTS FOLDER STRUCTURE
+    =========================
+
+    This folder contains daily reports organized by date.
+
+    Structure:
+    data/reports/
+    ├── YYYY-MM-DD/          # Daily folder (e.g., 2025-05-29)
+    │   ├── report1.pdf      # Auto-generated PDFs for complete weighments
+    │   ├── report2.pdf      # Each PDF contains vehicle info, weights, and images
+    │   └── [more PDFs...]   # Named: Agency_Site_Ticket_Vehicle_Time.pdf
+    ├── YYYY-MM-DD/
+    │   └── [more reports...]
+    └── README.txt           # This file
+
+    GENERATED BY: Swaccha Andhra Corporation Weighbridge System
+    OFFLINE-FIRST: All reports saved locally first, cloud backup available via Settings
+    """)
             
         except Exception as e:
             self.logger.error(f"Error setting up daily PDF folders: {e}")
-            # Fallback to main data folder
+            # Fallback to data folder
             self.today_pdf_folder = config.DATA_FOLDER
-            self.today_folder_name = "fallback"
+
+    def is_record_complete(self, record_data):
+        """Check if a record has both weighments complete
+        
+        Args:
+            record_data: Record data dictionary
+            
+        Returns:
+            bool: True if both weighments are complete
+        """
+        try:
+            first_weight = record_data.get('first_weight', '').strip()
+            first_timestamp = record_data.get('first_timestamp', '').strip()
+            second_weight = record_data.get('second_weight', '').strip()
+            second_timestamp = record_data.get('second_timestamp', '').strip()
+            
+            is_complete = bool(first_weight and first_timestamp and second_weight and second_timestamp)
+            
+            self.logger.debug(f"Record completion check:")
+            self.logger.debug(f"  First weight: '{first_weight}' ({bool(first_weight)})")
+            self.logger.debug(f"  First timestamp: '{first_timestamp}' ({bool(first_timestamp)})")
+            self.logger.debug(f"  Second weight: '{second_weight}' ({bool(second_weight)})")
+            self.logger.debug(f"  Second timestamp: '{second_timestamp}' ({bool(second_timestamp)})")
+            self.logger.debug(f"  Complete: {is_complete}")
+            
+            return is_complete
+            
+        except Exception as e:
+            self.logger.error(f"Error checking record completion: {e}")
+            return False
 
 
     def get_daily_pdf_folder(self):
@@ -468,150 +769,6 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
 
 
 
-    def save_record(self, data):
-        """FIXED: Save record with proper net weight calculation and JSON local backup"""
-        try:
-            self.logger.info("="*50)
-            self.logger.info("STARTING OFFLINE-FIRST RECORD SAVE WITH JSON BACKUP")
-            self.logger.info(f"Input data keys: {list(data.keys())}")
-            
-            # FIXED: Calculate and set net weight properly
-            data = self.calculate_and_set_net_weight(data)
-            
-            # Enhanced validation with detailed logging
-            validation_result = self.validate_record_data(data)
-            if not validation_result['valid']:
-                self.logger.error(f"Validation failed: {validation_result['errors']}")
-                if messagebox:
-                    messagebox.showerror("Validation Error", f"Record validation failed:\n" + "\n".join(validation_result['errors']))
-                return False
-            
-            # Use the current data file
-            current_file = self.get_current_data_file()
-            self.logger.info(f"Using data file: {current_file}")
-            
-            # Check if this is an update to an existing record
-            ticket_no = data.get('ticket_no', '')
-            is_update = False
-            
-            if ticket_no:
-                # Check if record with this ticket number exists
-                records = self.get_filtered_records(ticket_no)
-                for record in records:
-                    if record.get('ticket_no') == ticket_no:
-                        is_update = True
-                        self.logger.info(f"Updating existing record: {ticket_no}")
-                        break
-            
-            if not is_update:
-                self.logger.info(f"Adding new record: {ticket_no}")
-            
-            # PRIORITY 1: Save to CSV locally (this MUST work)
-            csv_success = False
-            try:
-                if is_update:
-                    csv_success = self.update_record(data)
-                else:
-                    csv_success = self.add_new_record(data)
-                
-                if csv_success:
-                    self.logger.info(f"✅ Record {ticket_no} saved to local CSV successfully")
-                else:
-                    self.logger.error(f"❌ Failed to save record {ticket_no} to local CSV")
-                    return False
-            except Exception as csv_error:
-                self.logger.error(f"❌ Critical error saving to CSV: {csv_error}")
-                return False
-            
-            # Check if this is a complete record (both weighments)
-            is_complete_record = self.is_record_complete(data)
-            
-            self.logger.info(f"Record completion status: {is_complete_record}")
-            
-            # PRIORITY 2: Save complete records as JSON locally
-            json_saved = False
-            if is_complete_record:
-                self.logger.info(f"Complete record detected - saving JSON backup locally...")
-                try:
-                    json_saved = self.save_json_backup_locally(data)
-                    if json_saved:
-                        self.logger.info(f"✅ JSON backup saved locally for {ticket_no}")
-                    else:
-                        self.logger.warning(f"⚠️ Failed to save JSON backup for {ticket_no}")
-                except Exception as json_error:
-                    self.logger.error(f"⚠️ JSON backup error (non-critical): {json_error}")
-            
-            # PRIORITY 3: Auto-generate PDF for complete records
-            pdf_generated = False
-            pdf_path = None
-            if is_complete_record:
-                self.logger.info(f"Complete record detected for ticket {ticket_no} - generating PDF locally...")
-                try:
-                    pdf_generated, pdf_path = self.auto_generate_pdf_for_complete_record(data)
-                    if pdf_generated:
-                        self.logger.info(f"✅ PDF auto-generated locally: {pdf_path}")
-                        # Show success message to user
-                        try:
-                            if messagebox:
-                                messagebox.showinfo("Record Saved + PDF + JSON Generated", 
-                                                f"✅ Record saved successfully!\n"
-                                                f"✅ PDF generated: {os.path.basename(pdf_path)}\n"
-                                                f"✅ JSON backup created locally\n\n"
-                                                f"📂 PDF Location: {os.path.dirname(pdf_path)}\n\n"
-                                                f"💡 Use Settings > Cloud Storage > Backup to upload all data when internet is available.")
-                        except Exception as msg_error:
-                            self.logger.warning(f"Could not show messagebox: {msg_error}")
-                    else:
-                        self.logger.warning("⚠️ PDF generation failed, but record and JSON were saved locally")
-                        # Still show success for record save
-                        try:
-                            if messagebox:
-                                messagebox.showinfo("Record Saved + JSON Created", 
-                                                f"✅ Record saved successfully!\n"
-                                                f"✅ JSON backup created locally\n"
-                                                f"⚠️ PDF generation failed - check logs\n\n"
-                                                f"💡 Use Settings > Cloud Storage > Backup to upload when internet is available.")
-                        except Exception as msg_error:
-                            self.logger.warning(f"Could not show messagebox: {msg_error}")
-                except Exception as pdf_error:
-                    self.logger.error(f"⚠️ PDF generation error (non-critical): {pdf_error}")
-                    # Still show success for record save
-                    try:
-                        if messagebox:
-                            messagebox.showinfo("Record Saved + JSON Created", 
-                                            f"✅ Record saved successfully!\n"
-                                            f"✅ JSON backup created locally\n"
-                                            f"⚠️ PDF generation error: {str(pdf_error)}\n\n"
-                                            f"💡 Use Settings > Cloud Storage > Backup to upload when internet is available.")
-                    except Exception as msg_error:
-                        self.logger.warning(f"Could not show messagebox: {msg_error}")
-            else:
-                # Incomplete record - just show save success
-                try:
-                    if messagebox:
-                        messagebox.showinfo("Record Saved", 
-                                        f"✅ Record saved locally!\n"
-                                        f"ℹ️ Incomplete weighments - PDF and JSON will be created after second weighment\n\n"
-                                        f"💡 Complete both weighments for auto PDF + JSON generation")
-                except Exception as msg_error:
-                    self.logger.warning(f"Could not show messagebox: {msg_error}")
-            
-            # IMPORTANT: NO CLOUD STORAGE ATTEMPTS HERE
-            self.logger.info("✅ OFFLINE-FIRST SAVE COMPLETED - Local CSV, JSON backup, and PDF generated")
-            self.logger.info("💡 Cloud backup available via Settings > Cloud Storage > Backup")
-            self.logger.info("="*50)
-            
-            return csv_success
-                    
-        except Exception as e:
-            self.logger.error(f"❌ Critical error saving record: {e}")
-            try:
-                if messagebox:
-                    messagebox.showerror("Save Error", f"Failed to save record:\n{str(e)}")
-            except:
-                pass
-            return False
-
     def calculate_and_set_net_weight(self, data):
         """FIXED: Properly calculate and set net weight in the data"""
         try:
@@ -625,7 +782,7 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
                     second_weight = float(second_weight_str)
                     net_weight = abs(first_weight - second_weight)
                     
-                    # FIXED: Set the calculated net weight in the data
+                    # CRITICAL FIX: Set the calculated net weight in the data
                     data['net_weight'] = f"{net_weight:.2f}"
                     
                     self.logger.info(f"Net weight calculated: {first_weight} - {second_weight} = {net_weight:.2f}")
@@ -644,17 +801,8 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
             self.logger.error(f"Error in calculate_and_set_net_weight: {e}")
             return data
 
-    def is_record_complete(self, data):
-        """Check if record has both weighments complete"""
-        first_weight = data.get('first_weight', '').strip()
-        first_timestamp = data.get('first_timestamp', '').strip()
-        second_weight = data.get('second_weight', '').strip()
-        second_timestamp = data.get('second_timestamp', '').strip()
-        
-        return bool(first_weight and first_timestamp and second_weight and second_timestamp)
-
     def save_json_backup_locally(self, data):
-        """FIXED: Save complete record as JSON backup locally"""
+        """FIXED: Save complete record as JSON backup locally with hash checking"""
         try:
             # Get today's JSON folder
             json_folder = self.get_daily_folder("json")
@@ -678,16 +826,47 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
             if not json_data.get('net_weight'):
                 json_data = self.calculate_and_set_net_weight(json_data)
             
-            # Save JSON file
+            # CHECK FOR DUPLICATE CONTENT - Calculate content hash
+            import hashlib
+            content_str = json.dumps({k: v for k, v in json_data.items() 
+                                    if k not in ['json_backup_timestamp', 'backup_type']}, 
+                                sort_keys=True, ensure_ascii=False)
+            content_hash = hashlib.md5(content_str.encode()).hexdigest()
+            
+            # Check if this content already exists in the folder
+            if os.path.exists(json_folder):
+                for existing_file in os.listdir(json_folder):
+                    if existing_file.endswith('.json') and existing_file.startswith(f"{ticket_no}_"):
+                        existing_path = os.path.join(json_folder, existing_file)
+                        try:
+                            with open(existing_path, 'r', encoding='utf-8') as f:
+                                existing_data = json.load(f)
+                            
+                            # Calculate hash of existing content (excluding timestamps)
+                            existing_content_str = json.dumps({k: v for k, v in existing_data.items() 
+                                                            if k not in ['json_backup_timestamp', 'backup_type']}, 
+                                                            sort_keys=True, ensure_ascii=False)
+                            existing_hash = hashlib.md5(existing_content_str.encode()).hexdigest()
+                            
+                            if existing_hash == content_hash:
+                                self.logger.info(f"⏭️  Skipping duplicate JSON backup for {ticket_no} (content unchanged)")
+                                return True
+                                
+                        except Exception as e:
+                            self.logger.warning(f"Error checking existing JSON file {existing_file}: {e}")
+                            continue
+            
+            # Content is new or changed - save JSON file
             with open(json_path, 'w', encoding='utf-8') as f:
                 json.dump(json_data, f, indent=4, ensure_ascii=False)
             
-            self.logger.info(f"JSON backup saved: {json_path}")
+            self.logger.info(f"✅ JSON backup saved: {json_path}")
             return True
             
         except Exception as e:
             self.logger.error(f"Error saving JSON backup: {e}")
             return False
+
 
     def get_all_json_backups(self):
         """Get all JSON backup files for bulk upload"""
@@ -716,7 +895,7 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
             return []
 
     def bulk_upload_json_backups_to_cloud(self):
-        """FIXED: Bulk upload all JSON backups to cloud when internet is available"""
+        """FIXED: Bulk upload all JSON backups to cloud with duplicate checking"""
         try:
             # Initialize cloud storage if needed
             if not self.init_cloud_storage_if_needed():
@@ -748,6 +927,7 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
                 }
             
             uploaded_count = 0
+            skipped_count = 0
             errors = []
             
             for json_path in json_files:
@@ -756,35 +936,30 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
                     with open(json_path, 'r', encoding='utf-8') as f:
                         record_data = json.load(f)
                     
-                    # Generate cloud path
+                    # Generate cloud filename
                     agency_name = record_data.get('agency_name', 'Unknown_Agency').replace(' ', '_').replace('/', '_')
                     site_name = record_data.get('site_name', 'Unknown_Site').replace(' ', '_').replace('/', '_')
                     ticket_no = record_data.get('ticket_no', 'unknown')
-                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                     
-                    cloud_json_path = f"{agency_name}/{site_name}/{ticket_no}/{timestamp}.json"
+                    # Use the JSON record method which has duplicate checking
+                    json_filename = f"{ticket_no}_{agency_name}_{site_name}.json"
                     
-                    # Upload to cloud with images
-                    json_success, images_uploaded, total_images = self.cloud_storage.upload_record_with_images(
+                    # Upload using save_json_record which has duplicate checking
+                    json_success = self.cloud_storage.save_json_record(
                         record_data, 
-                        cloud_json_path, 
-                        config.IMAGES_FOLDER
+                        json_filename,
+                        agency_name,
+                        site_name
                     )
                     
                     if json_success:
+                        # Check if it was actually uploaded or skipped
+                        # You can add logging here to distinguish between new upload and skipped duplicate
                         uploaded_count += 1
-                        self.logger.info(f"Uploaded JSON backup: {os.path.basename(json_path)}")
-                        
-                        # Optional: Mark as uploaded (add metadata or move to uploaded folder)
-                        record_data['cloud_upload_timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        record_data['cloud_upload_status'] = 'success'
-                        
-                        # Update the JSON file with upload status
-                        with open(json_path, 'w', encoding='utf-8') as f:
-                            json.dump(record_data, f, indent=4, ensure_ascii=False)
+                        self.logger.info(f"✅ Processed JSON backup: {os.path.basename(json_path)}")
                     else:
                         errors.append(f"Failed to upload {os.path.basename(json_path)}")
-                        
+                            
                 except Exception as file_error:
                     error_msg = f"Error uploading {os.path.basename(json_path)}: {str(file_error)}"
                     errors.append(error_msg)
@@ -794,6 +969,7 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
                 "success": uploaded_count > 0,
                 "uploaded": uploaded_count,
                 "total": len(json_files),
+                "skipped": skipped_count,
                 "errors": errors
             }
             
@@ -1075,54 +1251,7 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
             self.logger.error(f"Error filtering records: {e}")
             return []
 
-    def auto_generate_pdf_for_complete_record(self, record_data):
-        """FIXED: Auto-generate PDF with proper net weight from record data"""
-        # Check if ReportLab is available
-        try:
-            global REPORTLAB_AVAILABLE
-            if not REPORTLAB_AVAILABLE:
-                self.logger.warning("ReportLab not available - skipping PDF generation")
-                return False, None
-        except:
-            self.logger.warning("PDF generation not available")
-            return False, None
-        
-        try:
-            # Check if record is complete (both weighments)
-            if not self.is_record_complete(record_data):
-                self.logger.info("Record incomplete - skipping PDF generation")
-                return False, None
-            
-            # FIXED: Ensure net weight is calculated before PDF generation
-            record_data = self.calculate_and_set_net_weight(record_data)
-            
-            # Generate PDF filename
-            ticket_no = record_data.get('ticket_no', 'Unknown').replace('/', '_')
-            vehicle_no = record_data.get('vehicle_no', 'Unknown').replace('/', '_').replace(' ', '_')
-            site_name = record_data.get('site_name', 'Unknown').replace(' ', '_').replace('/', '_')
-            agency_name = record_data.get('agency_name', 'Unknown').replace(' ', '_').replace('/', '_')
-            timestamp = datetime.datetime.now().strftime("%H%M%S")
-            
-            # PDF filename format: AgencyName_SiteName_TicketNo_VehicleNo_HHMMSS.pdf
-            pdf_filename = f"{agency_name}_{site_name}_{ticket_no}_{vehicle_no}_{timestamp}.pdf"
-            
-            # Get today's reports folder
-            daily_folder = self.get_daily_folder("reports")
-            pdf_path = os.path.join(daily_folder, pdf_filename)
-            
-            # Generate the PDF
-            success = self.create_pdf_report([record_data], pdf_path)
-            
-            if success:
-                self.logger.info(f"Auto-generated PDF: {pdf_path}")
-                return True, pdf_path
-            else:
-                self.logger.error("Failed to generate PDF")
-                return False, None
-                
-        except Exception as e:
-            self.logger.error(f"Error in auto PDF generation (non-critical): {e}")
-            return False, None
+
 
     def get_daily_pdf_folder(self):
         """Get or create today's PDF folder"""
@@ -1139,7 +1268,7 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
         return self.today_pdf_folder
     
     def create_pdf_report(self, records_data, save_path):
-        """Create PDF report with 4-image grid for complete records (same as reports.py)
+        """Create PDF report with 4-image grid for complete records - FIXED image handling
         
         Args:
             records_data: List of record dictionaries
@@ -1149,16 +1278,21 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
             bool: True if successful, False otherwise
         """
         if not REPORTLAB_AVAILABLE:
+            self.logger.error("ReportLab not available for PDF generation")
             return False
             
         try:
+            # Ensure output directory exists
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            
             doc = SimpleDocTemplate(save_path, pagesize=A4,
                                     rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
             
             styles = getSampleStyleSheet()
             elements = []
+            temp_files_to_cleanup = []  # Track temp files for cleanup
 
-            # Ink-friendly styles with increased font sizes
+            # Create styles (same as before)
             header_style = ParagraphStyle(
                 name='HeaderStyle',
                 fontSize=18,
@@ -1237,10 +1371,9 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
                 elements.append(Paragraph(f"Ticket No: {ticket_no}", header_style))
                 elements.append(Spacer(1, 0.15*inch))
 
-                # Vehicle Information
+                # Vehicle Information (same as before)
                 elements.append(Paragraph("VEHICLE INFORMATION", section_header_style))
                 
-                # Get material from material_type field if material is empty
                 material_value = record.get('material', '') or record.get('material_type', '')
                 user_name_value = record.get('user_name', '') or "Not specified"
                 site_incharge_value = record.get('site_incharge', '') or "Not specified"
@@ -1281,71 +1414,73 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
                 elements.append(vehicle_table)
                 elements.append(Spacer(1, 0.15*inch))
 
-                # Weighment Information
+# COMPLETE WEIGHMENT SECTION - Replace everything from "Weighment Information" to elements.append(Spacer)
+
+# Weighment Information
                 elements.append(Paragraph("WEIGHMENT DETAILS", section_header_style))
-                
-                # Weighment Information with proper net weight calculation
+
+                # Simple test version - no complex formatting
                 first_weight_str = record.get('first_weight', '').strip()
                 second_weight_str = record.get('second_weight', '').strip()
                 net_weight_str = record.get('net_weight', '').strip()
-                
-                # If net weight is empty but we have both weights, calculate it
-                if not net_weight_str and first_weight_str and second_weight_str:
+
+                # Force calculate net weight
+                if first_weight_str and second_weight_str:
                     try:
                         first_weight = float(first_weight_str)
                         second_weight = float(second_weight_str)
                         calculated_net = abs(first_weight - second_weight)
                         net_weight_str = f"{calculated_net:.2f}"
-                    except (ValueError, TypeError):
-                        net_weight_str = "Calculation Error"
-                
-                # If still empty, show as not available
-                if not net_weight_str:
-                    net_weight_str = "Not Available"
-                
+                    except:
+                        net_weight_str = "Error"
+
+                # Simple display values - NO fancy formatting
+                first_display = f"{first_weight_str} kg" if first_weight_str else "Not captured"
+                second_display = f"{second_weight_str} kg" if second_weight_str else "Not captured"
+                net_display = f"{net_weight_str} kg" if net_weight_str else "Not calculated"
+
+                self.logger.info(f"SIMPLE TEST - Net display: '{net_display}'")
+
+                # Create simple table data - NO Paragraph objects for net weight
                 weighment_data = [
-                    [Paragraph("<b>First Weight:</b>", label_style), Paragraph(f"{first_weight_str} kg" if first_weight_str else "Not captured", value_style), 
-                    Paragraph("<b>First Time:</b>", label_style), Paragraph(record.get('first_timestamp', '') or "Not captured", value_style)],
-                    [Paragraph("<b>Second Weight:</b>", label_style), Paragraph(f"{second_weight_str} kg" if second_weight_str else "Not captured", value_style), 
-                    Paragraph("<b>Second Time:</b>", label_style), Paragraph(record.get('second_timestamp', '') or "Not captured", value_style)],
-                    ["", "", Paragraph("<b>Net Weight:</b>", label_style), Paragraph(f"{net_weight_str} Kgs", 
-                                    ParagraphStyle(name='NetWeightCorner', fontSize=14, fontName='Helvetica-Bold', textColor=colors.black))]
+                    ["First Weight:", first_display, "First Time:", record.get('first_timestamp', '') or "Not captured"],
+                    ["Second Weight:", second_display, "Second Time:", record.get('second_timestamp', '') or "Not captured"],
+                    ["", "", "Net Weight:", net_display]  # Plain string, no Paragraph
                 ]
-                
+
+                # Simple table creation
                 weighment_inner_table = Table(weighment_data, colWidths=[1.5*inch, 1.5*inch, 1.2*inch, 2.8*inch])
                 weighment_inner_table.setStyle(TableStyle([
                     ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
-                    ('FONTSIZE', (0,0), (-1,-1), 14),
+                    ('FONTSIZE', (0,0), (-1,-1), 11),
                     ('ALIGN', (0,0), (-1,-1), 'LEFT'),
                     ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-                    ('LEFTPADDING', (0,0), (-1,-1), 2),
-                    ('RIGHTPADDING', (0,0), (-1,-1), 2),
-                    ('TOPPADDING', (0,0), (-1,-1), 4),
-                    ('BOTTOMPADDING', (0,0), (-1,-1), 4),
-                    ('SPAN', (2,2), (3,2)),
-                    ('ALIGN', (2,2), (3,2), 'RIGHT'),
-                ]))
-                
-                weighment_table = Table([[weighment_inner_table]], colWidths=[7.5*inch])
-                weighment_table.setStyle(TableStyle([
                     ('GRID', (0,0), (-1,-1), 1, colors.black),
-                    ('LEFTPADDING', (0,0), (-1,-1), 12),
-                    ('RIGHTPADDING', (0,0), (-1,-1), 12),
-                    ('TOPPADDING', (0,0), (-1,-1), 8),
-                    ('BOTTOMPADDING', (0,0), (-1,-1), 8),
-                    ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                    ('LEFTPADDING', (0,0), (-1,-1), 6),
+                    ('RIGHTPADDING', (0,0), (-1,-1), 6),
+                    ('TOPPADDING', (0,0), (-1,-1), 6),
+                    ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+                    # Make net weight bold
+                    ('FONTNAME', (2,2), (3,2), 'Helvetica-Bold'),
+                    ('FONTSIZE', (2,2), (3,2), 12),
                 ]))
+
+                # Continue with your existing table wrapper code
+                weighment_table = Table([[weighment_inner_table]], colWidths=[7*inch])
+                # Add to elements
                 elements.append(weighment_table)
                 elements.append(Spacer(1, 0.15*inch))
 
-                # 4-Image Grid Section
+                # 4-Image Grid Section - FIXED IMAGE HANDLING
                 elements.append(Paragraph("VEHICLE IMAGES (4-Image System)", section_header_style))
                 
-                # Get all 4 image paths
-                first_front_img_path = os.path.join(config.IMAGES_FOLDER, record.get('first_front_image', ''))
-                first_back_img_path = os.path.join(config.IMAGES_FOLDER, record.get('first_back_image', ''))
-                second_front_img_path = os.path.join(config.IMAGES_FOLDER, record.get('second_front_image', ''))
-                second_back_img_path = os.path.join(config.IMAGES_FOLDER, record.get('second_back_image', ''))
+                # Get all 4 image paths with validation
+                image_paths = [
+                    (record.get('first_front_image', ''), f"Ticket: {ticket_no}"),
+                    (record.get('first_back_image', ''), f"Ticket: {ticket_no}"),
+                    (record.get('second_front_image', ''), f"Ticket: {ticket_no}"),
+                    (record.get('second_back_image', ''), f"Ticket: {ticket_no}")
+                ]
 
                 # Create 2x2 image grid with headers
                 img_data = [
@@ -1355,34 +1490,34 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
                     [None, None]   # Will be filled with second weighment images
                 ]
 
-                # Process all 4 images
-                images = [
-                    (first_front_img_path, f"Ticket: {ticket_no} - 1st Front"),
-                    (first_back_img_path, f"Ticket: {ticket_no} - 1st Back"),
-                    (second_front_img_path, f"Ticket: {ticket_no} - 2nd Front"),
-                    (second_back_img_path, f"Ticket: {ticket_no} - 2nd Back")
-                ]
-                
+                # Process all 4 images with better error handling
                 processed_images = []
-                for img_path, watermark_text in images:
-                    if os.path.exists(img_path):
-                        try:
-                            temp_img = self.prepare_image_for_pdf(img_path, watermark_text)
-                            if temp_img:
-                                processed_img = RLImage(temp_img, width=3.5*inch, height=2.0*inch)
-                                processed_images.append(processed_img)
-                                # Clean up temp file
-                                try:
-                                    os.remove(temp_img)
-                                except:
-                                    pass
-                            else:
-                                processed_images.append("Image not available")
-                        except Exception as e:
-                            print(f"Error processing image {img_path}: {e}")
-                            processed_images.append("Image error")
+                
+                for img_filename, watermark_text in image_paths:
+                    if img_filename and img_filename.strip():
+                        # Build full path
+                        img_path = os.path.join(config.IMAGES_FOLDER, img_filename.strip())
+                        
+                        if os.path.exists(img_path):
+                            try:
+                                temp_img_path = self.prepare_image_for_pdf(img_path, watermark_text)
+                                if temp_img_path and os.path.exists(temp_img_path):
+                                    processed_img = RLImage(temp_img_path, width=3.5*inch, height=2.0*inch)
+                                    processed_images.append(processed_img)
+                                    temp_files_to_cleanup.append(temp_img_path)  # Track for cleanup
+                                    self.logger.debug(f"Successfully processed image: {img_filename}")
+                                else:
+                                    processed_images.append("Image processing failed")
+                                    self.logger.warning(f"Failed to process image: {img_filename}")
+                            except Exception as e:
+                                self.logger.error(f"Error processing image {img_filename}: {e}")
+                                processed_images.append("Image processing error")
+                        else:
+                            processed_images.append("Image file not found")
+                            self.logger.warning(f"Image file not found: {img_path}")
                     else:
-                        processed_images.append("Image not available")
+                        processed_images.append("No image captured")
+                        self.logger.debug("No image filename provided")
 
                 # Fill the image grid
                 img_data[1] = [processed_images[0], processed_images[1]]  # First weighment
@@ -1390,7 +1525,7 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
 
                 # Create images table with 2x2 grid
                 img_table = Table(img_data, colWidths=[3.5*inch, 3.5*inch], 
-                                 rowHeights=[0.3*inch, 2*inch, 0.3*inch, 2*inch])
+                                rowHeights=[0.3*inch, 2*inch, 0.3*inch, 2*inch])
                 img_table.setStyle(TableStyle([
                     ('GRID', (0,0), (-1,-1), 0.5, colors.black),
                     ('FONTNAME', (0,0), (-1,-1), 'Helvetica-Bold'),
@@ -1425,19 +1560,46 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
                 elements.append(signature_table)
 
             # Build the PDF
+            self.logger.info(f"Building PDF document: {save_path}")
             doc.build(elements)
-            return True
             
+            # Clean up temporary files
+            for temp_file in temp_files_to_cleanup:
+                try:
+                    if os.path.exists(temp_file):
+                        os.remove(temp_file)
+                        self.logger.debug(f"Cleaned up temporary file: {temp_file}")
+                except Exception as cleanup_error:
+                    self.logger.warning(f"Could not clean up temporary file {temp_file}: {cleanup_error}")
+            
+            # Verify PDF was created
+            if os.path.exists(save_path) and os.path.getsize(save_path) > 0:
+                self.logger.info(f"PDF created successfully: {save_path} ({os.path.getsize(save_path)} bytes)")
+                return True
+            else:
+                self.logger.error(f"PDF was not created or is empty: {save_path}")
+                return False
+                
         except Exception as e:
-            print(f"Error creating PDF report: {e}")
+            self.logger.error(f"Error creating PDF report: {e}")
+            import traceback
+            self.logger.error(f"PDF generation traceback: {traceback.format_exc()}")
             return False
     
     def prepare_image_for_pdf(self, image_path, watermark_text):
-        """Prepare image for PDF by resizing and adding watermark"""
+        """Prepare image for PDF by resizing and adding watermark - FIXED path handling"""
         try:
-            # Read image
+            # Validate input path
+            if not image_path or not os.path.exists(image_path):
+                self.logger.warning(f"Image path does not exist: {image_path}")
+                return None
+            
+            self.logger.debug(f"Preparing image for PDF: {image_path}")
+            
+            # Read image with error handling
             img = cv2.imread(image_path)
             if img is None:
+                self.logger.warning(f"Could not read image: {image_path}")
                 return None
             
             # Resize image for PDF (maintain aspect ratio)
@@ -1456,18 +1618,48 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
             img_resized = cv2.resize(img, (new_width, new_height))
             
             # Add watermark
-            from camera import add_watermark  # Import the watermark function
-            watermarked_img = add_watermark(img_resized, watermark_text)
+            try:
+                from camera import add_watermark  # Import the watermark function
+                watermarked_img = add_watermark(img_resized, watermark_text)
+            except ImportError:
+                # Fallback if watermark function not available
+                self.logger.warning("Watermark function not available, using image without watermark")
+                watermarked_img = img_resized
+            except Exception as watermark_error:
+                self.logger.warning(f"Watermark error: {watermark_error}, using image without watermark")
+                watermarked_img = img_resized
             
-            # Save temporary file
-            temp_filename = f"temp_pdf_image_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.jpg"
+            # Create unique temporary filename with proper path
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+            temp_filename = f"temp_pdf_image_{timestamp}.jpg"
+            
+            # Ensure images folder exists
+            os.makedirs(config.IMAGES_FOLDER, exist_ok=True)
             temp_path = os.path.join(config.IMAGES_FOLDER, temp_filename)
             
-            cv2.imwrite(temp_path, watermarked_img)
+            # Save temporary file with error handling
+            success = cv2.imwrite(temp_path, watermarked_img)
+            
+            if not success:
+                self.logger.error(f"Failed to save temporary image: {temp_path}")
+                return None
+            
+            # Verify the file was created and is readable
+            if not os.path.exists(temp_path):
+                self.logger.error(f"Temporary image was not created: {temp_path}")
+                return None
+            
+            # Verify file size
+            if os.path.getsize(temp_path) == 0:
+                self.logger.error(f"Temporary image is empty: {temp_path}")
+                os.remove(temp_path)  # Clean up empty file
+                return None
+            
+            self.logger.debug(f"Successfully prepared temporary image: {temp_path}")
             return temp_path
             
         except Exception as e:
-            print(f"Error preparing image for PDF: {e}")
+            self.logger.error(f"Error preparing image for PDF: {e}")
             return None
 
     # ========== CLOUD STORAGE METHODS (ONLY USED WHEN EXPLICITLY REQUESTED) ==========
@@ -1614,13 +1806,8 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
                     complete_records.append(record)
             
             print(f"Found {len(complete_records)} complete records out of {len(all_records)} total records")
-            
-            # Use comprehensive backup method
-            results = self.cloud_storage.comprehensive_backup(
-                complete_records, 
-                config.IMAGES_FOLDER,
-                "data/daily_reports"  # Daily reports folder
-            )
+            agency_name, site_name = config.get_current_agency_site()
+            results = self.cloud_storage.comprehensive_backup(agency_name, site_name)
             
             print(f"Backup completed:")
             print(f"  Records: {results['records_uploaded']}/{results['total_records']}")

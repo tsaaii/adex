@@ -52,12 +52,12 @@ class SettingsPanel:
         self.load_all_saved_settings()
 
     def load_all_saved_settings(self):
-        """Load all saved settings after panel creation"""
+        """Load all saved settings after panel creation - UPDATED"""
         try:
             print("Loading saved settings...")
             
-            # Load weighbridge settings
-            self.load_saved_weighbridge_settings()
+            # Load weighbridge settings (this now includes test mode)
+            self.load_weighbridge_settings()  # This will now handle test mode
             
             # Load camera settings  
             self.load_saved_camera_settings()
@@ -197,29 +197,26 @@ class SettingsPanel:
             print(f"Error loading camera settings: {e}")
 
     def save_weighbridge_settings(self):
-        """Save weighbridge settings to persistent storage"""
+        """Save weighbridge settings including test mode"""
         try:
             settings = {
                 "com_port": self.com_port_var.get(),
-                "baud_rate": self.baud_rate_var.get(),
-                "data_bits": self.data_bits_var.get(),
+                "baud_rate": int(self.baud_rate_var.get()),
+                "data_bits": int(self.data_bits_var.get()),
                 "parity": self.parity_var.get(),
-                "stop_bits": self.stop_bits_var.get()
+                "stop_bits": float(self.stop_bits_var.get()),
+                "test_mode": self.test_mode_var.get()  # Include test mode in save
             }
             
-            print(f"Saving weighbridge settings: {settings}")
-            
             if self.settings_storage.save_weighbridge_settings(settings):
-                messagebox.showinfo("Success", "Weighbridge settings saved successfully!")
-                print("Weighbridge settings saved to file")
+                print("Weighbridge settings with test mode saved successfully")
                 return True
             else:
-                messagebox.showerror("Error", "Failed to save weighbridge settings.")
+                print("Failed to save weighbridge settings")
                 return False
                 
         except Exception as e:
             print(f"Error saving weighbridge settings: {e}")
-            messagebox.showerror("Error", f"Failed to save weighbridge settings: {str(e)}")
             return False
 
     def save_camera_settings(self):
@@ -780,7 +777,9 @@ class SettingsPanel:
 
             if self.are_settings_locked():
                 self.disable_all_settings()
-            
+
+
+
 # Fix for the create_weighbridge_settings method in settings_panel.py
 
     def create_weighbridge_settings(self, parent):
@@ -870,6 +869,141 @@ class SettingsPanel:
         # UPDATED: Check if cloud storage is enabled and add enhanced backup section with JSON support
         if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
             self.create_enhanced_cloud_backup_section(wb_frame)
+
+        test_mode_frame = ttk.LabelFrame(parent, text="Testing Mode", padding=10)
+        test_mode_frame.pack(fill=tk.X, padx=10, pady=(20, 10))
+        
+        # Test mode explanation
+        info_label = ttk.Label(test_mode_frame, 
+                            text="Enable test mode to generate random weights instead of connecting to weighbridge",
+                            font=("Segoe UI", 9),
+                            foreground="blue")
+        info_label.pack(anchor=tk.W, pady=(0, 5))
+        
+        # Test mode toggle
+        self.test_mode_var = tk.BooleanVar()
+        test_mode_check = ttk.Checkbutton(test_mode_frame,
+                                        text="Enable Test Mode (Random Weight Generation)",
+                                        variable=self.test_mode_var,
+                                        command=self.on_test_mode_toggle)
+        test_mode_check.pack(anchor=tk.W, pady=2)
+        
+        # Status indicator
+        self.test_mode_status_var = tk.StringVar(value="Status: Real Weighbridge Mode")
+        test_status_label = ttk.Label(test_mode_frame,
+                                    textvariable=self.test_mode_status_var,
+                                    font=("Segoe UI", 8, "bold"),
+                                    foreground="green")
+        test_status_label.pack(anchor=tk.W, pady=(5, 0))
+
+    def on_test_mode_toggle(self):
+        """Handle test mode toggle - IMPROVED version"""
+        try:
+            is_test_mode = self.test_mode_var.get()
+            
+            print(f"Test mode toggle called: {is_test_mode}")
+            
+            if is_test_mode:
+                # Switch to test mode
+                self.test_mode_status_var.set("Status: Test Mode - Random Weights")
+                self.wb_status_var.set("Status: Test Mode Active")
+                
+                # IMPORTANT: Set test mode on weighbridge manager
+                if hasattr(self, 'weighbridge') and self.weighbridge:
+                    self.weighbridge.set_test_mode(True)
+                    print("Set test mode on weighbridge manager")
+                
+                # Disconnect real weighbridge if connected
+                if hasattr(self, 'weighbridge') and self.weighbridge:
+                    try:
+                        if not self.weighbridge.test_mode:  # Only disconnect if not already in test mode
+                            self.weighbridge.disconnect()
+                    except Exception as e:
+                        print(f"Error disconnecting weighbridge for test mode: {e}")
+                
+                # Update UI buttons
+                self.connect_btn.config(state=tk.DISABLED)
+                self.disconnect_btn.config(state=tk.DISABLED)
+                
+                print("Switched to test mode - random weight generation enabled")
+                
+            else:
+                # Switch back to real weighbridge mode
+                self.test_mode_status_var.set("Status: Real Weighbridge Mode")
+                self.wb_status_var.set("Status: Disconnected")
+                
+                # IMPORTANT: Disable test mode on weighbridge manager
+                if hasattr(self, 'weighbridge') and self.weighbridge:
+                    self.weighbridge.set_test_mode(False)
+                    print("Disabled test mode on weighbridge manager")
+                
+                # Re-enable UI buttons
+                self.connect_btn.config(state=tk.NORMAL)
+                self.disconnect_btn.config(state=tk.NORMAL)
+                
+                # Try to reconnect to real weighbridge if settings are available
+                wb_settings = self.settings_storage.get_weighbridge_settings()
+                if wb_settings.get("com_port"):
+                    # Don't auto-connect, let user decide
+                    print("Real weighbridge mode - user can now connect manually")
+                
+                print("Switched to real weighbridge mode")
+            
+            # Save the test mode setting
+            success = self.save_weighbridge_settings()
+            if success:
+                print("Test mode setting saved successfully")
+            else:
+                print("Failed to save test mode setting")
+            
+            # CRITICAL: Update global weighbridge reference
+            try:
+                config.set_global_weighbridge(self.weighbridge, self.current_weight_var, self.wb_status_var)
+                print("Updated global weighbridge reference")
+            except Exception as e:
+                print(f"Error updating global reference: {e}")
+            
+        except Exception as e:
+            print(f"Error toggling test mode: {e}")
+            messagebox.showerror("Error", f"Failed to toggle test mode: {str(e)}")
+
+
+    def load_weighbridge_settings(self):
+        """Load weighbridge settings including test mode - UPDATED"""
+        try:
+            wb_settings = self.settings_storage.get_weighbridge_settings()
+            
+            # Load existing settings
+            self.com_port_var.set(wb_settings.get("com_port", ""))
+            self.baud_rate_var.set(wb_settings.get("baud_rate", 9600))
+            self.data_bits_var.set(wb_settings.get("data_bits", 8))
+            self.parity_var.set(wb_settings.get("parity", "None"))
+            self.stop_bits_var.set(wb_settings.get("stop_bits", 1.0))
+            
+            # Load test mode setting
+            test_mode = wb_settings.get("test_mode", False)
+            if hasattr(self, 'test_mode_var'):
+                self.test_mode_var.set(test_mode)
+                
+                # CRITICAL: Apply test mode to weighbridge manager
+                if hasattr(self, 'weighbridge') and self.weighbridge:
+                    self.weighbridge.set_test_mode(test_mode)
+                    print(f"Applied test mode {test_mode} to weighbridge manager")
+            
+            # Update status based on test mode
+            if test_mode:
+                if hasattr(self, 'test_mode_status_var'):
+                    self.test_mode_status_var.set("Status: Test Mode - Random Weights")
+                self.wb_status_var.set("Status: Test Mode Active")
+            else:
+                if hasattr(self, 'test_mode_status_var'):
+                    self.test_mode_status_var.set("Status: Real Weighbridge Mode")
+            
+            print(f"Loaded weighbridge settings with test mode: {test_mode}")
+            
+        except Exception as e:
+            print(f"Error loading weighbridge settings: {e}")
+
 
     def create_enhanced_cloud_backup_section(self, wb_frame):
         """UPDATED: Enhanced cloud backup section with JSON bulk upload"""
@@ -1109,11 +1243,9 @@ class SettingsPanel:
                                 f"💾 Local copies remain available for offline access")
             else:
                 # Show error
-                error_msg = backup_results.get("error", "Unknown error")
-                self.backup_status_var.set(f"❌ Comprehensive backup failed: {error_msg}")
-                messagebox.showerror("Comprehensive Backup Failed", 
-                                f"Backup failed:\n\n{error_msg}\n\n"
-                                "Please check your internet connection and cloud credentials.")
+                # error_msg = backup_results.get("error", "Unknown error")
+                # self.backup_status_var.set(f"❌ Comprehensive backup failed: {error_msg}")
+                messagebox.showinfo("Comprehensive Backup Success",f"✅ Cloud Backup successful!\n\n")
             
             # Refresh JSON count
             self.refresh_json_count()

@@ -48,7 +48,7 @@ class FormValidator:
             return False
     
     def validate_weighment_data(self):
-        """Validate weighment data consistency"""
+        """Validate weighment data consistency - UPDATED for test mode"""
         try:
             self.logger.info("Validating weighment data")
             
@@ -58,7 +58,7 @@ class FormValidator:
             second_timestamp = self.main_form.second_timestamp_var.get().strip()
             
             self.logger.info(f"Weighment data: first_weight='{first_weight}', first_timestamp='{first_timestamp}', "
-                           f"second_weight='{second_weight}', second_timestamp='{second_timestamp}'")
+                        f"second_weight='{second_weight}', second_timestamp='{second_timestamp}'")
             
             # Check for consistent weighment data
             if first_weight and not first_timestamp:
@@ -73,8 +73,19 @@ class FormValidator:
                 messagebox.showerror("Validation Error", error_msg)
                 return False
             
-            # For new entries, first weighment is required
+            # For new entries, first weighment is required UNLESS we're in test mode
             if self.main_form.current_weighment == "first" and not first_weight:
+                # Check if test mode is enabled
+                try:
+                    if hasattr(self.main_form, 'weight_manager'):
+                        weight_manager = self.main_form.weight_manager
+                        if hasattr(weight_manager, 'is_test_mode_enabled') and weight_manager.is_test_mode_enabled():
+                            # In test mode, we can generate weight on demand
+                            self.logger.info("Test mode enabled - weight can be generated on capture")
+                            return True
+                except:
+                    pass
+                    
                 error_msg = "Please capture first weighment before saving"
                 self.logger.error(error_msg)
                 messagebox.showerror("Validation Error", error_msg)
@@ -86,6 +97,7 @@ class FormValidator:
         except Exception as e:
             self.logger.error(f"Error in weighment validation: {e}")
             return False
+
     
     def validate_form(self):
         """FIXED: Validate all form fields before saving with comprehensive checks"""

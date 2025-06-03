@@ -1,4 +1,4 @@
-# FIXED config.py - Unified folder structure and consistent date formats
+# UPDATED config.py - Added auto-cleanup functionality
 
 import os
 from pathlib import Path
@@ -13,6 +13,11 @@ CLOUD_CREDENTIALS_PATH = "gcloud-credentials.json"  # Path to your service accou
 # NEW: Offline-first mode - prevents automatic cloud attempts during regular saves
 OFFLINE_FIRST_MODE = True  # Set to True to save locally first, cloud only on backup
 AUTO_CLOUD_SAVE = False   # Set to True to attempt cloud save on every record save (not recommended for poor internet)
+
+# Auto-cleanup settings
+AUTO_CLEANUP_ENABLED = True  # Enable automatic cleanup of old local files
+DAYS_TO_KEEP_LOCAL_FILES = 10  # Number of days to keep local files before cleanup
+CLEANUP_INTERVAL_DAYS = 1  # Days between automatic cleanup checks
 
 # Global weighbridge reference
 GLOBAL_WEIGHBRIDGE_MANAGER = None
@@ -85,6 +90,14 @@ def get_current_data_file():
         str: Current data file path
     """
     return get_data_filename(CURRENT_AGENCY, CURRENT_SITE)
+
+def get_current_agency_site():
+    """Get current agency and site names
+    
+    Returns:
+        tuple: (agency_name, site_name)
+    """
+    return CURRENT_AGENCY, CURRENT_SITE
 
 def reserve_next_ticket_number():
     """Reserve (peek at) the next ticket number WITHOUT incrementing the counter
@@ -287,6 +300,56 @@ def ensure_todays_folder(folder_type="reports"):
     os.makedirs(today_folder, exist_ok=True)
     return today_folder
 
+def auto_cleanup_old_files():
+    """Automatically cleanup old local files if enabled and needed
+    
+    Returns:
+        dict: Cleanup results or None if not performed
+    """
+    if not AUTO_CLEANUP_ENABLED:
+        return None
+    
+    try:
+        # Import here to avoid circular imports
+        import config
+        
+        # Check if cleanup is due
+        cleanup_tracking_file = os.path.join(DATA_FOLDER, "cleanup_tracking.json")
+        
+        if os.path.exists(cleanup_tracking_file):
+            import json
+            with open(cleanup_tracking_file, 'r') as f:
+                tracking = json.load(f)
+            
+            last_cleanup_str = tracking.get("last_cleanup_date", "")
+            if last_cleanup_str:
+                last_cleanup = datetime.datetime.fromisoformat(last_cleanup_str)
+                days_since = (datetime.datetime.now() - last_cleanup).days
+                
+                if days_since < CLEANUP_INTERVAL_DAYS:
+                    return None  # Not time for cleanup yet
+        
+        # Perform cleanup
+        from cloud_storage import CloudStorageService
+        
+        # Create a dummy cloud storage instance for cleanup functionality
+        cloud_service = CloudStorageService("dummy", "dummy")  # Connection not needed for local cleanup
+        
+        results = cloud_service.cleanup_old_local_files(DATA_FOLDER, DAYS_TO_KEEP_LOCAL_FILES)
+        
+        # Update tracking
+        import json
+        tracking = {"last_cleanup_date": datetime.datetime.now().isoformat()}
+        os.makedirs(os.path.dirname(cleanup_tracking_file), exist_ok=True)
+        with open(cleanup_tracking_file, 'w') as f:
+            json.dump(tracking, f, indent=4)
+        
+        return results
+        
+    except Exception as e:
+        print(f"Error in auto cleanup: {e}")
+        return None
+
 def setup():
     """Initialize the application data structures with unified folder system"""
     initialize_folders()
@@ -295,6 +358,12 @@ def setup():
     # Ensure today's folders exist
     ensure_todays_folder("reports")
     ensure_todays_folder("json_backups")
+    
+    # Perform auto cleanup if enabled
+    if AUTO_CLEANUP_ENABLED:
+        cleanup_results = auto_cleanup_old_files()
+        if cleanup_results:
+            print(f"🧹 Auto cleanup completed: {cleanup_results['files_deleted']} files deleted")
     
     # Print offline-first mode status
     if OFFLINE_FIRST_MODE:
@@ -305,6 +374,11 @@ def setup():
         print("   • No internet connection delays during regular saves")
         print(f"   • Today's reports folder: {get_todays_folder('reports')}")
         print(f"   • Today's JSON backups folder: {get_todays_folder('json_backups')}")
+        
+        if AUTO_CLEANUP_ENABLED:
+            print(f"   • Auto cleanup: Keep {DAYS_TO_KEEP_LOCAL_FILES} days, check every {CLEANUP_INTERVAL_DAYS} day(s)")
+        else:
+            print("   • Auto cleanup: Disabled")
     else:
         print("🌐 Online mode - cloud attempts during saves")
 
@@ -318,6 +392,3 @@ def set_global_weighbridge(manager, weight_var, status_var):
 def get_global_weighbridge_info():
     """Get global weighbridge references"""
     return GLOBAL_WEIGHBRIDGE_MANAGER, GLOBAL_WEIGHBRIDGE_WEIGHT_VAR, GLOBAL_WEIGHBRIDGE_STATUS_VAR
-
-# REMOVED: Legacy daily_reports setup functions to avoid confusion
-# Now everything uses the unified reports and json_backups folders

@@ -687,34 +687,70 @@ CameraView = ContinuousCameraView
 
 # Watermark function remains the same
 def add_watermark(image, text, ticket_id=None):
-    """Add a watermark to an image with sitename, vehicle number, timestamp, and ticket ID"""
+    """Add a watermark to an image with sitename, vehicle number, timestamp, and image description in 2 lines at top, and ticket at bottom"""
     result = image.copy()
     height, width = result.shape[:2]
     
     font = cv2.FONT_HERSHEY_SIMPLEX
-    main_font_scale = 0.7
-    ticket_font_scale = 0.8
+    font_scale = 0.7
     color = (255, 255, 255)
-    main_thickness = 2
-    ticket_thickness = 2
+    thickness = 2
+    line_spacing = 8  # Space between lines
     
+    # Add main watermark at TOP
+    if text:
+        # Parse the text to extract components
+        # Expected format: "Site - Vehicle - Timestamp - Description"
+        parts = [part.strip() for part in text.split(' - ')]
+        
+        if len(parts) >= 4:
+            site = parts[0]
+            vehicle = parts[1] 
+            timestamp = parts[2]
+            description = parts[3]
+        else:
+            pass
+        
+        # Create the two lines for top watermark
+        line1 = f"{site} - {vehicle}"
+        line2 = f"{timestamp} - {description}"
+        
+        # Get text dimensions for both lines
+        (line1_width, line1_height), line1_baseline = cv2.getTextSize(line1, font, font_scale, thickness)
+        (line2_width, line2_height), line2_baseline = cv2.getTextSize(line2, font, font_scale, thickness)
+        
+        # Calculate total height needed for both lines
+        total_text_height = line1_height + line2_height + line_spacing
+        max_text_width = max(line1_width, line2_width)
+        
+        # Create overlay background for both lines at TOP
+        overlay = result.copy()
+        overlay_y_start = 0
+        overlay_y_end = total_text_height + 20
+        cv2.rectangle(overlay, (0, overlay_y_start), (max_text_width + 20, overlay_y_end), (0, 0, 0), -1)
+        cv2.addWeighted(overlay, 0.6, result, 0.4, 0, result)
+        
+        # Add line 1 (Site - Vehicle) at top
+        line1_y = line1_height + 10
+        cv2.putText(result, line1, (10, line1_y), font, font_scale, color, thickness)
+        
+        # Add line 2 (Timestamp - Description) below line 1
+        line2_y = line1_height + line2_height + line_spacing + 10
+        cv2.putText(result, line2, (10, line2_y), font, font_scale, color, thickness)
+    
+    # Add ticket number at BOTTOM
     if ticket_id:
         ticket_text = f"Ticket: {ticket_id}"
-        (text_width, text_height), baseline = cv2.getTextSize(ticket_text, font, ticket_font_scale, ticket_thickness)
+        (ticket_width, ticket_height), ticket_baseline = cv2.getTextSize(ticket_text, font, font_scale, thickness)
         
+        # Create overlay background for ticket at BOTTOM
         overlay_ticket = result.copy()
-        cv2.rectangle(overlay_ticket, (0, 0), (text_width + 20, text_height + 20), (0, 0, 0), -1)
+        overlay_y_start = height - ticket_height - 20
+        overlay_y_end = height
+        cv2.rectangle(overlay_ticket, (0, overlay_y_start), (ticket_width + 20, overlay_y_end), (0, 0, 0), -1)
         cv2.addWeighted(overlay_ticket, 0.6, result, 0.4, 0, result)
         
-        cv2.putText(result, ticket_text, (10, text_height + 10), font, ticket_font_scale, color, ticket_thickness)
-    
-    if text:
-        (main_text_width, main_text_height), main_baseline = cv2.getTextSize(text, font, main_font_scale, main_thickness)
-        
-        overlay_main = result.copy()
-        cv2.rectangle(overlay_main, (0, height - main_text_height - 20), (width, height), (0, 0, 0), -1)
-        cv2.addWeighted(overlay_main, 0.5, result, 0.5, 0, result)
-        
-        cv2.putText(result, text, (10, height - 10), font, main_font_scale, color, main_thickness)
+        # Add ticket text at bottom
+        cv2.putText(result, ticket_text, (10, height - 10), font, font_scale, color, thickness)
     
     return result
