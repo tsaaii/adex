@@ -1,16 +1,41 @@
-# Updated camera_ui.py - Enhanced UI for continuous camera feed
+# Updated camera_ui.py - Enhanced UI for robust continuous camera feed
 
 import tkinter as tk
 from tkinter import ttk
 import config
 from ui_components import HoverButton
-from camera import ContinuousCameraView
+from camera import RobustCameraView  # Updated import - using class method
 
 def create_cameras_panel(self, parent):
-    """Create the enhanced cameras panel with continuous feed support"""
+    """Create the enhanced cameras panel with robust continuous feed support"""
     # Camera container with improved layout
-    camera_frame = ttk.LabelFrame(parent, text="📹 Live Camera Feed - Continuous RTSP Monitoring")
+    camera_frame = ttk.LabelFrame(parent, text="📹 Live Camera Feed - Continuous Monitoring")
     camera_frame.pack(fill=tk.X, padx=5, pady=5)
+    
+    # Check available USB cameras first
+    print("🔍 Detecting available USB cameras...")
+    try:
+        available_cameras = RobustCameraView.detect_available_cameras()
+    except Exception as e:
+        print(f"Error detecting cameras: {e}")
+        available_cameras = []  # Fallback to empty list
+    
+    if not available_cameras:
+        # No USB cameras detected - show warning
+        warning_frame = ttk.Frame(camera_frame)
+        warning_frame.pack(fill=tk.X, padx=5, pady=10)
+        
+        warning_label = ttk.Label(warning_frame, 
+                                 text="⚠️ No USB cameras detected! Please connect cameras or check RTSP/HTTP settings.",
+                                 font=("Segoe UI", 10, "bold"),
+                                 foreground="red")
+        warning_label.pack()
+        
+        instruction_label = ttk.Label(warning_frame,
+                                    text="• Connect USB cameras and restart application\n• Or configure RTSP/HTTP cameras in Settings",
+                                    font=("Segoe UI", 9),
+                                    foreground="orange")
+        instruction_label.pack(pady=5)
     
     # Container for both cameras side by side
     cameras_container = ttk.Frame(camera_frame, style="TFrame")
@@ -19,19 +44,21 @@ def create_cameras_panel(self, parent):
     cameras_container.columnconfigure(1, weight=1)
     
     # Front camera panel
-    front_panel = ttk.LabelFrame(cameras_container, text="🎥 Front Camera - Live Feed")
+    front_camera_index = 0 if 0 in available_cameras else (available_cameras[0] if available_cameras else 0)
+    front_panel = ttk.LabelFrame(cameras_container, text=f"🎥 Front Camera (USB {front_camera_index}) - Live Feed")
     front_panel.grid(row=0, column=0, padx=3, pady=2, sticky="nsew")
     
-    # Create front camera with continuous feed enabled
-    self.front_camera = ContinuousCameraView(front_panel, auto_start=True)
+    # Create front camera with robust continuous feed enabled
+    self.front_camera = RobustCameraView(front_panel, camera_index=front_camera_index, auto_start=(front_camera_index in available_cameras))
     self.front_camera.save_function = self.image_handler.save_front_image
     
     # Back camera panel
-    back_panel = ttk.LabelFrame(cameras_container, text="🎥 Back Camera - Live Feed")
+    back_camera_index = 1 if 1 in available_cameras else (available_cameras[1] if len(available_cameras) > 1 else 1)
+    back_panel = ttk.LabelFrame(cameras_container, text=f"🎥 Back Camera (USB {back_camera_index}) - Live Feed")
     back_panel.grid(row=0, column=1, padx=3, pady=2, sticky="nsew")
     
-    # Create back camera with continuous feed enabled
-    self.back_camera = ContinuousCameraView(back_panel, camera_index=1, auto_start=True)
+    # Create back camera with robust continuous feed enabled
+    self.back_camera = RobustCameraView(back_panel, camera_index=back_camera_index, auto_start=(back_camera_index in available_cameras))
     self.back_camera.save_function = self.image_handler.save_back_image
     
     # Load camera settings and configure cameras
@@ -84,6 +111,15 @@ def create_cameras_panel(self, parent):
     # Master camera controls
     master_controls_frame = ttk.Frame(controls_frame)
     master_controls_frame.pack(fill=tk.X, padx=5, pady=3)
+    
+    # Camera detection button
+    detect_btn = HoverButton(master_controls_frame,
+                            text="🔍 Detect Cameras",
+                            bg=config.COLORS["primary_light"],
+                            fg=config.COLORS["text"],
+                            padx=8, pady=3,
+                            command=self.detect_and_refresh_cameras)
+    detect_btn.pack(side=tk.LEFT, padx=5)
     
     # Start/Stop all feeds button
     self.master_feed_btn = HoverButton(master_controls_frame,
@@ -141,14 +177,14 @@ def create_cameras_panel(self, parent):
                                   font=("Segoe UI", 9, "bold"))
     total_image_status.grid(row=2, column=1, sticky="w", padx=10)
     
-    # Instructions with tips for RTSP
+    # Instructions with tips for robust feed
     instruction_frame = ttk.Frame(controls_frame)
     instruction_frame.pack(fill=tk.X, padx=5, pady=3)
     
-    instruction_text = ("💡 Live Feed Tips: Cameras auto-start for continuous monitoring • "
-                       "Click 'Capture' on each camera when vehicle is positioned • "
-                       "RTSP feeds optimize automatically for performance • "
-                       "Use zoom/pan during live view")
+    instruction_text = ("💡 Camera Tips: Auto-detects available USB cameras on startup • "
+                       "Click 'Detect Cameras' after connecting new cameras • "
+                       "RTSP/HTTP cameras configure via Settings • "
+                       "Robust reconnection handles connection issues automatically")
     instruction_label = ttk.Label(instruction_frame, text=instruction_text, 
                                  font=("Segoe UI", 8), 
                                  foreground="green",
@@ -207,17 +243,87 @@ def create_cameras_panel(self, parent):
     # Start monitoring feed status
     self.monitor_camera_status()
 
-def restart_all_camera_feeds(self):
-    """Restart both camera feeds"""
+def detect_and_refresh_cameras(self):
+    """Detect available cameras and refresh the camera feeds"""
     try:
+        print("🔍 Detecting cameras...")
+        
+        # Stop current feeds
         if hasattr(self, 'front_camera'):
-            self.front_camera.restart_feed()
+            self.front_camera.stop_continuous_feed()
         if hasattr(self, 'back_camera'):
-            self.back_camera.restart_feed()
+            self.back_camera.stop_continuous_feed()
+        
+        # Detect available cameras
+        try:
+            available_cameras = RobustCameraView.detect_available_cameras()
+        except Exception as e:
+            print(f"Error detecting cameras in refresh: {e}")
+            available_cameras = []  # Fallback to empty list
+        
+        # Update camera indices and availability
+        if hasattr(self, 'front_camera'):
+            if 0 in available_cameras:
+                self.front_camera.camera_index = 0
+                self.front_camera.camera_available = True
+                self.front_camera.checked_availability = True
+            elif available_cameras:
+                self.front_camera.camera_index = available_cameras[0]
+                self.front_camera.camera_available = True
+                self.front_camera.checked_availability = True
+            else:
+                self.front_camera.camera_available = False
+                self.front_camera.checked_availability = True
+        
+        if hasattr(self, 'back_camera'):
+            if 1 in available_cameras:
+                self.back_camera.camera_index = 1
+                self.back_camera.camera_available = True
+                self.back_camera.checked_availability = True
+            elif len(available_cameras) > 1:
+                self.back_camera.camera_index = available_cameras[1]
+                self.back_camera.camera_available = True
+                self.back_camera.checked_availability = True
+            else:
+                self.back_camera.camera_available = False
+                self.back_camera.checked_availability = True
+        
+        # Restart feeds for available cameras
+        self.parent.after(1000, self._restart_available_cameras)
+        
+        # Show results
+        if available_cameras:
+            print(f"✅ Detected cameras: {available_cameras}")
+        else:
+            print("❌ No cameras detected")
+            
+    except Exception as e:
+        print(f"Error detecting cameras: {e}")
+
+def _restart_available_cameras(self):
+    """Restart feeds only for available cameras"""
+    try:
+        if hasattr(self, 'front_camera') and self.front_camera.camera_available:
+            self.front_camera.start_continuous_feed()
+            
+        if hasattr(self, 'back_camera') and self.back_camera.camera_available:
+            self.back_camera.start_continuous_feed()
+            
+    except Exception as e:
+        print(f"Error restarting available cameras: {e}")
+
+def restart_all_camera_feeds(self):
+    """Restart both camera feeds with camera detection"""
+    try:
+        # Detect and refresh cameras first
+        self.detect_and_refresh_cameras()
         
         # Update master button temporarily
-        self.master_feed_btn.config(text="🔄 Restarting...", state=tk.DISABLED)
-        self.parent.after(2000, lambda: self.master_feed_btn.config(text="🔄 Restart All Feeds", state=tk.NORMAL))
+        if hasattr(self, 'master_feed_btn'):
+            self.master_feed_btn.config(text="🔄 Restarting...", state=tk.DISABLED)
+            self.parent.after(3000, lambda: self.master_feed_btn.config(text="🔄 Restart All Feeds", state=tk.NORMAL))
+        
+        print("Both camera feeds restarted with detection")
         
     except Exception as e:
         print(f"Error restarting camera feeds: {e}")
@@ -229,16 +335,16 @@ def capture_both_cameras(self):
         
         # Capture front camera
         if hasattr(self, 'front_camera') and self.front_camera.current_frame is not None:
-            self.front_camera.capture_current_frame()
-            captured_count += 1
+            if self.front_camera.capture_current_frame():
+                captured_count += 1
         
         # Capture back camera
         if hasattr(self, 'back_camera') and self.back_camera.current_frame is not None:
-            self.back_camera.capture_current_frame()
-            captured_count += 1
+            if self.back_camera.capture_current_frame():
+                captured_count += 1
         
         if captured_count > 0:
-            print(f"Captured frames from {captured_count} camera(s)")
+            print(f"Successfully captured frames from {captured_count} camera(s)")
         else:
             print("No cameras available for capture")
             
@@ -246,31 +352,33 @@ def capture_both_cameras(self):
         print(f"Error capturing both cameras: {e}")
 
 def monitor_camera_status(self):
-    """Monitor and update camera feed status"""
+    """Monitor and update camera feed status with enhanced feedback"""
     try:
         # Update front camera status
-        if hasattr(self, 'front_camera'):
-            if hasattr(self, 'front_feed_status_var'):
-                if self.front_camera.is_capturing_continuous:
-                    if self.front_camera.connection_stable:
-                        status = f"✅ {self.front_camera.camera_type} Active"
-                    else:
-                        status = f"⚠️ {self.front_camera.camera_type} Unstable"
+        if hasattr(self, 'front_camera') and hasattr(self, 'front_feed_status_var'):
+            if not hasattr(self.front_camera, 'camera_available') or not self.front_camera.camera_available:
+                status = f"❌ USB {self.front_camera.camera_index} Not Available"
+            elif self.front_camera.is_running:
+                if self.front_camera.connection_stable:
+                    status = f"✅ {self.front_camera.camera_type} {self.front_camera.camera_index} Active"
                 else:
-                    status = f"❌ {self.front_camera.camera_type} Stopped"
-                self.front_feed_status_var.set(status)
+                    status = f"⚠️ {self.front_camera.camera_type} {self.front_camera.camera_index} Connecting..."
+            else:
+                status = f"⏸️ {self.front_camera.camera_type} {self.front_camera.camera_index} Stopped"
+            self.front_feed_status_var.set(status)
         
         # Update back camera status
-        if hasattr(self, 'back_camera'):
-            if hasattr(self, 'back_feed_status_var'):
-                if self.back_camera.is_capturing_continuous:
-                    if self.back_camera.connection_stable:
-                        status = f"✅ {self.back_camera.camera_type} Active"
-                    else:
-                        status = f"⚠️ {self.back_camera.camera_type} Unstable"
+        if hasattr(self, 'back_camera') and hasattr(self, 'back_feed_status_var'):
+            if not hasattr(self.back_camera, 'camera_available') or not self.back_camera.camera_available:
+                status = f"❌ USB {self.back_camera.camera_index} Not Available"
+            elif self.back_camera.is_running:
+                if self.back_camera.connection_stable:
+                    status = f"✅ {self.back_camera.camera_type} {self.back_camera.camera_index} Active"
                 else:
-                    status = f"❌ {self.back_camera.camera_type} Stopped"
-                self.back_feed_status_var.set(status)
+                    status = f"⚠️ {self.back_camera.camera_type} {self.back_camera.camera_index} Connecting..."
+            else:
+                status = f"⏸️ {self.back_camera.camera_type} {self.back_camera.camera_index} Stopped"
+            self.back_feed_status_var.set(status)
         
     except Exception as e:
         print(f"Error monitoring camera status: {e}")
@@ -314,7 +422,7 @@ def update_image_status_display(self):
             print(f"Error updating image status display: {e}")
 
 def load_camera_settings(self):
-    """Load camera settings and configure continuous cameras"""
+    """Load camera settings and configure robust cameras"""
     try:
         # Get settings storage instance
         settings_storage = self.get_settings_storage()
@@ -363,7 +471,7 @@ def load_camera_settings(self):
                 self.back_camera.camera_type = "USB"
                 print(f"Back camera configured for USB index: {back_index}")
                 
-        print("Camera settings loaded and applied to continuous feed system")
+        print("Camera settings loaded and applied to robust feed system")
                 
     except Exception as e:
         print(f"Error loading camera settings: {e}")
@@ -388,14 +496,17 @@ def get_settings_storage(self):
         return None
 
 def update_camera_settings(self, settings):
-    """Update camera settings for continuous feed cameras"""
+    """Update camera settings for robust feed cameras"""
     try:
-        print(f"Updating continuous camera settings: {settings}")
+        print(f"Updating robust camera settings: {settings}")
         
-        # Stop current feeds
-        if hasattr(self, 'front_camera'):
+        # Temporarily stop feeds for settings update
+        front_was_running = hasattr(self, 'front_camera') and self.front_camera.is_running
+        back_was_running = hasattr(self, 'back_camera') and self.back_camera.is_running
+        
+        if front_was_running:
             self.front_camera.stop_continuous_feed()
-        if hasattr(self, 'back_camera'):
+        if back_was_running:
             self.back_camera.stop_continuous_feed()
         
         # Apply new settings
@@ -465,10 +576,17 @@ def update_camera_settings(self, settings):
             self.back_camera.camera_type = "USB"
             self.back_camera.camera_index = settings.get("back_camera_index", 1)
         
-        # Restart feeds with new settings after a brief delay
-        self.parent.after(1000, self.restart_all_camera_feeds)
+        # Restart feeds if they were running
+        def restart_feeds():
+            if front_was_running:
+                self.front_camera.start_continuous_feed()
+            if back_was_running:
+                self.back_camera.start_continuous_feed()
         
-        print("Camera settings updated for continuous feed system")
+        # Restart feeds after a brief delay
+        self.parent.after(1000, restart_feeds)
+        
+        print("Camera settings updated for robust feed system")
                 
     except Exception as e:
         print(f"Error updating camera settings: {e}")

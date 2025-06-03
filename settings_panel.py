@@ -783,13 +783,64 @@ class SettingsPanel:
 # Fix for the create_weighbridge_settings method in settings_panel.py
 
     def create_weighbridge_settings(self, parent):
-        """UPDATED: Create weighbridge configuration settings with enhanced cloud features including JSON bulk upload"""
+        """UPDATED: Create weighbridge configuration settings with scrollable support for small screens"""
         # Initialize the weight status variable
         self.weight_status_var = tk.StringVar(value="Ready")
         
-        # Weighbridge settings frame
-        wb_frame = ttk.LabelFrame(parent, text="Weighbridge Configuration", padding=10)
-        wb_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        # Create main container frame
+        main_container = ttk.Frame(parent)
+        main_container.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # Configure main container for proper resizing
+        main_container.columnconfigure(0, weight=1)
+        main_container.rowconfigure(0, weight=1)
+        
+        # Create canvas and scrollbar for scrolling
+        canvas = tk.Canvas(main_container, highlightthickness=0, bg=config.COLORS["background"])
+        scrollbar = ttk.Scrollbar(main_container, orient="vertical", command=canvas.yview)
+        
+        # Create scrollable frame that will contain all the weighbridge settings
+        scrollable_frame = ttk.Frame(canvas)
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        # Create window in canvas
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Pack canvas and scrollbar
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Bind mousewheel to canvas for smooth scrolling
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        def _bind_mousewheel(event):
+            canvas.bind_all("<MouseWheel>", _on_mousewheel)
+        
+        def _unbind_mousewheel(event):
+            canvas.unbind_all("<MouseWheel>")
+        
+        # Bind mouse wheel events when mouse enters/leaves canvas
+        canvas.bind('<Enter>', _bind_mousewheel)
+        canvas.bind('<Leave>', _unbind_mousewheel)
+        
+        # For Linux systems (alternative mouse wheel binding)
+        def _on_mousewheel_linux(event):
+            canvas.yview_scroll(int(-1*(event.delta)), "units")
+        
+        canvas.bind("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))
+        canvas.bind("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))
+        
+        # NOW CREATE ALL THE WEIGHBRIDGE SETTINGS CONTENT IN THE SCROLLABLE FRAME
+        # ========================================================================
+        
+        # Weighbridge settings frame (now inside scrollable_frame)
+        wb_frame = ttk.LabelFrame(scrollable_frame, text="Weighbridge Configuration", padding=10)
+        wb_frame.pack(fill=tk.X, padx=5, pady=5)
         
         # COM Port selection
         ttk.Label(wb_frame, text="COM Port:").grid(row=0, column=0, sticky=tk.W, pady=2)
@@ -866,12 +917,13 @@ class SettingsPanel:
                                         foreground="black")
         self.weight_status_label.grid(row=8, column=0, columnspan=3, sticky=tk.W, pady=2)
         
-        # UPDATED: Check if cloud storage is enabled and add enhanced backup section with JSON support
+        # CLOUD STORAGE SECTION (if enabled)
         if hasattr(config, 'USE_CLOUD_STORAGE') and config.USE_CLOUD_STORAGE:
             self.create_enhanced_cloud_backup_section(wb_frame)
 
-        test_mode_frame = ttk.LabelFrame(parent, text="Testing Mode", padding=10)
-        test_mode_frame.pack(fill=tk.X, padx=10, pady=(20, 10))
+        # TEST MODE SECTION (now in scrollable frame)
+        test_mode_frame = ttk.LabelFrame(scrollable_frame, text="Testing Mode", padding=10)
+        test_mode_frame.pack(fill=tk.X, padx=5, pady=(20, 10))
         
         # Test mode explanation
         info_label = ttk.Label(test_mode_frame, 
@@ -895,6 +947,61 @@ class SettingsPanel:
                                     font=("Segoe UI", 8, "bold"),
                                     foreground="green")
         test_status_label.pack(anchor=tk.W, pady=(5, 0))
+
+        # ADDITIONAL SETTINGS SECTION (Example of more content to demonstrate scrolling)
+        additional_frame = ttk.LabelFrame(scrollable_frame, text="Advanced Settings", padding=10)
+        additional_frame.pack(fill=tk.X, padx=5, pady=(10, 10))
+        
+        # Weight filtering settings
+        ttk.Label(additional_frame, text="Weight Filtering:").grid(row=0, column=0, sticky=tk.W, pady=2)
+        
+        # Minimum weight threshold
+        ttk.Label(additional_frame, text="Min Weight (kg):").grid(row=1, column=0, sticky=tk.W, pady=2)
+        self.min_weight_var = tk.DoubleVar(value=0.0)
+        ttk.Entry(additional_frame, textvariable=self.min_weight_var, width=10).grid(row=1, column=1, sticky=tk.W, pady=2, padx=5)
+        
+        # Maximum weight threshold
+        ttk.Label(additional_frame, text="Max Weight (kg):").grid(row=2, column=0, sticky=tk.W, pady=2)
+        self.max_weight_var = tk.DoubleVar(value=100000.0)
+        ttk.Entry(additional_frame, textvariable=self.max_weight_var, width=10).grid(row=2, column=1, sticky=tk.W, pady=2, padx=5)
+        
+        # Weight stability settings
+        ttk.Label(additional_frame, text="Stability Readings:").grid(row=3, column=0, sticky=tk.W, pady=2)
+        self.stability_var = tk.IntVar(value=3)
+        ttk.Spinbox(additional_frame, from_=1, to=10, textvariable=self.stability_var, width=10).grid(row=3, column=1, sticky=tk.W, pady=2, padx=5)
+        
+        # Reading interval
+        ttk.Label(additional_frame, text="Reading Interval (ms):").grid(row=4, column=0, sticky=tk.W, pady=2)
+        self.interval_var = tk.IntVar(value=500)
+        ttk.Spinbox(additional_frame, from_=100, to=2000, increment=100, textvariable=self.interval_var, width=10).grid(row=4, column=1, sticky=tk.W, pady=2, padx=5)
+        
+        # SCROLLING HELP SECTION
+        help_frame = ttk.LabelFrame(scrollable_frame, text="Navigation Help", padding=10)
+        help_frame.pack(fill=tk.X, padx=5, pady=(10, 20))
+        
+        help_text = ("💡 Scroll Tips:\n"
+                    "• Use mouse wheel to scroll up/down\n"
+                    "• Use scrollbar on the right\n"
+                    "• All settings are preserved when scrolling\n"
+                    "• Optimized for small screens")
+        
+        help_label = ttk.Label(help_frame, text=help_text, font=("Segoe UI", 8), foreground="gray")
+        help_label.pack(anchor=tk.W)
+        
+        # Configure column weights for responsive design
+        wb_frame.columnconfigure(1, weight=1)
+        additional_frame.columnconfigure(1, weight=1)
+        
+        # Update scroll region after all widgets are added
+        scrollable_frame.update_idletasks()
+        canvas.configure(scrollregion=canvas.bbox("all"))
+        
+        # Ensure the canvas width matches the parent width
+        def configure_canvas(event):
+            canvas.configure(width=event.width)
+        
+        main_container.bind('<Configure>', configure_canvas)
+
 
     def on_test_mode_toggle(self):
         """Handle test mode toggle - IMPROVED version"""

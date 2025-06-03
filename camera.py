@@ -1,4 +1,4 @@
-# Enhanced camera.py - Continuous RTSP feed implementation
+# Enhanced camera.py - Robust continuous feed implementation
 
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -15,8 +15,8 @@ import queue
 import config
 from ui_components import HoverButton
 
-class ContinuousCameraView:
-    """Enhanced camera view with continuous RTSP feed and optimized performance"""
+class RobustCameraView:
+    """Simplified and robust camera view with continuous feed"""
     
     def __init__(self, parent, camera_index=0, camera_type="USB", auto_start=True):
         self.parent = parent
@@ -26,31 +26,30 @@ class ContinuousCameraView:
         self.http_url = None
         self.auto_start = auto_start
         
-        # Continuous feed control
+        # Simplified feed control
         self.is_running = False
-        self.is_capturing_continuous = False
         self.video_thread = None
-        self.connection_retry_count = 0
-        self.max_retries = 3
+        self.cap = None
         
-        # Frame management
+        # Frame management - simplified
         self.current_frame = None
         self.captured_image = None
         self.frame_lock = threading.Lock()
-        self.frame_queue = queue.Queue(maxsize=2)  # Small buffer to prevent memory issues
+        self.display_frame = None
         
-        # Performance optimization
+        # Performance settings
+        self.target_fps = 20  # Balanced FPS
         self.last_frame_time = 0
-        self.target_fps = 15  # Reduced FPS for RTSP to save bandwidth
-        self.frame_skip_count = 0
-        self.max_frame_skip = 2  # Skip frames to improve performance
+        self.frame_count = 0
+        self.fps_counter = 0
+        self.fps_timer = time.time()
         
-        # Connection state
+        # Connection state - simplified
         self.connection_stable = False
-        self.connection_attempts = 0
-        self.last_successful_frame = 0
+        self.last_error_time = 0
+        self.error_cooldown = 5  # 5 seconds between error reports
         
-        # Zoom functionality
+        # Zoom functionality (kept same)
         self.zoom_level = 1.0
         self.min_zoom = 1.0
         self.max_zoom = 5.0
@@ -69,12 +68,12 @@ class ContinuousCameraView:
             self.start_continuous_feed()
     
     def create_ui(self):
-        """Create the camera UI with enhanced controls"""
+        """Create the camera UI (minimal changes as requested)"""
         # Main frame
         self.frame = ttk.Frame(self.parent)
         self.frame.pack(fill=tk.BOTH, expand=True, padx=3, pady=3)
         
-        # Video display canvas - larger for better viewing
+        # Video display canvas
         self.canvas = tk.Canvas(self.frame, bg="black", width=280, height=210)
         self.canvas.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
         
@@ -125,7 +124,7 @@ class ContinuousCameraView:
         main_controls.columnconfigure(1, weight=1)
         main_controls.columnconfigure(2, weight=1)
         
-        # Zoom controls
+        # Zoom controls (kept same)
         zoom_frame = ttk.Frame(controls)
         zoom_frame.pack(fill=tk.X, pady=1)
         
@@ -173,33 +172,6 @@ class ContinuousCameraView:
         # Save function reference
         self.save_function = None
     
-    
-    def stop_camera(self):
-        """Backward compatibility method - delegates to stop_continuous_feed"""
-        self.stop_continuous_feed()
-
-    def start_camera(self):
-        """Backward compatibility method - delegates to start_continuous_feed"""
-        self.start_continuous_feed()
-
-    def capture_image(self):
-        """Capture current frame and return success status"""
-        try:
-            self.capture_current_frame()
-            return self.captured_image is not None
-        except Exception as e:
-            print(f"Error in capture_image: {e}")
-            return False
-
-    def reset_display(self):
-        """Reset the camera display to initial state"""
-        try:
-            self.show_status_message("Camera ready\nClick 'Start Feed' to begin")
-            self.captured_image = None
-            self.save_button.config(state=tk.DISABLED)
-        except Exception as e:
-            print(f"Error resetting display: {e}")
-    
     def show_status_message(self, message):
         """Show a status message on the canvas"""
         self.canvas.delete("all")
@@ -214,220 +186,202 @@ class ContinuousCameraView:
         """Set RTSP URL for IP camera"""
         self.rtsp_url = rtsp_url
         self.camera_type = "RTSP"
-        
-        # Restart feed if it's running
-        if self.is_capturing_continuous:
+        if self.is_running:
             self.restart_feed()
     
     def set_http_config(self, http_url):
         """Set HTTP URL for IP camera"""
         self.http_url = http_url
         self.camera_type = "HTTP"
-        
-        # Restart feed if it's running
-        if self.is_capturing_continuous:
+        if self.is_running:
             self.restart_feed()
     
     def start_continuous_feed(self):
-        """Start continuous video feed"""
-        if self.is_capturing_continuous:
+        """Start continuous video feed with robust error handling"""
+        if self.is_running:
             return
         
-        try:
-            # Initialize camera connection
-            success = self._initialize_camera_connection()
-            
-            if not success:
-                self.show_status_message(f"Failed to connect to {self.camera_type} camera\nClick 'Start Feed' to retry")
-                self.status_var.set("Connection failed")
-                return
-            
-            # Start continuous capture
-            self.is_capturing_continuous = True
-            self.is_running = True
-            
-            # Start the video thread
-            self.video_thread = threading.Thread(target=self._continuous_feed_loop, daemon=True)
-            self.video_thread.start()
-            
-            # Start UI update thread
-            self._start_ui_updater()
-            
-            # Update UI
-            self.feed_button.config(text="Stop Feed", bg=config.COLORS["error"])
-            self.status_var.set(f"{self.camera_type} feed active")
-            
-        except Exception as e:
-            self.show_status_message(f"Error starting feed:\n{str(e)}")
-            self.status_var.set("Startup error")
-    
-    def _initialize_camera_connection(self):
-        """Initialize camera connection based on type"""
-        try:
-            if self.camera_type == "RTSP" and self.rtsp_url:
-                self.cap = cv2.VideoCapture(self.rtsp_url)
-                # Optimize RTSP settings
-                self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-                self.cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 10000)
-                self.cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 5000)
-                # Set lower resolution for better performance
-                self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-                self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-                self.cap.set(cv2.CAP_PROP_FPS, self.target_fps)
-                
-            elif self.camera_type == "HTTP" and self.http_url:
-                # HTTP will be handled differently in the loop
-                self.cap = None
-                return self._test_http_connection()
-                
-            else:  # USB camera
-                self.cap = cv2.VideoCapture(self.camera_index)
-                self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-                self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-                self.cap.set(cv2.CAP_PROP_FPS, 30)
-            
-            # Test connection for USB/RTSP
-            if self.cap and self.cap.isOpened():
-                ret, test_frame = self.cap.read()
-                if ret and test_frame is not None:
-                    self.connection_stable = True
-                    self.last_successful_frame = time.time()
-                    return True
-            
-            return False
-            
-        except Exception as e:
-            print(f"Camera initialization error: {e}")
-            return False
-    
-    def _test_http_connection(self):
-        """Test HTTP camera connection"""
-        try:
-            if not self.http_url:
-                return False
-            with urllib.request.urlopen(self.http_url, timeout=5) as response:
-                return response.getcode() == 200
-        except:
-            return False
-    
-    def _continuous_feed_loop(self):
-        """Main continuous feed loop running in separate thread"""
-        last_fps_update = time.time()
-        frame_count = 0
+        self.is_running = True
+        self.connection_stable = False
         
-        while self.is_capturing_continuous and self.is_running:
+        # Start the video thread
+        self.video_thread = threading.Thread(target=self._robust_video_loop, daemon=True)
+        self.video_thread.start()
+        
+        # Start UI update loop
+        self._schedule_ui_update()
+        
+        # Update UI
+        self.feed_button.config(text="Stop Feed", bg=config.COLORS["error"])
+        self.status_var.set(f"Starting {self.camera_type} feed...")
+    
+    def _robust_video_loop(self):
+        """Simplified and robust video capture loop"""
+        consecutive_failures = 0
+        max_failures = 10  # Allow some failures before longer delay
+        
+        while self.is_running:
             try:
-                current_time = time.time()
+                # Initialize camera if needed
+                if self.cap is None or not self.cap.isOpened():
+                    success = self._initialize_camera()
+                    if not success:
+                        consecutive_failures += 1
+                        delay = min(consecutive_failures * 0.5, 5.0)  # Progressive delay up to 5 seconds
+                        time.sleep(delay)
+                        continue
                 
-                # Frame rate limiting
-                if current_time - self.last_frame_time < (1.0 / self.target_fps):
-                    time.sleep(0.01)
-                    continue
-                
-                # Read frame based on camera type
-                if self.camera_type == "HTTP":
-                    ret, frame = self._read_http_frame()
-                else:
-                    ret, frame = self.cap.read() if self.cap else (False, None)
+                # Read frame
+                ret, frame = self._read_frame()
                 
                 if ret and frame is not None:
-                    # Frame skip for performance (only for RTSP)
-                    if self.camera_type == "RTSP":
-                        self.frame_skip_count += 1
-                        if self.frame_skip_count < self.max_frame_skip:
-                            continue
-                        self.frame_skip_count = 0
+                    # Frame rate limiting
+                    current_time = time.time()
+                    if current_time - self.last_frame_time < (1.0 / self.target_fps):
+                        time.sleep(0.02)
+                        continue
                     
                     # Apply zoom and pan
                     processed_frame = self.apply_zoom_and_pan(frame)
                     
-                    # Thread-safe frame update
+                    # Update current frame thread-safely
                     with self.frame_lock:
-                        self.current_frame = processed_frame.copy()
+                        self.current_frame = frame.copy()  # Keep original for saving
+                        self.display_frame = processed_frame.copy()  # Processed for display
                     
-                    # Add to queue for UI update (non-blocking)
-                    try:
-                        self.frame_queue.put_nowait(processed_frame)
-                    except queue.Full:
-                        # Remove old frame and add new one
-                        try:
-                            self.frame_queue.get_nowait()
-                            self.frame_queue.put_nowait(processed_frame)
-                        except queue.Empty:
-                            pass
-                    
-                    # Update timing
+                    # Update timing and stats
                     self.last_frame_time = current_time
-                    self.last_successful_frame = current_time
-                    frame_count += 1
+                    self.frame_count += 1
+                    consecutive_failures = 0  # Reset failure counter
                     
-                    # Reset connection retry count on successful read
-                    self.connection_retry_count = 0
-                    self.connection_stable = True
+                    if not self.connection_stable:
+                        self.connection_stable = True
+                        self._update_status_safe(f"{self.camera_type} connected")
                     
                     # Update FPS counter
-                    if current_time - last_fps_update >= 1.0:
-                        actual_fps = frame_count / (current_time - last_fps_update)
-                        self.parent.after_idle(lambda: self.fps_var.set(f"FPS: {actual_fps:.1f}"))
-                        frame_count = 0
-                        last_fps_update = current_time
+                    self._update_fps_counter()
                 
                 else:
-                    # Handle connection issues
-                    self._handle_connection_loss()
+                    # Handle frame read failure
+                    consecutive_failures += 1
+                    if consecutive_failures > max_failures:
+                        self._log_error("Too many consecutive frame failures, reinitializing camera")
+                        self._close_camera()
+                        time.sleep(2)
+                        consecutive_failures = 0
+                    else:
+                        time.sleep(0.1)  # Short delay before retry
                 
             except Exception as e:
-                print(f"Feed loop error: {e}")
-                self._handle_connection_loss()
-    
-    def _handle_connection_loss(self):
-        """Handle connection loss and implement reconnection logic"""
-        self.connection_stable = False
-        current_time = time.time()
+                self._log_error(f"Video loop error: {e}")
+                consecutive_failures += 1
+                self._close_camera()
+                time.sleep(1)
         
-        # Check if we've been without frames for too long
-        if current_time - self.last_successful_frame > 10:  # 10 seconds timeout
-            if self.connection_retry_count < self.max_retries:
-                self.connection_retry_count += 1
-                self.parent.after_idle(lambda: self.status_var.set(f"Reconnecting... ({self.connection_retry_count}/{self.max_retries})"))
+        # Cleanup when loop exits
+        self._close_camera()
+    
+    def _initialize_camera(self):
+        """Initialize camera connection with simplified error handling"""
+        try:
+            self._close_camera()  # Ensure clean state
+            
+            if self.camera_type == "RTSP" and self.rtsp_url:
+                self.cap = cv2.VideoCapture(self.rtsp_url)
+                # Optimize RTSP settings
+                self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
                 
-                # Attempt reconnection
-                if self.cap:
-                    self.cap.release()
+            elif self.camera_type == "HTTP" and self.http_url:
+                # HTTP handled in _read_frame
+                return True
                 
-                time.sleep(2)  # Wait before retry
-                
-                if self._initialize_camera_connection():
-                    self.last_successful_frame = time.time()
-                    self.parent.after_idle(lambda: self.status_var.set(f"{self.camera_type} reconnected"))
-                else:
-                    self.parent.after_idle(lambda: self.status_var.set(f"Reconnection {self.connection_retry_count} failed"))
+            else:  # USB camera
+                self.cap = cv2.VideoCapture(self.camera_index)
+                if self.cap.isOpened():
+                    self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                    self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                    self.cap.set(cv2.CAP_PROP_FPS, 30)
+            
+            # Test camera for USB/RTSP
+            if self.cap and self.cap.isOpened():
+                ret, test_frame = self.cap.read()
+                return ret and test_frame is not None
+            
+            return False
+            
+        except Exception as e:
+            self._log_error(f"Camera initialization error: {e}")
+            return False
+    
+    def _read_frame(self):
+        """Read frame based on camera type with improved error handling"""
+        try:
+            if self.camera_type == "HTTP":
+                return self._read_http_frame_optimized()
+            elif self.cap and self.cap.isOpened():
+                return self.cap.read()
             else:
-                # Max retries reached
-                self.parent.after_idle(self._stop_feed_due_to_error)
-        
-        time.sleep(0.1)  # Short delay before next attempt
+                return False, None
+        except Exception as e:
+            self._log_error(f"Frame read error: {e}")
+            return False, None
     
-    def _start_ui_updater(self):
-        """Start UI update loop"""
-        self._update_display()
+    def _read_http_frame_optimized(self):
+        """Optimized HTTP frame reading"""
+        try:
+            if not self.http_url:
+                return False, None
+            
+            # Use shorter timeout and simpler approach
+            request = urllib.request.Request(self.http_url)
+            with urllib.request.urlopen(request, timeout=3) as response:
+                # Read image data
+                image_data = response.read()
+                
+                # Convert to numpy array and decode
+                nparr = np.frombuffer(image_data, np.uint8)
+                frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                
+                return frame is not None, frame
+                
+        except Exception as e:
+            # Don't log every HTTP error (too verbose)
+            return False, None
+    
+    def _close_camera(self):
+        """Safely close camera resources"""
+        try:
+            if self.cap:
+                self.cap.release()
+                self.cap = None
+        except:
+            pass  # Ignore cleanup errors
+    
+    def _schedule_ui_update(self):
+        """Schedule UI update in main thread"""
+        if self.is_running:
+            self._update_display()
+            self.parent.after(50, self._schedule_ui_update)  # 20 FPS UI update
     
     def _update_display(self):
         """Update the display with the latest frame"""
-        if not self.is_capturing_continuous:
-            return
-        
         try:
-            # Get frame from queue (non-blocking)
-            try:
-                frame = self.frame_queue.get_nowait()
-            except queue.Empty:
-                # No new frame, schedule next update
-                self.parent.after(33, self._update_display)  # ~30 FPS UI update
+            if not self.is_running:
+                return
+            
+            # Get display frame thread-safely
+            display_frame = None
+            with self.frame_lock:
+                if self.display_frame is not None:
+                    display_frame = self.display_frame.copy()
+            
+            if display_frame is None:
                 return
             
             # Convert to RGB for tkinter
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_rgb = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
             
             # Resize to fit canvas
             canvas_width = self.canvas.winfo_width()
@@ -448,70 +402,48 @@ class ContinuousCameraView:
             self.canvas.image = img_tk  # Keep reference
             
         except Exception as e:
-            print(f"Display update error: {e}")
+            # Don't crash on display errors
+            pass
+    
+    def _update_fps_counter(self):
+        """Update FPS counter"""
+        self.fps_counter += 1
+        current_time = time.time()
         
-        # Schedule next update
-        self.parent.after(33, self._update_display)  # ~30 FPS UI update
+        if current_time - self.fps_timer >= 1.0:
+            fps = self.fps_counter / (current_time - self.fps_timer)
+            self._update_status_safe(None, f"FPS: {fps:.1f}")
+            self.fps_counter = 0
+            self.fps_timer = current_time
     
-    def _read_http_frame(self):
-        """Read frame from HTTP stream"""
+    def _update_status_safe(self, status_text=None, fps_text=None):
+        """Thread-safe status update"""
         try:
-            if not self.http_url:
-                return False, None
-            
-            with urllib.request.urlopen(self.http_url, timeout=2) as response:
-                bytes_data = b''
-                while True:
-                    chunk = response.read(1024)
-                    if not chunk:
-                        break
-                    bytes_data += chunk
-                    
-                    start = bytes_data.find(b'\xff\xd8')
-                    end = bytes_data.find(b'\xff\xd9')
-                    
-                    if start != -1 and end != -1 and end > start:
-                        jpeg_data = bytes_data[start:end+2]
-                        nparr = np.frombuffer(jpeg_data, np.uint8)
-                        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-                        
-                        if frame is not None:
-                            return True, frame
-                        
-                        bytes_data = bytes_data[end+2:]
-                
-                return False, None
-                
-        except Exception as e:
-            return False, None
+            if status_text:
+                self.parent.after_idle(lambda: self.status_var.set(status_text))
+            if fps_text:
+                self.parent.after_idle(lambda: self.fps_var.set(fps_text))
+        except:
+            pass
     
-    def toggle_continuous_feed(self):
-        """Toggle continuous feed on/off"""
-        if self.is_capturing_continuous:
-            self.stop_continuous_feed()
-        else:
-            self.start_continuous_feed()
+    def _log_error(self, message):
+        """Log error with cooldown to prevent spam"""
+        current_time = time.time()
+        if current_time - self.last_error_time > self.error_cooldown:
+            print(f"Camera error: {message}")
+            self.last_error_time = current_time
+            self.connection_stable = False
     
     def stop_continuous_feed(self):
         """Stop continuous video feed"""
-        self.is_capturing_continuous = False
         self.is_running = False
         
         # Wait for thread to complete
         if self.video_thread and self.video_thread.is_alive():
-            self.video_thread.join(timeout=1.0)
+            self.video_thread.join(timeout=2.0)
         
-        # Release camera
-        if self.cap:
-            self.cap.release()
-            self.cap = None
-        
-        # Clear frame queue
-        while not self.frame_queue.empty():
-            try:
-                self.frame_queue.get_nowait()
-            except queue.Empty:
-                break
+        # Close camera
+        self._close_camera()
         
         # Reset zoom and pan
         self.reset_zoom()
@@ -524,74 +456,86 @@ class ContinuousCameraView:
         # Show startup message
         self.show_status_message("Camera feed stopped\nClick 'Start Feed' to resume")
     
-    def _stop_feed_due_to_error(self):
-        """Stop feed due to error"""
-        self.stop_continuous_feed()
-        self.show_status_message("Connection lost\nClick 'Start Feed' to retry")
-        self.status_var.set("Connection failed")
+    def toggle_continuous_feed(self):
+        """Toggle continuous feed on/off"""
+        if self.is_running:
+            self.stop_continuous_feed()
+        else:
+            self.start_continuous_feed()
     
     def restart_feed(self):
         """Restart the feed (useful when settings change)"""
-        if self.is_capturing_continuous:
+        if self.is_running:
             self.stop_continuous_feed()
-            time.sleep(0.5)  # Brief pause
+            time.sleep(0.5)
             self.start_continuous_feed()
     
     def capture_current_frame(self):
         """Capture the current frame for saving"""
         try:
-            if self.current_frame is not None:
-                with self.frame_lock:
+            with self.frame_lock:
+                if self.current_frame is not None:
                     self.captured_image = self.current_frame.copy()
-                
-                self.save_button.config(state=tk.NORMAL)
-                self.status_var.set("Frame captured - click Save to store")
-                print(f"Frame captured successfully, shape: {self.captured_image.shape}")
-            else:
-                self.status_var.set("No live frame available - start feed first")
-                print("No current frame available for capture")
+                    self.save_button.config(state=tk.NORMAL)
+                    self.status_var.set("Frame captured - click Save to store")
+                    return True
+                else:
+                    self.status_var.set("No live frame available - ensure feed is active")
+                    return False
         except Exception as e:
             self.status_var.set(f"Capture error: {str(e)}")
-            print(f"Error capturing frame: {e}")
+            return False
     
     def save_image(self):
         """Save the captured image"""
         try:
-            print(f"Save image called - captured_image exists: {self.captured_image is not None}")
-            print(f"Save function exists: {self.save_function is not None}")
-            
             if self.captured_image is None:
                 self.status_var.set("No image captured - click Capture first")
-                print("No captured image available")
-                return
+                return False
             
             if self.save_function is None:
                 self.status_var.set("Save function not configured")
-                print("Save function not set")
-                return
+                return False
             
             # Call the save function with the captured image
-            print("Calling save function...")
             success = self.save_function(self.captured_image)
-            print(f"Save function returned: {success}")
             
             if success:
                 self.status_var.set("Image saved successfully!")
                 self.save_button.config(state=tk.DISABLED)
                 self.captured_image = None
-                print("Image saved and cleared")
+                return True
             else:
                 self.status_var.set("Failed to save image")
-                print("Save function returned False")
+                return False
                 
         except Exception as e:
-            error_msg = f"Save error: {str(e)}"
-            self.status_var.set(error_msg)
-            print(f"Exception in save_image: {e}")
-            import traceback
-            traceback.print_exc()
+            self.status_var.set(f"Save error: {str(e)}")
+            return False
     
-    # Zoom and pan methods (same as before)
+    # Backward compatibility methods
+    def stop_camera(self):
+        """Backward compatibility"""
+        self.stop_continuous_feed()
+
+    def start_camera(self):
+        """Backward compatibility"""
+        self.start_continuous_feed()
+
+    def capture_image(self):
+        """Backward compatibility"""
+        return self.capture_current_frame()
+
+    def reset_display(self):
+        """Reset the camera display to initial state"""
+        try:
+            self.show_status_message("Camera ready\nClick 'Start Feed' to begin")
+            self.captured_image = None
+            self.save_button.config(state=tk.DISABLED)
+        except:
+            pass
+    
+    # Zoom and pan methods (kept same as original)
     def zoom_in(self):
         if self.zoom_level < self.max_zoom:
             self.zoom_level = min(self.zoom_level + self.zoom_step, self.max_zoom)
@@ -615,7 +559,7 @@ class ContinuousCameraView:
         self.zoom_var.set(f"{self.zoom_level:.1f}x")
     
     def on_mouse_wheel(self, event):
-        if not self.is_capturing_continuous:
+        if not self.is_running:
             return
         if event.delta > 0 or event.num == 4:
             self.zoom_in()
@@ -623,7 +567,7 @@ class ContinuousCameraView:
             self.zoom_out()
     
     def on_mouse_press(self, event):
-        if not self.is_capturing_continuous or self.zoom_level <= self.min_zoom:
+        if not self.is_running or self.zoom_level <= self.min_zoom:
             return
         self.is_panning = True
         self.last_mouse_x = event.x
@@ -631,7 +575,7 @@ class ContinuousCameraView:
         self.canvas.configure(cursor="fleur")
     
     def on_mouse_drag(self, event):
-        if not self.is_panning or not self.is_capturing_continuous:
+        if not self.is_panning or not self.is_running:
             return
         dx = event.x - self.last_mouse_x
         dy = event.y - self.last_mouse_y
@@ -682,8 +626,9 @@ class ContinuousCameraView:
         else:
             return frame
 
-# Keep the original CameraView class for backward compatibility
-CameraView = ContinuousCameraView
+# Maintain backward compatibility
+ContinuousCameraView = RobustCameraView
+CameraView = RobustCameraView
 
 # Watermark function remains the same
 def add_watermark(image, text, ticket_id=None):

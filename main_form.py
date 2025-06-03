@@ -249,48 +249,49 @@ class MainForm:
 
 
     def monitor_camera_status(self):
-        """Monitor and update camera feed status - MISSING METHOD FIX"""
+        """Monitor and update camera feed status with enhanced feedback"""
         try:
             # Update front camera status
-            if hasattr(self, 'front_camera') and self.front_camera:
-                if hasattr(self, 'front_feed_status_var'):
-                    if hasattr(self.front_camera, 'is_capturing_continuous') and self.front_camera.is_capturing_continuous:
-                        if hasattr(self.front_camera, 'connection_stable') and self.front_camera.connection_stable:
-                            status = f"✅ {getattr(self.front_camera, 'camera_type', 'USB')} Active"
-                        else:
-                            status = f"⚠️ {getattr(self.front_camera, 'camera_type', 'USB')} Unstable"
+            if hasattr(self, 'front_camera') and hasattr(self, 'front_feed_status_var'):
+                if not hasattr(self.front_camera, 'camera_available') or not self.front_camera.camera_available:
+                    status = f"❌ USB {self.front_camera.camera_index} Not Available"
+                elif self.front_camera.is_running:
+                    if self.front_camera.connection_stable:
+                        status = f"✅ {self.front_camera.camera_type} {self.front_camera.camera_index} Active"
                     else:
-                        status = f"❌ {getattr(self.front_camera, 'camera_type', 'USB')} Stopped"
-                    self.front_feed_status_var.set(status)
+                        status = f"⚠️ {self.front_camera.camera_type} {self.front_camera.camera_index} Connecting..."
+                else:
+                    status = f"⏸️ {self.front_camera.camera_type} {self.front_camera.camera_index} Stopped"
+                self.front_feed_status_var.set(status)
             
             # Update back camera status
-            if hasattr(self, 'back_camera') and self.back_camera:
-                if hasattr(self, 'back_feed_status_var'):
-                    if hasattr(self.back_camera, 'is_capturing_continuous') and self.back_camera.is_capturing_continuous:
-                        if hasattr(self.back_camera, 'connection_stable') and self.back_camera.connection_stable:
-                            status = f"✅ {getattr(self.back_camera, 'camera_type', 'USB')} Active"
-                        else:
-                            status = f"⚠️ {getattr(self.back_camera, 'camera_type', 'USB')} Unstable"
+            if hasattr(self, 'back_camera') and hasattr(self, 'back_feed_status_var'):
+                if not hasattr(self.back_camera, 'camera_available') or not self.back_camera.camera_available:
+                    status = f"❌ USB {self.back_camera.camera_index} Not Available"
+                elif self.back_camera.is_running:
+                    if self.back_camera.connection_stable:
+                        status = f"✅ {self.back_camera.camera_type} {self.back_camera.camera_index} Active"
                     else:
-                        status = f"❌ {getattr(self.back_camera, 'camera_type', 'USB')} Stopped"
-                    self.back_feed_status_var.set(status)
+                        status = f"⚠️ {self.back_camera.camera_type} {self.back_camera.camera_index} Connecting..."
+                else:
+                    status = f"⏸️ {self.back_camera.camera_type} {self.back_camera.camera_index} Stopped"
+                self.back_feed_status_var.set(status)
             
         except Exception as e:
             print(f"Error monitoring camera status: {e}")
         
         # Schedule next status check
-        if hasattr(self, 'parent') and self.parent:
-            self.parent.after(2000, self.monitor_camera_status)  # Check every 2 seconds
+        self.after(2000, self.monitor_camera_status)  # Check every 2 seconds
 
     def update_image_status_display(self):
-        """Update the enhanced image status display - ADDITIONAL MISSING METHOD"""
+        """Update the enhanced image status display"""
         if hasattr(self, 'image_handler') and hasattr(self, 'total_image_status_var'):
             try:
                 # Get current image counts
-                first_front = bool(getattr(self, 'first_front_image_path', None))
-                first_back = bool(getattr(self, 'first_back_image_path', None))
-                second_front = bool(getattr(self, 'second_front_image_path', None))
-                second_back = bool(getattr(self, 'second_back_image_path', None))
+                first_front = bool(self.image_handler.main_form.first_front_image_path)
+                first_back = bool(self.image_handler.main_form.first_back_image_path)
+                second_front = bool(self.image_handler.main_form.second_front_image_path)
+                second_back = bool(self.image_handler.main_form.second_back_image_path)
                 
                 # Update first weighment status
                 first_status = f"Front: {'✅' if first_front else '❌'} Back: {'✅' if first_back else '❌'}"
@@ -318,27 +319,22 @@ class MainForm:
 
 
     def restart_all_camera_feeds(self):
-        """Restart all camera feeds - FIXED METHOD"""
+        """Restart both camera feeds with improved feedback"""
         try:
-            if hasattr(self, 'front_camera') and self.front_camera:
-                if hasattr(self.front_camera, 'restart_feed'):
-                    self.front_camera.restart_feed()
-                else:
-                    # Fallback for older camera implementations
-                    if hasattr(self.front_camera, 'stop_continuous_feed'):
-                        self.front_camera.stop_continuous_feed()
-                        self.parent.after(500, self.front_camera.start_continuous_feed)
-                    
-            if hasattr(self, 'back_camera') and self.back_camera:
-                if hasattr(self.back_camera, 'restart_feed'):
-                    self.back_camera.restart_feed()
-                else:
-                    # Fallback for older camera implementations
-                    if hasattr(self.back_camera, 'stop_continuous_feed'):
-                        self.back_camera.stop_continuous_feed()
-                        self.parent.after(1000, self.back_camera.start_continuous_feed)
+            if hasattr(self, 'front_camera'):
+                self.front_camera.restart_feed()
+            if hasattr(self, 'back_camera'):
+                self.back_camera.restart_feed()
+            
+            # Update master button temporarily
+            if hasattr(self, 'master_feed_btn'):
+                self.master_feed_btn.config(text="🔄 Restarting...", state=tk.DISABLED)
+                self.after(2000, lambda: self.master_feed_btn.config(text="🔄 Restart All Feeds", state=tk.NORMAL))
+            
+            print("Both camera feeds restarted")
+            
         except Exception as e:
-            print(f"Error restarting cameras: {e}")
+            print(f"Error restarting camera feeds: {e}")
 
     def stop_all_camera_feeds(self):
         """Stop all camera feeds - FIXED METHOD"""
@@ -376,128 +372,29 @@ class MainForm:
             print(f"Error starting cameras: {e}")
 
 
-# COMPLETE FIX: Add these methods to the MainForm class in main_form.py
-# Insert these methods into the MainForm class, typically near the end of the class definition
-
     def capture_both_cameras(self):
-        """FIXED: Capture images from both front and back cameras simultaneously
-        
-        This method captures images for the current weighment state (first or second).
-        It's designed to work with the 4-image system where each weighment has front and back images.
-        """
+        """Capture current frame from both cameras simultaneously"""
         try:
-            print(f"capture_both_cameras called for {getattr(self, 'current_weighment', 'unknown')} weighment")
+            captured_count = 0
             
-            # Validate that cameras are available
-            if not hasattr(self, 'front_camera') or not hasattr(self, 'back_camera'):
-                messagebox.showwarning("Camera Error", 
-                                     "Cameras not available. Records can still be saved without images.")
-                return False
+            # Capture front camera
+            if hasattr(self, 'front_camera') and hasattr(self.front_camera, 'current_frame') and self.front_camera.current_frame is not None:
+                if self.front_camera.capture_current_frame():
+                    captured_count += 1
             
-            # Check if vehicle number is entered
-            if not self.form_validator.validate_vehicle_number():
-                return False
+            # Capture back camera
+            if hasattr(self, 'back_camera') and hasattr(self.back_camera, 'current_frame') and self.back_camera.current_frame is not None:
+                if self.back_camera.capture_current_frame():
+                    captured_count += 1
             
-            success_count = 0
-            error_messages = []
-            
-            # Get current weighment state
-            current_weighment = getattr(self, 'current_weighment', 'first')
-            
-            # Capture from front camera
-            try:
-                if self.front_camera:
-                    if hasattr(self.front_camera, 'capture_image'):
-                        # Camera has capture method
-                        if self.front_camera.capture_image():
-                            captured_image = getattr(self.front_camera, 'captured_image', None)
-                            if captured_image is not None:
-                                # Save using image handler
-                                if current_weighment == "first":
-                                    self.image_handler.save_first_front_image(captured_image)
-                                else:
-                                    self.image_handler.save_second_front_image(captured_image)
-                                success_count += 1
-                                print("Front camera image captured successfully")
-                            else:
-                                error_messages.append("Front camera: no image data")
-                        else:
-                            error_messages.append("Front camera: capture failed")
-                    else:
-                        # Camera doesn't have capture method - try alternative
-                        print("Front camera: using alternative capture method")
-                        if hasattr(self, 'save_front_image'):
-                            if self.save_front_image():
-                                success_count += 1
-                        else:
-                            error_messages.append("Front camera: no capture method available")
-            except Exception as e:
-                error_messages.append(f"Front camera error: {str(e)}")
-                print(f"Front camera capture error: {e}")
-            
-            # Capture from back camera
-            try:
-                if self.back_camera:
-                    if hasattr(self.back_camera, 'capture_image'):
-                        # Camera has capture method
-                        if self.back_camera.capture_image():
-                            captured_image = getattr(self.back_camera, 'captured_image', None)
-                            if captured_image is not None:
-                                # Save using image handler
-                                if current_weighment == "first":
-                                    self.image_handler.save_first_back_image(captured_image)
-                                else:
-                                    self.image_handler.save_second_back_image(captured_image)
-                                success_count += 1
-                                print("Back camera image captured successfully")
-                            else:
-                                error_messages.append("Back camera: no image data")
-                        else:
-                            error_messages.append("Back camera: capture failed")
-                    else:
-                        # Camera doesn't have capture method - try alternative
-                        print("Back camera: using alternative capture method")
-                        if hasattr(self, 'save_back_image'):
-                            if self.save_back_image():
-                                success_count += 1
-                        else:
-                            error_messages.append("Back camera: no capture method available")
-            except Exception as e:
-                error_messages.append(f"Back camera error: {str(e)}")
-                print(f"Back camera capture error: {e}")
-            
-            # Update image status display
-            try:
-                self.update_image_status_display()
-            except Exception as e:
-                print(f"Error updating image status: {e}")
-            
-            # Show results to user
-            if success_count > 0:
-                message = f"✅ Captured {success_count} image(s) for {current_weighment} weighment"
-                if error_messages:
-                    message += f"\n\n⚠️ Issues: {'; '.join(error_messages)}"
-                messagebox.showinfo("Capture Results", message)
-                return True
+            if captured_count > 0:
+                print(f"Successfully captured frames from {captured_count} camera(s)")
             else:
-                # No images captured
-                if error_messages:
-                    error_text = "\n".join(error_messages)
-                    messagebox.showwarning("Capture Failed", 
-                                         f"No images were captured.\n\nIssues encountered:\n{error_text}\n\n"
-                                         "Records can still be saved without images.")
-                else:
-                    messagebox.showwarning("Capture Failed", 
-                                         "No images were captured. Check camera connections.\n\n"
-                                         "Records can still be saved without images.")
-                return False
+                print("No cameras available for capture")
                 
         except Exception as e:
-            print(f"Critical error in capture_both_cameras: {e}")
-            messagebox.showerror("Error", 
-                               f"Error during image capture:\n{str(e)}\n\n"
-                               "Records can still be saved without images.")
-            return False
+            print(f"Error capturing both cameras: {e}")
+
 
     def update_image_status_display(self):
         """Update the image status indicators based on captured images"""
@@ -663,6 +560,435 @@ class MainForm:
                 'back_camera': {'available': False, 'type': 'error', 'status': str(e)}
             }
 
+
+
+# Add these methods to your MainForm class (copy into your MainForm class definition)
+
+    def _get_tkinter_root(self):
+        """Helper method to find a tkinter widget for scheduling"""
+        # Try different ways to find a tkinter widget that supports .after()
+        if hasattr(self, 'after'):
+            return self
+        elif hasattr(self, 'parent') and hasattr(self.parent, 'after'):
+            return self.parent
+        elif hasattr(self, 'master') and hasattr(self.master, 'after'):
+            return self.master
+        elif hasattr(self, 'root') and hasattr(self.root, 'after'):
+            return self.root
+        elif hasattr(self, 'tk') and hasattr(self.tk, 'after'):
+            return self.tk
+        else:
+            # Look for any tkinter widget in our attributes
+            for attr_name in dir(self):
+                if not attr_name.startswith('_'):
+                    attr = getattr(self, attr_name, None)
+                    if attr and hasattr(attr, 'after'):
+                        return attr
+            return None
+
+    def detect_and_refresh_cameras(self):
+        """Detect available cameras and refresh the camera feeds"""
+        try:
+            print("🔍 Detecting cameras...")
+            
+            # Stop current feeds
+            if hasattr(self, 'front_camera'):
+                self.front_camera.stop_continuous_feed()
+            if hasattr(self, 'back_camera'):
+                self.back_camera.stop_continuous_feed()
+            
+            # Detect available cameras
+            try:
+                from camera import RobustCameraView
+                available_cameras = RobustCameraView.detect_available_cameras()
+            except Exception as e:
+                print(f"Error detecting cameras in refresh: {e}")
+                available_cameras = []  # Fallback to empty list
+            
+            # Update camera indices and availability
+            if hasattr(self, 'front_camera'):
+                if 0 in available_cameras:
+                    self.front_camera.camera_index = 0
+                    self.front_camera.camera_available = True
+                    self.front_camera.checked_availability = True
+                elif available_cameras:
+                    self.front_camera.camera_index = available_cameras[0]
+                    self.front_camera.camera_available = True
+                    self.front_camera.checked_availability = True
+                else:
+                    self.front_camera.camera_available = False
+                    self.front_camera.checked_availability = True
+            
+            if hasattr(self, 'back_camera'):
+                if 1 in available_cameras:
+                    self.back_camera.camera_index = 1
+                    self.back_camera.camera_available = True
+                    self.back_camera.checked_availability = True
+                elif len(available_cameras) > 1:
+                    self.back_camera.camera_index = available_cameras[1]
+                    self.back_camera.camera_available = True
+                    self.back_camera.checked_availability = True
+                else:
+                    self.back_camera.camera_available = False
+                    self.back_camera.checked_availability = True
+            
+            # Restart feeds for available cameras
+            tk_widget = self._get_tkinter_root()
+            if tk_widget:
+                tk_widget.after(1000, self._restart_available_cameras)
+            else:
+                # Fallback - start immediately
+                self._restart_available_cameras()
+            
+            # Show results
+            if available_cameras:
+                print(f"✅ Detected cameras: {available_cameras}")
+            else:
+                print("❌ No cameras detected")
+                
+        except Exception as e:
+            print(f"Error detecting cameras: {e}")
+
+    def _restart_available_cameras(self):
+        """Restart feeds only for available cameras"""
+        try:
+            if hasattr(self, 'front_camera') and hasattr(self.front_camera, 'camera_available') and self.front_camera.camera_available:
+                self.front_camera.start_continuous_feed()
+                
+            if hasattr(self, 'back_camera') and hasattr(self.back_camera, 'camera_available') and self.back_camera.camera_available:
+                self.back_camera.start_continuous_feed()
+                
+        except Exception as e:
+            print(f"Error restarting available cameras: {e}")
+
+    def restart_all_camera_feeds(self):
+        """Restart both camera feeds with camera detection"""
+        try:
+            # Detect and refresh cameras first
+            self.detect_and_refresh_cameras()
+            
+            # Update master button temporarily
+            if hasattr(self, 'master_feed_btn'):
+                self.master_feed_btn.config(text="🔄 Restarting...", state="disabled")
+                
+                # Schedule button reset
+                tk_widget = self._get_tkinter_root()
+                if tk_widget:
+                    tk_widget.after(3000, lambda: self.master_feed_btn.config(text="🔄 Restart All Feeds", state="normal"))
+                else:
+                    # Fallback - reset immediately
+                    import threading
+                    def reset_button():
+                        import time
+                        time.sleep(3)
+                        self.master_feed_btn.config(text="🔄 Restart All Feeds", state="normal")
+                    threading.Thread(target=reset_button, daemon=True).start()
+            
+            print("Both camera feeds restarted with detection")
+            
+        except Exception as e:
+            print(f"Error restarting camera feeds: {e}")
+
+    def capture_both_cameras(self):
+        """Capture current frame from both cameras simultaneously"""
+        try:
+            captured_count = 0
+            
+            # Capture front camera
+            if hasattr(self, 'front_camera') and hasattr(self.front_camera, 'current_frame') and self.front_camera.current_frame is not None:
+                if self.front_camera.capture_current_frame():
+                    captured_count += 1
+            
+            # Capture back camera
+            if hasattr(self, 'back_camera') and hasattr(self.back_camera, 'current_frame') and self.back_camera.current_frame is not None:
+                if self.back_camera.capture_current_frame():
+                    captured_count += 1
+            
+            if captured_count > 0:
+                print(f"Successfully captured frames from {captured_count} camera(s)")
+            else:
+                print("No cameras available for capture")
+                
+        except Exception as e:
+            print(f"Error capturing both cameras: {e}")
+
+    def monitor_camera_status(self):
+        """Monitor and update camera feed status with enhanced feedback"""
+        try:
+            # Update front camera status
+            if hasattr(self, 'front_camera') and hasattr(self, 'front_feed_status_var'):
+                if not hasattr(self.front_camera, 'camera_available') or not self.front_camera.camera_available:
+                    status = f"❌ USB {self.front_camera.camera_index} Not Available"
+                elif self.front_camera.is_running:
+                    if self.front_camera.connection_stable:
+                        status = f"✅ {self.front_camera.camera_type} {self.front_camera.camera_index} Active"
+                    else:
+                        status = f"⚠️ {self.front_camera.camera_type} {self.front_camera.camera_index} Connecting..."
+                else:
+                    status = f"⏸️ {self.front_camera.camera_type} {self.front_camera.camera_index} Stopped"
+                self.front_feed_status_var.set(status)
+            
+            # Update back camera status
+            if hasattr(self, 'back_camera') and hasattr(self, 'back_feed_status_var'):
+                if not hasattr(self.back_camera, 'camera_available') or not self.back_camera.camera_available:
+                    status = f"❌ USB {self.back_camera.camera_index} Not Available"
+                elif self.back_camera.is_running:
+                    if self.back_camera.connection_stable:
+                        status = f"✅ {self.back_camera.camera_type} {self.back_camera.camera_index} Active"
+                    else:
+                        status = f"⚠️ {self.back_camera.camera_type} {self.back_camera.camera_index} Connecting..."
+                else:
+                    status = f"⏸️ {self.back_camera.camera_type} {self.back_camera.camera_index} Stopped"
+                self.back_feed_status_var.set(status)
+            
+        except Exception as e:
+            print(f"Error monitoring camera status: {e}")
+        
+        # Schedule next status check
+        tk_widget = self._get_tkinter_root()
+        if tk_widget:
+            tk_widget.after(2000, self.monitor_camera_status)  # Check every 2 seconds
+        else:
+            # Fallback - use threading
+            import threading
+            def delayed_monitor():
+                import time
+                time.sleep(2)
+                self.monitor_camera_status()
+            threading.Thread(target=delayed_monitor, daemon=True).start()
+
+    def update_image_status_display(self):
+        """Update the enhanced image status display"""
+        if hasattr(self, 'image_handler') and hasattr(self, 'total_image_status_var'):
+            try:
+                # Get current image counts from the correct reference
+                if hasattr(self, 'first_front_image_path'):
+                    first_front = bool(self.first_front_image_path)
+                    first_back = bool(self.first_back_image_path)
+                    second_front = bool(self.second_front_image_path)
+                    second_back = bool(self.second_back_image_path)
+                else:
+                    # Fallback if paths are in image_handler
+                    first_front = bool(getattr(self.image_handler.main_form, 'first_front_image_path', None))
+                    first_back = bool(getattr(self.image_handler.main_form, 'first_back_image_path', None))
+                    second_front = bool(getattr(self.image_handler.main_form, 'second_front_image_path', None))
+                    second_back = bool(getattr(self.image_handler.main_form, 'second_back_image_path', None))
+                
+                # Update first weighment status
+                first_status = f"Front: {'✅' if first_front else '❌'} Back: {'✅' if first_back else '❌'}"
+                if hasattr(self, 'first_image_status_var'):
+                    self.first_image_status_var.set(first_status)
+                    if hasattr(self, 'first_image_status'):
+                        color = "green" if (first_front and first_back) else "orange" if (first_front or first_back) else "red"
+                        self.first_image_status.config(foreground=color)
+                
+                # Update second weighment status
+                second_status = f"Front: {'✅' if second_front else '❌'} Back: {'✅' if second_back else '❌'}"
+                if hasattr(self, 'second_image_status_var'):
+                    self.second_image_status_var.set(second_status)
+                    if hasattr(self, 'second_image_status'):
+                        color = "green" if (second_front and second_back) else "orange" if (second_front or second_back) else "red"
+                        self.second_image_status.config(foreground=color)
+                
+                # Update total count
+                total_count = sum([first_front, first_back, second_front, second_back])
+                total_status = f"{total_count}/4 images captured"
+                if hasattr(self, 'total_image_status_var'):
+                    self.total_image_status_var.set(total_status)
+                
+            except Exception as e:
+                print(f"Error updating image status display: {e}")
+
+    def load_camera_settings(self):
+        """Load camera settings and configure robust cameras"""
+        try:
+            # Get settings storage instance
+            settings_storage = self.get_settings_storage()
+            if not settings_storage:
+                return
+                
+            # Get camera settings
+            camera_settings = settings_storage.get_camera_settings()
+            
+            if camera_settings:
+                # Configure front camera
+                if hasattr(self, 'front_camera'):
+                    front_type = camera_settings.get("front_camera_type", "USB")
+                    if front_type == "RTSP":
+                        rtsp_url = settings_storage.get_rtsp_url("front")
+                        if rtsp_url:
+                            self.front_camera.set_rtsp_config(rtsp_url)
+                            print(f"Front camera configured for RTSP: {rtsp_url}")
+                    elif front_type == "HTTP":
+                        http_url = settings_storage.get_http_url("front")
+                        if http_url:
+                            self.front_camera.set_http_config(http_url)
+                            print(f"Front camera configured for HTTP: {http_url}")
+                    else:
+                        # USB camera
+                        front_index = camera_settings.get("front_camera_index", 0)
+                        self.front_camera.camera_index = front_index
+                        self.front_camera.camera_type = "USB"
+                        print(f"Front camera configured for USB index: {front_index}")
+                
+                # Configure back camera
+                if hasattr(self, 'back_camera'):
+                    back_type = camera_settings.get("back_camera_type", "USB")
+                    if back_type == "RTSP":
+                        rtsp_url = settings_storage.get_rtsp_url("back")
+                        if rtsp_url:
+                            self.back_camera.set_rtsp_config(rtsp_url)
+                            print(f"Back camera configured for RTSP: {rtsp_url}")
+                    elif back_type == "HTTP":
+                        http_url = settings_storage.get_http_url("back")
+                        if http_url:
+                            self.back_camera.set_http_config(http_url)
+                            print(f"Back camera configured for HTTP: {http_url}")
+                    else:
+                        # USB camera
+                        back_index = camera_settings.get("back_camera_index", 1)
+                        self.back_camera.camera_index = back_index
+                        self.back_camera.camera_type = "USB"
+                        print(f"Back camera configured for USB index: {back_index}")
+                    
+            print("Camera settings loaded and applied to robust feed system")
+                    
+        except Exception as e:
+            print(f"Error loading camera settings: {e}")
+
+    def get_settings_storage(self):
+        """Get settings storage instance from the main app"""
+        # Check if we have settings_storage directly
+        if hasattr(self, 'settings_storage'):
+            return self.settings_storage
+        
+        # Try to traverse up widget hierarchy to find settings storage
+        widget = self
+        while widget:
+            if hasattr(widget, 'settings_storage'):
+                return widget.settings_storage
+            if hasattr(widget, 'master'):
+                widget = widget.master
+            elif hasattr(widget, 'parent'):
+                widget = widget.parent
+            else:
+                break
+        
+        # If not found in hierarchy, create a new instance
+        try:
+            from settings_storage import SettingsStorage
+            return SettingsStorage()
+        except Exception as e:
+            print(f"Could not create SettingsStorage: {e}")
+            return None
+
+    def update_camera_settings(self, settings):
+        """Update camera settings for robust feed cameras"""
+        try:
+            print(f"Updating robust camera settings: {settings}")
+            
+            # Temporarily stop feeds for settings update
+            front_was_running = hasattr(self, 'front_camera') and self.front_camera.is_running
+            back_was_running = hasattr(self, 'back_camera') and self.back_camera.is_running
+            
+            if front_was_running:
+                self.front_camera.stop_continuous_feed()
+            if back_was_running:
+                self.back_camera.stop_continuous_feed()
+            
+            # Apply new settings
+            # Front camera
+            if hasattr(self, 'front_camera'):
+                front_type = settings.get("front_camera_type", "USB")
+                if front_type == "RTSP":
+                    username = settings.get("front_rtsp_username", "")
+                    password = settings.get("front_rtsp_password", "")
+                    ip = settings.get("front_rtsp_ip", "")
+                    port = settings.get("front_rtsp_port", "554")
+                    endpoint = settings.get("front_rtsp_endpoint", "/stream1")
+                    
+                    if ip:
+                        if username and password:
+                            rtsp_url = f"rtsp://{username}:{password}@{ip}:{port}{endpoint}"
+                        else:
+                            rtsp_url = f"rtsp://{ip}:{port}{endpoint}"
+                        self.front_camera.set_rtsp_config(rtsp_url)
+                elif front_type == "HTTP":
+                    username = settings.get("front_http_username", "")
+                    password = settings.get("front_http_password", "")
+                    ip = settings.get("front_http_ip", "")
+                    port = settings.get("front_http_port", "80")
+                    endpoint = settings.get("front_http_endpoint", "/mjpeg")
+                    
+                    if ip:
+                        if username and password:
+                            http_url = f"http://{username}:{password}@{ip}:{port}{endpoint}"
+                        else:
+                            http_url = f"http://{ip}:{port}{endpoint}"
+                        self.front_camera.set_http_config(http_url)
+                else:
+                    # USB camera
+                    self.front_camera.camera_type = "USB"
+                    self.front_camera.camera_index = settings.get("front_camera_index", 0)
+            
+            # Back camera
+            if hasattr(self, 'back_camera'):
+                back_type = settings.get("back_camera_type", "USB")
+                if back_type == "RTSP":
+                    username = settings.get("back_rtsp_username", "")
+                    password = settings.get("back_rtsp_password", "")
+                    ip = settings.get("back_rtsp_ip", "")
+                    port = settings.get("back_rtsp_port", "554")
+                    endpoint = settings.get("back_rtsp_endpoint", "/stream1")
+                    
+                    if ip:
+                        if username and password:
+                            rtsp_url = f"rtsp://{username}:{password}@{ip}:{port}{endpoint}"
+                        else:
+                            rtsp_url = f"rtsp://{ip}:{port}{endpoint}"
+                        self.back_camera.set_rtsp_config(rtsp_url)
+                elif back_type == "HTTP":
+                    username = settings.get("back_http_username", "")
+                    password = settings.get("back_http_password", "")
+                    ip = settings.get("back_http_ip", "")
+                    port = settings.get("back_http_port", "80")
+                    endpoint = settings.get("back_http_endpoint", "/mjpeg")
+                    
+                    if ip:
+                        if username and password:
+                            http_url = f"http://{username}:{password}@{ip}:{port}{endpoint}"
+                        else:
+                            http_url = f"http://{ip}:{port}{endpoint}"
+                        self.back_camera.set_http_config(http_url)
+                else:
+                    # USB camera
+                    self.back_camera.camera_type = "USB"
+                    self.back_camera.camera_index = settings.get("back_camera_index", 1)
+            
+            # Restart feeds if they were running
+            def restart_feeds():
+                if front_was_running and hasattr(self, 'front_camera'):
+                    self.front_camera.start_continuous_feed()
+                if back_was_running and hasattr(self, 'back_camera'):
+                    self.back_camera.start_continuous_feed()
+            
+            # Schedule restart feeds after a brief delay
+            tk_widget = self._get_tkinter_root()
+            if tk_widget:
+                tk_widget.after(1000, restart_feeds)
+            else:
+                # Fallback - use threading
+                import threading
+                def delayed_restart():
+                    import time
+                    time.sleep(1)
+                    restart_feeds()
+                threading.Thread(target=delayed_restart, daemon=True).start()
+            
+            print("Camera settings updated for robust feed system")
+                    
+        except Exception as e:
+            print(f"Error updating camera settings: {e}")
 
     def create_cameras_panel(self, parent):
         """Create the cameras panel with cameras side by side and state-based image capture"""
@@ -855,7 +1181,7 @@ class MainForm:
             print(f"Error in exit callback: {e}")
 
     def load_camera_settings(self):
-        """Load camera settings from storage and configure cameras"""
+        """Load camera settings and configure robust cameras"""
         try:
             # Get settings storage instance
             settings_storage = self.get_settings_storage()
@@ -865,18 +1191,25 @@ class MainForm:
             # Get camera settings
             camera_settings = settings_storage.get_camera_settings()
             
-            if camera_settings and self.front_camera and self.back_camera:
+            if camera_settings:
                 # Configure front camera
                 front_type = camera_settings.get("front_camera_type", "USB")
                 if front_type == "RTSP":
                     rtsp_url = settings_storage.get_rtsp_url("front")
                     if rtsp_url:
                         self.front_camera.set_rtsp_config(rtsp_url)
+                        print(f"Front camera configured for RTSP: {rtsp_url}")
+                elif front_type == "HTTP":
+                    http_url = settings_storage.get_http_url("front")
+                    if http_url:
+                        self.front_camera.set_http_config(http_url)
+                        print(f"Front camera configured for HTTP: {http_url}")
                 else:
                     # USB camera
                     front_index = camera_settings.get("front_camera_index", 0)
                     self.front_camera.camera_index = front_index
                     self.front_camera.camera_type = "USB"
+                    print(f"Front camera configured for USB index: {front_index}")
                 
                 # Configure back camera
                 back_type = camera_settings.get("back_camera_type", "USB")
@@ -884,11 +1217,20 @@ class MainForm:
                     rtsp_url = settings_storage.get_rtsp_url("back")
                     if rtsp_url:
                         self.back_camera.set_rtsp_config(rtsp_url)
+                        print(f"Back camera configured for RTSP: {rtsp_url}")
+                elif back_type == "HTTP":
+                    http_url = settings_storage.get_http_url("back")
+                    if http_url:
+                        self.back_camera.set_http_config(http_url)
+                        print(f"Back camera configured for HTTP: {http_url}")
                 else:
                     # USB camera
                     back_index = camera_settings.get("back_camera_index", 1)
                     self.back_camera.camera_index = back_index
                     self.back_camera.camera_type = "USB"
+                    print(f"Back camera configured for USB index: {back_index}")
+                    
+            print("Camera settings loaded and applied to robust feed system")
                     
         except Exception as e:
             print(f"Error loading camera settings: {e}")
@@ -896,7 +1238,7 @@ class MainForm:
     def get_settings_storage(self):
         """Get settings storage instance from the main app"""
         # Try to traverse up widget hierarchy to find settings storage
-        widget = self.parent
+        widget = self
         while widget:
             if hasattr(widget, 'settings_storage'):
                 return widget.settings_storage
@@ -913,16 +1255,23 @@ class MainForm:
             return None
 
     def update_camera_settings(self, settings):
-        """Update camera settings when changed in settings panel"""
+        """Update camera settings for robust feed cameras"""
         try:
-            if not self.front_camera or not self.back_camera:
-                print("Cameras not available - skipping settings update")
-                return
-                
-            # Update front camera
+            print(f"Updating robust camera settings: {settings}")
+            
+            # Temporarily stop feeds for settings update
+            front_was_running = hasattr(self, 'front_camera') and self.front_camera.is_running
+            back_was_running = hasattr(self, 'back_camera') and self.back_camera.is_running
+            
+            if front_was_running:
+                self.front_camera.stop_continuous_feed()
+            if back_was_running:
+                self.back_camera.stop_continuous_feed()
+            
+            # Apply new settings
+            # Front camera
             front_type = settings.get("front_camera_type", "USB")
             if front_type == "RTSP":
-                # Get RTSP URL from settings
                 username = settings.get("front_rtsp_username", "")
                 password = settings.get("front_rtsp_password", "")
                 ip = settings.get("front_rtsp_ip", "")
@@ -935,16 +1284,27 @@ class MainForm:
                     else:
                         rtsp_url = f"rtsp://{ip}:{port}{endpoint}"
                     self.front_camera.set_rtsp_config(rtsp_url)
+            elif front_type == "HTTP":
+                username = settings.get("front_http_username", "")
+                password = settings.get("front_http_password", "")
+                ip = settings.get("front_http_ip", "")
+                port = settings.get("front_http_port", "80")
+                endpoint = settings.get("front_http_endpoint", "/mjpeg")
+                
+                if ip:
+                    if username and password:
+                        http_url = f"http://{username}:{password}@{ip}:{port}{endpoint}"
+                    else:
+                        http_url = f"http://{ip}:{port}{endpoint}"
+                    self.front_camera.set_http_config(http_url)
             else:
                 # USB camera
                 self.front_camera.camera_type = "USB"
                 self.front_camera.camera_index = settings.get("front_camera_index", 0)
-                self.front_camera.rtsp_url = None
             
-            # Update back camera
+            # Back camera
             back_type = settings.get("back_camera_type", "USB")
             if back_type == "RTSP":
-                # Get RTSP URL from settings
                 username = settings.get("back_rtsp_username", "")
                 password = settings.get("back_rtsp_password", "")
                 ip = settings.get("back_rtsp_ip", "")
@@ -957,11 +1317,35 @@ class MainForm:
                     else:
                         rtsp_url = f"rtsp://{ip}:{port}{endpoint}"
                     self.back_camera.set_rtsp_config(rtsp_url)
-                else:
-                    # USB camera
-                    self.back_camera.camera_type = "USB"
-                    self.back_camera.camera_index = settings.get("back_camera_index", 1)
-                    self.back_camera.rtsp_url = None
+            elif back_type == "HTTP":
+                username = settings.get("back_http_username", "")
+                password = settings.get("back_http_password", "")
+                ip = settings.get("back_http_ip", "")
+                port = settings.get("back_http_port", "80")
+                endpoint = settings.get("back_http_endpoint", "/mjpeg")
+                
+                if ip:
+                    if username and password:
+                        http_url = f"http://{username}:{password}@{ip}:{port}{endpoint}"
+                    else:
+                        http_url = f"http://{ip}:{port}{endpoint}"
+                    self.back_camera.set_http_config(http_url)
+            else:
+                # USB camera
+                self.back_camera.camera_type = "USB"
+                self.back_camera.camera_index = settings.get("back_camera_index", 1)
+            
+            # Restart feeds if they were running
+            def restart_feeds():
+                if front_was_running:
+                    self.front_camera.start_continuous_feed()
+                if back_was_running:
+                    self.back_camera.start_continuous_feed()
+            
+            # Restart feeds after a brief delay
+            self.after(1000, restart_feeds)
+            
+            print("Camera settings updated for robust feed system")
                     
         except Exception as e:
             print(f"Error updating camera settings: {e}")
