@@ -17,7 +17,7 @@ from reports import export_to_excel, export_to_pdf
 from settings_storage import SettingsStorage
 from login_dialog import LoginDialog
 import pandas._libs.testing
-
+from unified_logging import setup_unified_logging
 try:
     from simple_connectivity import add_connectivity_to_app, add_to_queue_if_available, cleanup_connectivity
     CONNECTIVITY_AVAILABLE = True
@@ -58,7 +58,7 @@ class TharuniApp:
         self.root.title("Swaccha Andhra Corporation powered by Advitia Labs")
         self.root.geometry("900x580")
         self.root.minsize(900, 580)
-        
+        unified_logger = setup_unified_logging("coimbined", "logs")
         # Set up logging first
         self.logger = setup_app_logging()
         self.logger.info("="*60)
