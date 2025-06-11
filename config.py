@@ -8,7 +8,7 @@ import datetime
 # Cloud Storage settings - ONLY used when explicitly requested via backup
 USE_CLOUD_STORAGE = True  # Enable cloud storage for backup functionality
 CLOUD_BUCKET_NAME = "advitia-weighbridge-data"  # Your bucket name
-CLOUD_CREDENTIALS_PATH = "gcloud-credentials.json"  # Path to your service account key
+CLOUD_CREDENTIALS_PATH = "C:/Users/utils/gcloud-credentials.json"  # Path to your service account key
 
 # NEW: Offline-first mode - prevents automatic cloud attempts during regular saves
 OFFLINE_FIRST_MODE = True  # Set to True to save locally first, cloud only on backup

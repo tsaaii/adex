@@ -79,7 +79,7 @@ def create_form(self, parent):
                                     textvariable=self.material_type_var, 
                                     state="readonly", 
                                     width=config.STD_WIDTH)
-    material_type_combo['values'] = ('Inert', 'Soil', 'Construction and Demolition', 
+    material_type_combo['values'] = ('Legacy/MSW','Inert', 'Soil', 'Construction and Demolition', 
                                 'RDF(REFUSE DERIVED FUEL)')
     material_type_combo.grid(row=3, column=2, sticky=tk.W, padx=3, pady=3)
     

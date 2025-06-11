@@ -1,4 +1,5 @@
 #pyinstaller --onedir --windowed --add-data "data;data" --collect-all=cv2 --collect-all=pandas --collect-all=PIL --hidden-import=serial --hidden-import=google.cloud --hidden-import=psutil --optimize=2 --strip --noupx --name="Swaccha_Andhra2.0" --icon=right.ico advitia_app.py
+#pyinstaller ^  --onedir ^  --windowed ^  --name="SAC_monitor" ^  --icon=right.ico ^  --add-data "data;data" ^  --hidden-import=serial ^  --hidden-import=serial.tools.list_ports ^  --hidden-import=google.cloud.storage ^  --hidden-import=google.api_core.exceptions ^  --hidden-import=google.auth ^  --hidden-import=PIL._tkinter_finder ^  --hidden-import=PIL.Image ^  --hidden-import=PIL.ImageTk ^  --hidden-import=pandas._libs.testing ^  --hidden-import=cv2 ^  --hidden-import=reportlab.pdfgen.canvas ^  --hidden-import=reportlab.lib.pagesizes ^  --hidden-import=reportlab.platypus ^  --hidden-import=psutil ^  --hidden-import=tkinter.filedialog ^  --hidden-import=tkinter.messagebox ^  --exclude-module=matplotlib ^  --exclude-module=scipy ^  --exclude-module=jupyter ^  --exclude-module=cv2.aruco ^  --exclude-module=cv2.face ^  --exclude-module=cv2.tracking ^  --optimize=2 ^  --strip ^  --uac-admin ^  advitia_app.py
 import tkinter as tk
 import os
 import datetime
@@ -24,26 +25,38 @@ try:
 except ImportError:
     CONNECTIVITY_AVAILABLE = False
 
-# Set up logging for the entire application
 def setup_app_logging():
-    """Set up application-wide logging"""
-    logs_dir = config.LOGS_FOLDER
-    os.makedirs(logs_dir, exist_ok=True)
-    
-    # Create log filename with current date
-    log_filename = os.path.join(logs_dir, f"app_{datetime.datetime.now().strftime('%Y-%m-%d')}.log")
-    
-    # Configure logging
-    logging.basicConfig(
-        level=logging.INFO,  # Changed to INFO to reduce log volume
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(log_filename, encoding='utf-8'),
-            logging.StreamHandler()  # Also log to console
-        ]
-    )
-    
-    return logging.getLogger('TharuniApp')
+    """FIXED: Set up application-wide logging with better error handling"""
+    try:
+        logs_dir = config.LOGS_FOLDER
+        os.makedirs(logs_dir, exist_ok=True)
+        
+        # Create log filename with current date
+        log_filename = os.path.join(logs_dir, f"app_{datetime.datetime.now().strftime('%Y-%m-%d')}.log")
+        
+        # Configure logging with safer file handler
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(log_filename, encoding='utf-8'),
+                logging.StreamHandler()
+            ]
+        )
+        
+        return logging.getLogger('TharuniApp')
+        
+    except Exception as e:
+        print(f"⚠️ Could not setup app logging: {e}")
+        # Return a fallback logger
+        class FallbackLogger:
+            def info(self, msg): print(f"INFO: {msg}")
+            def warning(self, msg): print(f"WARNING: {msg}")
+            def error(self, msg): print(f"ERROR: {msg}")
+            def debug(self, msg): print(f"DEBUG: {msg}")
+            def critical(self, msg): print(f"CRITICAL: {msg}")
+        
+        return FallbackLogger()
 
 class TharuniApp:
     """FIXED: Main application class with enhanced logging and error handling"""
@@ -58,12 +71,30 @@ class TharuniApp:
         self.root.title("Swaccha Andhra Corporation powered by Advitia Labs")
         self.root.geometry("900x580")
         self.root.minsize(900, 580)
-        unified_logger = setup_unified_logging("coimbined", "logs")
-        # Set up logging first
-        self.logger = setup_app_logging()
-        self.logger.info("="*60)
-        self.logger.info("APPLICATION STARTUP")
-        self.logger.info("="*60)
+        
+        # FIXED: Setup unified logging with better error handling
+        try:
+            unified_logger = setup_unified_logging("combined", "logs")  # FIXED: typo "coimbined" -> "combined"
+        except Exception as e:
+            print(f"⚠️ Could not setup unified logging: {e}")
+            unified_logger = None
+        
+        # FIXED: Set up logging with fallback
+        try:
+            self.logger = setup_app_logging()
+            self.logger.info("="*60)
+            self.logger.info("APPLICATION STARTUP")
+            self.logger.info("="*60)
+        except Exception as e:
+            print(f"⚠️ Could not setup app logging: {e}")
+            # Create a fallback logger that just prints
+            class FallbackLogger:
+                def info(self, msg): print(f"INFO: {msg}")
+                def warning(self, msg): print(f"WARNING: {msg}")
+                def error(self, msg): print(f"ERROR: {msg}")
+                def debug(self, msg): print(f"DEBUG: {msg}")
+                def critical(self, msg): print(f"CRITICAL: {msg}")
+            self.logger = FallbackLogger()
         
         try:
             # Set up initial configuration

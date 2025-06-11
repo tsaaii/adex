@@ -1,6 +1,6 @@
 import threading
 import time
-import subprocess
+import socket
 import platform
 import os
 import json
@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import queue
 
 class SimpleConnectivity:
-    """Simple connectivity checker using ping"""
+    """Simple connectivity checker using socket connection - NO POPUP WINDOWS"""
     
     def __init__(self, callback=None):
         self.callback = callback
@@ -18,17 +18,27 @@ class SimpleConnectivity:
         self.running = True
         self.check_thread = threading.Thread(target=self._check_loop, daemon=True)
         self.check_thread.start()
-        print("🔍 Connectivity checker started")
+        print("🔍 Connectivity checker started (silent mode)")
+    
+    def _check_connectivity_silent(self):
+        """Check internet connectivity silently using socket connection"""
+        try:
+            # Try to connect to Google DNS (8.8.8.8) on port 53
+            # This is much faster and doesn't create popup windows
+            socket.setdefaulttimeout(3)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex(('8.8.8.8', 53))
+            sock.close()
+            return result == 0
+        except Exception:
+            return False
     
     def _check_loop(self):
-        """Check connectivity every 30 seconds"""
+        """Check connectivity every 30 seconds silently"""
         while self.running:
             try:
-                # Ping Google DNS with shorter timeout
-                param = "-n" if platform.system().lower() == "windows" else "-c"
-                result = subprocess.run(["ping", param, "1", "8.8.8.8"], 
-                                      capture_output=True, timeout=3)
-                new_status = result.returncode == 0
+                # Use silent socket-based connectivity check
+                new_status = self._check_connectivity_silent()
                 
                 # Only trigger callback if status actually changed
                 if new_status != self.is_online:
@@ -44,7 +54,7 @@ class SimpleConnectivity:
                             
             except Exception as e:
                 print(f"⚠️ Connectivity check error: {e}")
-                # Assume offline if ping fails
+                # Assume offline if check fails
                 if self.is_online:
                     self.is_online = False
                     if self.callback:
@@ -180,7 +190,7 @@ class FastSync:
         print("🚀 Fast sync manager initialized with parallel processing")
     
     def start(self):
-        """Start fast sync if not already running and there are items to sync"""
+        """Start enhanced fast sync - FLUSH ENTIRE QUEUE"""
         if self.syncing:
             print("⏳ Sync already in progress, skipping")
             return False
@@ -190,7 +200,7 @@ class FastSync:
             print("📭 Queue is empty, nothing to sync")
             return False
         
-        print(f"🚀 Starting FAST parallel sync for {queue_count} items")
+        print(f"🔥 Starting ENHANCED FAST SYNC to FLUSH ALL {queue_count} items from queue")
         self.syncing = True
         sync_thread = threading.Thread(target=self._fast_sync, daemon=True)
         sync_thread.start()
@@ -226,91 +236,125 @@ class FastSync:
             }
     
     def _fast_sync(self):
-        """Ultra-fast parallel sync with batch operations"""
+        """Ultra-fast parallel sync with batch operations - FLUSH ALL ITEMS"""
         try:
             start_time = time.time()
             self.last_sync_attempt = datetime.datetime.now()
-            items = self.queue.get_items()
-            total_items = len(items)
             
-            print(f"⚡ FAST SYNC: Processing {total_items} items with {self.max_workers} parallel workers...")
-            
-            # Pre-flight checks
-            if not hasattr(self.data_manager, 'save_to_cloud_with_images'):
-                print("❌ Data manager doesn't support cloud sync")
-                return
-            
-            # Initialize cloud storage if needed
-            if hasattr(self.data_manager, 'init_cloud_storage_if_needed'):
-                if not self.data_manager.init_cloud_storage_if_needed():
-                    print("❌ Failed to initialize cloud storage")
-                    return
-            
-            # Check if cloud storage is connected
-            if hasattr(self.data_manager, 'cloud_storage') and self.data_manager.cloud_storage:
-                if not self.data_manager.cloud_storage.is_connected():
-                    print("❌ Cloud storage not connected")
-                    return
-            
-            # PARALLEL PROCESSING with ThreadPoolExecutor
-            successful_ids = []
-            failed_count = 0
+            # Keep processing until queue is empty
+            total_processed = 0
             total_images_uploaded = 0
+            total_failed = 0
             
-            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                # Submit all tasks
-                future_to_item = {executor.submit(self._upload_single_record, item): item for item in items}
+            print(f"🔥 ENHANCED FAST SYNC: FLUSHING ENTIRE QUEUE...")
+            
+            while True:
+                items = self.queue.get_items()
+                if not items:
+                    print("📭 Queue is now empty - sync complete!")
+                    break
                 
-                # Process completed tasks as they finish
-                for i, future in enumerate(as_completed(future_to_item), 1):
-                    try:
-                        result = future.result()
-                        
-                        if result["success"]:
-                            successful_ids.append(result["item_id"])
-                            total_images_uploaded += result["images_uploaded"]
-                            print(f"✅ {i}/{total_items}: {result['ticket_no']} ({result['images_uploaded']}/{result['total_images']} images)")
-                        else:
-                            failed_count += 1
-                            error_msg = result.get("error", "Unknown error")
-                            print(f"❌ {i}/{total_items}: {result['ticket_no']} - {error_msg}")
+                batch_size = len(items)
+                print(f"⚡ Processing batch of {batch_size} items with {self.max_workers} parallel workers...")
+                
+                # Pre-flight checks (only on first batch)
+                if total_processed == 0:
+                    if not hasattr(self.data_manager, 'save_to_cloud_with_images'):
+                        print("❌ Data manager doesn't support cloud sync")
+                        return
+                    
+                    # Initialize cloud storage if needed
+                    if hasattr(self.data_manager, 'init_cloud_storage_if_needed'):
+                        if not self.data_manager.init_cloud_storage_if_needed():
+                            print("❌ Failed to initialize cloud storage")
+                            return
+                    
+                    # Check if cloud storage is connected
+                    if hasattr(self.data_manager, 'cloud_storage') and self.data_manager.cloud_storage:
+                        if not self.data_manager.cloud_storage.is_connected():
+                            print("❌ Cloud storage not connected")
+                            return
+                
+                # PARALLEL PROCESSING with ThreadPoolExecutor
+                successful_ids = []
+                failed_count = 0
+                batch_images_uploaded = 0
+                
+                with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                    # Submit all tasks for this batch
+                    future_to_item = {executor.submit(self._upload_single_record, item): item for item in items}
+                    
+                    # Process completed tasks as they finish
+                    for i, future in enumerate(as_completed(future_to_item), 1):
+                        try:
+                            result = future.result()
                             
-                    except Exception as e:
-                        failed_count += 1
-                        print(f"❌ {i}/{total_items}: Future error - {e}")
+                            if result["success"]:
+                                successful_ids.append(result["item_id"])
+                                batch_images_uploaded += result["images_uploaded"]
+                                print(f"✅ {total_processed + i}/{total_processed + batch_size}: {result['ticket_no']} ({result['images_uploaded']}/{result['total_images']} images)")
+                            else:
+                                failed_count += 1
+                                error_msg = result.get("error", "Unknown error")
+                                print(f"❌ {total_processed + i}/{total_processed + batch_size}: {result['ticket_no']} - {error_msg}")
+                                
+                        except Exception as e:
+                            failed_count += 1
+                            print(f"❌ {total_processed + i}/{total_processed + batch_size}: Future error - {e}")
+                
+                # BATCH REMOVE successful items from queue
+                if successful_ids:
+                    print(f"🗑️ Batch removing {len(successful_ids)} successful items from queue...")
+                    self.queue.remove_batch(successful_ids)
+                
+                # Update totals
+                total_processed += batch_size
+                total_images_uploaded += batch_images_uploaded
+                total_failed += failed_count
+                
+                # Progress update
+                remaining_items = self.queue.count()
+                print(f"📊 Batch complete: {len(successful_ids)} synced, {failed_count} failed, {remaining_items} remaining")
+                
+                # If no items were successful and we still have items, something is wrong
+                if not successful_ids and remaining_items > 0:
+                    print("❌ No items succeeded in this batch - stopping to prevent infinite loop")
+                    break
+                
+                # Brief pause between batches to prevent overwhelming the system
+                if remaining_items > 0:
+                    print("⏱️ Brief pause before next batch...")
+                    time.sleep(2)
             
-            # BATCH REMOVE successful items from queue
-            if successful_ids:
-                print(f"🗑️ Batch removing {len(successful_ids)} successful items from queue...")
-                self.queue.remove_batch(successful_ids)
-            
-            # Performance metrics
+            # Final performance metrics
             end_time = time.time()
             duration = end_time - start_time
-            synced_count = len(successful_ids)
+            synced_count = total_processed - total_failed
             remaining_items = self.queue.count()
             
-            # Final status with performance metrics
-            print(f"⚡ FAST SYNC COMPLETED in {duration:.2f}s:")
-            print(f"   ✅ Synced: {synced_count} records")
-            print(f"   🖼️ Images: {total_images_uploaded}")
-            print(f"   ❌ Failed: {failed_count}")
+            # Enhanced final status with complete metrics
+            print(f"🔥 ENHANCED FAST SYNC COMPLETED in {duration:.2f}s:")
+            print(f"   ✅ Total Synced: {synced_count} records")
+            print(f"   🖼️ Total Images: {total_images_uploaded}")
+            print(f"   ❌ Total Failed: {total_failed}")
             print(f"   📋 Remaining: {remaining_items}")
-            print(f"   📊 Speed: {synced_count/duration:.1f} records/sec")
+            print(f"   📊 Average Speed: {synced_count/duration:.1f} records/sec")
             
             if synced_count > 0:
-                print(f"🎉 Successfully synced {synced_count} records to cloud in {duration:.2f}s!")
+                print(f"🎉 QUEUE FLUSHED! Successfully synced {synced_count} records to cloud in {duration:.2f}s!")
             
             if remaining_items > 0:
-                print(f"⚠️ {remaining_items} items remain in queue (will retry on next connectivity)")
+                print(f"⚠️ {remaining_items} items remain in queue (failed items - will retry later)")
+            else:
+                print("🏆 QUEUE IS NOW COMPLETELY EMPTY!")
             
         except Exception as e:
-            print(f"❌ Critical error during fast sync: {e}")
+            print(f"❌ Critical error during enhanced fast sync: {e}")
             import traceback
             traceback.print_exc()
         finally:
             self.syncing = False
-            print("🏁 Fast sync process completed")
+            print("🏁 Enhanced fast sync process completed")
 
 class ConnectivityUI:
     """Enhanced connectivity UI with fast sync support"""
@@ -347,10 +391,10 @@ class ConnectivityUI:
         # Start periodic queue display updates
         self._schedule_display_update()
         
-        print("🎛️ Enhanced connectivity UI initialized with fast sync")
+        print("🎛️ Enhanced connectivity UI initialized with fast sync (silent mode)")
     
     def _on_status_change(self, is_online):
-        """Handle connectivity status change"""
+        """Handle connectivity status change with enhanced sync triggering"""
         try:
             status_text = "🌐 Online" if is_online else "📴 Offline"
             self.status_var.set(status_text)
@@ -358,9 +402,13 @@ class ConnectivityUI:
             print(f"🔄 Connectivity status changed: {status_text}")
             
             if is_online:
-                print("🌐 Internet connection detected - starting FAST sync")
-                # Small delay to ensure UI updates, then start fast sync
-                self.parent_frame.after(1000, self._start_fast_sync_delayed)
+                queue_count = self.queue.count()
+                if queue_count > 0:
+                    print(f"🌐 Internet connection detected - starting ENHANCED FAST SYNC for {queue_count} items")
+                    # Start sync immediately
+                    self.parent_frame.after(500, self._start_enhanced_sync_with_retry)
+                else:
+                    print("🌐 Internet connection detected - queue is empty")
             else:
                 print("📴 Internet connection lost - will queue records offline")
                 
@@ -369,17 +417,56 @@ class ConnectivityUI:
         except Exception as e:
             print(f"❌ Error handling status change: {e}")
     
-    def _start_fast_sync_delayed(self):
-        """Start fast sync with a small delay"""
+    def _start_enhanced_sync_with_retry(self):
+        """Start enhanced sync with automatic retry until queue is empty"""
         try:
-            if self.connectivity.is_online:
-                sync_started = self.sync.start()
-                if sync_started:
-                    print("🚀 Fast sync started successfully")
-                else:
-                    print("ℹ️ Fast sync not started (already running or queue empty)")
+            if not self.connectivity.is_online:
+                print("📴 No internet connection - cannot sync")
+                return
+                
+            queue_count = self.queue.count()
+            if queue_count == 0:
+                print("📭 Queue is empty - no sync needed")
+                return
+                
+            if self.sync.syncing:
+                print("⏳ Sync already running - will check again in 10 seconds")
+                self.parent_frame.after(10000, self._start_enhanced_sync_with_retry)
+                return
+            
+            print(f"🔥 Starting enhanced sync for {queue_count} items")
+            sync_started = self.sync.start()
+            
+            if sync_started:
+                print("🚀 Enhanced sync started - will check if queue is empty in 30 seconds")
+                # Check again in 30 seconds to see if we need another round
+                self.parent_frame.after(30000, self._check_and_retry_sync)
+            else:
+                print("❌ Failed to start sync - will retry in 10 seconds")
+                self.parent_frame.after(10000, self._start_enhanced_sync_with_retry)
+                
         except Exception as e:
-            print(f"❌ Error starting fast sync: {e}")
+            print(f"❌ Error starting enhanced sync: {e}")
+    
+    def _check_and_retry_sync(self):
+        """Check if queue still has items and retry sync if needed"""
+        try:
+            if not self.connectivity.is_online:
+                print("📴 Lost internet connection during sync")
+                return
+                
+            queue_count = self.queue.count()
+            if queue_count > 0 and not self.sync.syncing:
+                print(f"🔄 Queue still has {queue_count} items - starting another sync round")
+                self.parent_frame.after(1000, self._start_enhanced_sync_with_retry)
+            elif queue_count > 0 and self.sync.syncing:
+                print(f"⏳ Sync still running with {queue_count} items remaining - checking again in 15 seconds")
+                self.parent_frame.after(15000, self._check_and_retry_sync)
+            else:
+                print("🏆 Queue is now empty - all items synced successfully!")
+                
+        except Exception as e:
+            print(f"❌ Error checking sync status: {e}")
     
     def _update_display(self):
         """Update queue count display"""
@@ -436,10 +523,10 @@ class ConnectivityUI:
                 ticket_no = record_data.get('ticket_no', 'unknown')
                 print(f"📥 Added complete record to queue: {ticket_no}")
                 
-                # Try to sync immediately if online (using fast sync)
+                # Try to sync immediately if online (using enhanced sync)
                 if self.connectivity.is_online and not self.sync.syncing:
-                    print("🌐 Online - attempting immediate FAST sync")
-                    self.parent_frame.after(500, self._start_fast_sync_delayed)
+                    print("🌐 Online - attempting immediate ENHANCED SYNC")
+                    self.parent_frame.after(500, self._start_enhanced_sync_with_retry)
                 
                 return True
             else:
@@ -451,11 +538,17 @@ class ConnectivityUI:
             return False
     
     def force_sync(self):
-        """Force a fast sync attempt (for manual testing)"""
+        """Force an enhanced sync attempt that flushes entire queue"""
         try:
+            queue_count = self.queue.count()
+            if queue_count == 0:
+                print("📭 Queue is empty - nothing to force sync")
+                return True
+                
             if self.connectivity.is_online:
-                print("🔄 Manual FAST sync requested")
-                return self.sync.start()
+                print(f"🔄 Manual ENHANCED SYNC requested for {queue_count} items")
+                self._start_enhanced_sync_with_retry()
+                return True
             else:
                 print("📴 Cannot sync - no internet connection")
                 return False
