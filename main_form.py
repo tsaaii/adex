@@ -1888,8 +1888,9 @@ class MainForm:
         self.vehicle_var.set(record.get('vehicle_no', ''))
         self.agency_var.set(record.get('agency_name', ''))
         material_data = record.get('material', '') or record.get('material_type', '')
+        self.material_type_var.set(material_data) 
         self.tpt_var.set(record.get('transfer_party_name', ''))
-        
+        self.site_var.set(record.get('site_name', ''))
         # Set weighment data
         self.first_weight_var.set(record.get('first_weight', ''))
         self.first_timestamp_var.set(record.get('first_timestamp', ''))

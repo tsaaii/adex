@@ -26,6 +26,7 @@ try:
     from reportlab.pdfgen import canvas
     from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
     import cv2
+
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
@@ -558,12 +559,13 @@ class ReportGenerator:
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export to Excel:\n{str(e)}")
     
+
     def export_selected_to_pdf(self):
-        """Export selected records to PDF with images, proper filename and saved to reports folder"""
+        """Enhanced: Export selected records to PDF - single PDF for date range with summary"""
         if not REPORTLAB_AVAILABLE:
             messagebox.showerror("PDF Export Error", 
-                               "ReportLab library is not installed.\n"
-                               "Please install it using: pip install reportlab")
+                            "ReportLab library is not installed.\n"
+                            "Please install it using: pip install reportlab")
             return
         
         selected_data = self.get_selected_record_data()
@@ -573,21 +575,381 @@ class ReportGenerator:
             return
         
         try:
-            # Generate filename with Agency_Site_Ticket format
-            filename = self.generate_filename(selected_data, "pdf")
+            # Check if this is a date range export (no specific filters applied)
+            is_date_range_export = self.is_date_range_only_export()
             
-            # Save to reports folder
-            save_path = os.path.join(self.reports_folder, filename)
-            
-            self.create_pdf_report(selected_data, save_path)
-            messagebox.showinfo("Export Successful", 
-                              f"PDF report saved successfully!\n\n"
-                              f"File: {filename}\n"
-                              f"Location: {self.reports_folder}")
+            if is_date_range_export and len(selected_data) > 1:
+                # Single PDF for date range with summary
+                filename = self.generate_date_range_filename(selected_data)
+                save_path = os.path.join(self.reports_folder, filename)
+                
+                print(f"📄 EXPORT DEBUG: Creating single PDF for {len(selected_data)} records")
+                self.create_single_pdf_with_summary(selected_data, save_path)
+                
+                messagebox.showinfo("Export Successful", 
+                                f"Date Range PDF Report saved successfully!\n\n"
+                                f"File: {filename}\n"
+                                f"Records: {len(selected_data)}\n"
+                                f"Location: {self.reports_folder}")
+            else:
+                # Original behavior for individual records or filtered exports
+                filename = self.generate_filename(selected_data, "pdf")
+                save_path = os.path.join(self.reports_folder, filename)
+                
+                self.create_pdf_report(selected_data, save_path)
+                messagebox.showinfo("Export Successful", 
+                                f"PDF report saved successfully!\n\n"
+                                f"File: {filename}\n"
+                                f"Location: {self.reports_folder}")
             
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export to PDF:\n{str(e)}")
-    
+
+    def get_current_user_name(self):
+        """Get the current logged-in user name"""
+        try:
+            # Try to get user from parent app first
+            if hasattr(self, 'parent'):
+                widget = self.parent
+                while widget:
+                    if hasattr(widget, 'logged_in_user') and widget.logged_in_user:
+                        print(f"📄 USER DEBUG: Found logged-in user: {widget.logged_in_user}")
+                        return widget.logged_in_user
+                    
+                    # Traverse up the widget hierarchy
+                    if hasattr(widget, 'master'):
+                        widget = widget.master
+                    elif hasattr(widget, 'parent'):
+                        widget = widget.parent
+                    elif hasattr(widget, 'tk'):
+                        widget = widget.tk
+                    else:
+                        break
+            
+            # Try to get from data manager if it has user context
+            if hasattr(self, 'data_manager') and self.data_manager:
+                if hasattr(self.data_manager, 'current_user'):
+                    return self.data_manager.current_user
+            
+            # Try to get from global config if available
+            import config
+            if hasattr(config, 'CURRENT_USER') and config.CURRENT_USER:
+                return config.CURRENT_USER
+                
+            # Fallback to checking for common user variables
+            for possible_attr in ['logged_in_user', 'current_user', 'username', 'user']:
+                if hasattr(self, possible_attr):
+                    user = getattr(self, possible_attr)
+                    if user:
+                        return str(user)
+            
+            print(f"📄 USER DEBUG: Could not find logged-in user, using default")
+            return "Unknown User"
+            
+        except Exception as e:
+            print(f"📄 USER DEBUG: Error getting current user: {e}")
+            return "Unknown User"
+
+    def is_date_range_only_export(self):
+        """Check if only date range filter is applied (no other specific filters)"""
+        try:
+            # Check if only date range is specified and other filters are empty
+            vehicle_filter = self.vehicle_var.get().strip()
+            transfer_party_filter = self.transfer_party_var.get().strip()
+            material_filter = self.material_var.get().strip()
+            status_filter = self.status_var.get()
+            
+            # Get date filters
+            from_date_str = ""
+            to_date_str = ""
+            
+            if CALENDAR_AVAILABLE:
+                try:
+                    from_date_str = self.from_date.get_date().strftime("%d-%m-%Y")
+                    to_date_str = self.to_date.get_date().strftime("%d-%m-%Y")
+                except:
+                    pass
+            else:
+                from_date_str = self.from_date.get().strip()
+                to_date_str = self.to_date.get().strip()
+            
+            # Check if only date range is specified
+            has_date_range = bool(from_date_str and to_date_str)
+            has_other_filters = bool(vehicle_filter or transfer_party_filter or 
+                                material_filter or (status_filter and status_filter != "All"))
+            
+            result = has_date_range and not has_other_filters
+            print(f"📄 EXPORT DEBUG: Date range only export: {result}")
+            print(f"   - Has date range: {has_date_range}")
+            print(f"   - Has other filters: {has_other_filters}")
+            
+            return result
+            
+        except Exception as e:
+            print(f"Error checking date range export: {e}")
+            return False
+
+    def generate_date_range_filename(self, selected_data):
+        """Generate filename for date range export"""
+        try:
+            from_date_str = ""
+            to_date_str = ""
+            
+            if CALENDAR_AVAILABLE:
+                try:
+                    from_date_str = self.from_date.get_date().strftime("%d-%m-%Y")
+                    to_date_str = self.to_date.get_date().strftime("%d-%m-%Y")
+                except:
+                    pass
+            else:
+                from_date_str = self.from_date.get().strip()
+                to_date_str = self.to_date.get().strip()
+            
+            # Get common site/agency if all records are from same site/agency
+            sites = set(r.get('site_name', '').replace(' ', '_') for r in selected_data)
+            agencies = set(r.get('agency_name', '').replace(' ', '_') for r in selected_data)
+            
+            site_part = list(sites)[0] if len(sites) == 1 else "Multiple_Sites"
+            agency_part = list(agencies)[0] if len(agencies) == 1 else "Multiple_Agencies"
+            
+            # Clean up the parts
+            site_part = site_part.replace('/', '_').replace(' ', '_')
+            agency_part = agency_part.replace('/', '_').replace(' ', '_')
+            
+            if from_date_str and to_date_str:
+                if from_date_str == to_date_str:
+                    return f"{agency_part}_{site_part}_DateRange_{from_date_str}_{len(selected_data)}records.pdf"
+                else:
+                    from_clean = from_date_str.replace('-', '')
+                    to_clean = to_date_str.replace('-', '')
+                    return f"{agency_part}_{site_part}_DateRange_{from_clean}_to_{to_clean}_{len(selected_data)}records.pdf"
+            else:
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                return f"{agency_part}_{site_part}_DateRange_{len(selected_data)}records_{timestamp}.pdf"
+                
+        except Exception as e:
+            print(f"Error generating date range filename: {e}")
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            return f"DateRange_Report_{len(selected_data)}records_{timestamp}.pdf"
+
+    def create_single_pdf_with_summary(self, records_data, save_path):
+        """Create a compact single PDF with multiple records and summary"""
+        if not REPORTLAB_AVAILABLE:
+            return False
+            
+        try:
+            # Ensure output directory exists
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            
+            # Create document with optimized margins for more space
+            doc = SimpleDocTemplate(save_path, pagesize=A4,
+                                    rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+            
+            styles = getSampleStyleSheet()
+            elements = []
+
+            # Create compact styles
+            header_style = ParagraphStyle(
+                name='HeaderStyle',
+                fontSize=16,  # Reduced from 18
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold',
+                textColor=colors.black,
+                spaceAfter=8,  # Reduced from 12
+                spaceBefore=4   # Reduced from 6
+            )
+            
+            subheader_style = ParagraphStyle(
+                name='SubHeaderStyle',
+                fontSize=10,   # Reduced from 12
+                alignment=TA_CENTER,
+                fontName='Helvetica',
+                textColor=colors.black,
+                spaceAfter=6   # Reduced from 12
+            )
+            
+            summary_header_style = ParagraphStyle(
+                name='SummaryHeaderStyle',
+                fontSize=12,   # Reduced from 14
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold',
+                textColor=colors.darkblue,
+                spaceAfter=8,  # Reduced from 12
+                spaceBefore=12  # Reduced from 24
+            )
+            
+            summary_style = ParagraphStyle(
+                name='SummaryStyle',
+                fontSize=10,   # Reduced from 12
+                alignment=TA_CENTER,
+                fontName='Helvetica',
+                textColor=colors.black,
+                spaceAfter=4   # Reduced from 6
+            )
+            
+            # Style for advitia labs attribution line
+            attribution_style = ParagraphStyle(
+                name='AttributionStyle',
+                fontSize=8,    # Reduced from 9
+                alignment=TA_CENTER,
+                fontName='Helvetica',
+                textColor=colors.grey,
+                spaceAfter=8,  # Reduced from 6
+                spaceBefore=8   # Reduced from 12
+            )
+
+            # Calculate summary data
+            total_trips = len(records_data)
+            total_net_weight = 0
+            date_range = self.get_date_range_info(records_data)
+            
+            for record in records_data:
+                try:
+                    net_weight = float(record.get('net_weight', 0) or 0)
+                    total_net_weight += net_weight
+                except (ValueError, TypeError):
+                    pass
+
+            # Get BOTH agency and site information from address config
+            first_record = records_data[0] if records_data else {}
+            agency_name = first_record.get('agency_name', 'Unknown Agency')
+            site_name = first_record.get('site_name', 'Unknown Site')
+            
+            agency_info = self.address_config.get('agencies', {}).get(agency_name, {})
+            site_info = self.address_config.get('sites', {}).get(site_name, {})
+            
+            # Add title with FULL agency info (maintaining current PDF structure)
+            elements.append(Paragraph(agency_info.get('name', agency_name), header_style))
+            
+            # Add agency address if available
+            if agency_info.get('address'):
+                agency_address = agency_info.get('address', '').replace('\n', '<br/>')
+                elements.append(Paragraph(agency_address, subheader_style))
+            
+            # Add site information if different from agency
+            if site_info and site_info.get('name'):
+                elements.append(Paragraph(f"Site: {site_info.get('name', site_name)}", subheader_style))
+                if site_info.get('address'):
+                    site_address = site_info.get('address', '').replace('\n', '<br/>')
+                    elements.append(Paragraph(site_address, subheader_style))
+            
+            # Contact information in one line
+            contact_info = []
+            if agency_info.get('contact'):
+                contact_info.append(f"Phone: {agency_info.get('contact')}")
+            if agency_info.get('email'):
+                contact_info.append(f"Email: {agency_info.get('email')}")
+            if site_info.get('contact') and site_info.get('contact') != agency_info.get('contact'):
+                contact_info.append(f"Site Phone: {site_info.get('contact')}")
+            
+            if contact_info:
+                elements.append(Paragraph(" | ".join(contact_info), subheader_style))
+            
+            # Compact header info
+            elements.append(Spacer(1, 8))  # Reduced spacing
+            elements.append(Paragraph(f"Date Range: {date_range} | Export Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", subheader_style))
+            
+            # Single SUMMARY section (removed redundant Final Summary)
+            elements.append(Paragraph("SUMMARY", summary_header_style))
+            elements.append(Paragraph(f"Total Number of Trips: {total_trips}", summary_style))
+            elements.append(Paragraph(f"Total Net Weight: {total_net_weight:.2f} kg", summary_style))
+            # Removed average weight metric as requested
+            
+            # Simplified attribution line (removed user name)
+            timestamp = datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')
+            attribution_text = f"Report generated by Advitia Labs at {timestamp}"
+            elements.append(Paragraph("─" * 40, attribution_style))  # Shorter line
+            elements.append(Paragraph(attribution_text, attribution_style))
+            
+            elements.append(Spacer(1, 12))  # Reduced spacing before table
+            
+            # Compact detailed records section
+            elements.append(Paragraph("DETAILED RECORDS", summary_header_style))
+            
+            # Create compact table data for all records
+            table_data = [['S.No', 'Date', 'Ticket', 'Vehicle', 'Agency', 'Material', 'Net Wt (kg)']]  # Shortened header
+            
+            for i, record in enumerate(records_data, 1):
+                # Use shorter agency name if too long
+                agency_display = record.get('agency_name', 'N/A')
+                if len(agency_display) > 15:
+                    agency_display = agency_display[:12] + "..."
+                    
+                table_data.append([
+                    str(i),
+                    record.get('date', 'N/A'),
+                    record.get('ticket_no', 'N/A'),
+                    record.get('vehicle_no', 'N/A'),
+                    agency_display,
+                    record.get('material_type', record.get('material', 'N/A')),
+                    f"{float(record.get('net_weight', 0) or 0):.1f}"  # One decimal place to save space
+                ])
+            
+            # Create compact table with smaller fonts
+            table = Table(table_data, repeatRows=1)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 8),      # Reduced from 10
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -1), 7),     # Reduced from 9
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 6), # Reduced padding
+                ('TOPPADDING', (0, 0), (-1, -1), 3),   # Reduced padding
+                ('BOTTOMPADDING', (0, 1), (-1, -1), 3), # Reduced padding
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.black), # Thinner grid lines
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            
+            elements.append(table)
+            
+            # Build PDF
+            doc.build(elements)
+            
+            print(f"📄 PDF EXPORT: Successfully created compact single PDF with {total_trips} records")
+            print(f"   - Total Net Weight: {total_net_weight:.2f} kg")
+            print(f"   - Date Range: {date_range}")
+            print(f"   - Used full agency and site information")
+            print(f"   - Optimized for single page layout")
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error creating single PDF with summary: {e}")
+            return False
+
+    def get_date_range_info(self, records_data):
+        """Get human-readable date range from records"""
+        try:
+            if not records_data:
+                return "Unknown"
+                
+            dates = []
+            for record in records_data:
+                date_str = record.get('date', '')
+                if date_str:
+                    try:
+                        date_obj = datetime.datetime.strptime(date_str, "%d-%m-%Y")
+                        dates.append(date_obj)
+                    except:
+                        pass
+            
+            if not dates:
+                return "Unknown"
+                
+            min_date = min(dates)
+            max_date = max(dates)
+            
+            if min_date.date() == max_date.date():
+                return min_date.strftime("%d-%m-%Y")
+            else:
+                return f"{min_date.strftime('%d-%m-%Y')} to {max_date.strftime('%d-%m-%Y')}"
+                
+        except Exception as e:
+            print(f"Error getting date range info: {e}")
+            return "Unknown"
+
     def generate_filename(self, selected_data, extension):
         """Generate filename based on Agency_Site_Ticket format"""
         try:
