@@ -1,312 +1,350 @@
-"""
-FIXED: Unified Logging System for Weighbridge Application
-Captures both logging statements and print statements to log files
+# Fixed unified_logging.py - Handles None streams and other edge cases
 
-Usage:
-    # Add to your main application file (advitia_app.py):
-    from unified_logging import setup_unified_logging
-    
-    # In your __init__ method:
-    self.unified_logger = setup_unified_logging("weighbridge_app", "logs")
-    
-    # All print statements from all files will now be automatically logged!
-"""
-
+import logging
 import sys
 import os
-import logging
 import datetime
-from io import StringIO
 import threading
-import time
-import config
+import traceback
 
-class SafeFileHandler(logging.FileHandler):
-    """Safe file handler that won't crash if file operations fail"""
+try:
+    import config
+except ImportError:
+    # Fallback if config is not available
+    class Config:
+        LOGS_FOLDER = "logs"
+    config = Config()
+
+class SafeStreamHandler(logging.StreamHandler):
+    """Safe stream handler that handles None streams gracefully"""
     
-    def __init__(self, filename, mode='a', encoding='utf-8', delay=False):
-        try:
-            # Ensure directory exists
-            os.makedirs(os.path.dirname(filename), exist_ok=True)
-            super().__init__(filename, mode, encoding, delay)
-        except Exception as e:
-            # Fallback to console if file handler fails
-            print(f"⚠️ Could not create file handler for {filename}: {e}")
-            # Create a dummy handler that just prints
-            super(logging.Handler, self).__init__()
-            self.stream = sys.stdout
+    def __init__(self, stream=None):
+        # Ensure we have a valid stream
+        if stream is None:
+            # Try to get a valid stdout/stderr
+            try:
+                if hasattr(sys, '__stdout__') and sys.__stdout__ is not None:
+                    stream = sys.__stdout__
+                elif hasattr(sys, '__stderr__') and sys.__stderr__ is not None:
+                    stream = sys.__stderr__
+                else:
+                    # Create a dummy stream that doesn't crash
+                    import io
+                    stream = io.StringIO()
+            except:
+                import io
+                stream = io.StringIO()
+        
+        super().__init__(stream)
     
     def emit(self, record):
-        """Safely emit log record"""
+        """Emit a record with error handling"""
         try:
-            if self.stream is None:
-                # Try to reopen the stream
-                self.stream = self._open()
-            
-            if self.stream is not None:
-                super().emit(record)
-            else:
-                # Fallback to print if stream is still None
+            # Check if stream is still valid
+            if self.stream is None or not hasattr(self.stream, 'write'):
+                # Try to recover with a valid stream
                 try:
-                    print(f"LOG: {self.format(record)}")
+                    if hasattr(sys, '__stdout__') and sys.__stdout__ is not None:
+                        self.stream = sys.__stdout__
+                    elif hasattr(sys, '__stderr__') and sys.__stderr__ is not None:
+                        self.stream = sys.__stderr__
+                    else:
+                        # Can't recover, just return silently
+                        return
                 except:
-                    pass
-        except Exception as e:
-            # Don't crash the application due to logging errors
+                    return
+            
+            # Try the normal emit
+            super().emit(record)
+        except (AttributeError, OSError, ValueError) as e:
+            # If emit fails, try to print to stderr directly
             try:
-                print(f"⚠️ Logging error: {e}")
+                if hasattr(sys, '__stderr__') and sys.__stderr__ is not None:
+                    sys.__stderr__.write(f"Logging error: {e}\n")
+                    sys.__stderr__.write(f"Failed to log: {record.getMessage()}\n")
             except:
-                pass
+                pass  # Ultimate fallback - do nothing
+        except Exception:
+            # Catch any other logging errors silently
+            pass
 
-class UnifiedLogger:
-    """FIXED: Unified logging system that captures both logging and print statements"""
+class SafeFileHandler(logging.FileHandler):
+    """Safe file handler with better error handling"""
     
-    def __init__(self, log_folder=None, app_name="advitia_app"):
-        """Initialize unified logging
-        
-        Args:
-            log_folder (str): Folder to store log files
-            app_name (str): Application name for log files
-        """
-        self.log_folder = log_folder or config.LOGS_FOLDER
-        self.app_name = app_name
-        
-        # Create logs directory with error handling
+    def __init__(self, filename, mode='a', encoding='utf-8', delay=False):
+        # Ensure directory exists
         try:
-            os.makedirs(self.log_folder, exist_ok=True)
-        except Exception as e:
-            print(f"⚠️ Could not create logs folder {self.log_folder}: {e}")
-            self.log_folder = "."  # Fallback to current directory
-        
-        # Generate log filenames with current date
-        today = datetime.datetime.now()
-        date_str = today.strftime("%Y-%m-%d")
-        
-        self.combined_log_file = os.path.join(self.log_folder, f"{app_name}_combined_{date_str}.log")
-        self.print_log_file = os.path.join(self.log_folder, f"{app_name}_prints_{date_str}.log")
-        self.app_log_file = os.path.join(self.log_folder, f"{app_name}_app_{date_str}.log")
-        
-        # Thread lock for file writing safety
-        self.lock = threading.Lock()
-        
-        # Store original streams BEFORE any redirection
-        self.original_stdout = sys.stdout
-        self.original_stderr = sys.stderr
-        
-        # Setup unified logging
-        self.setup_unified_logging()
-        
-        # Original print to show setup complete
-        try:
-            original_print = self.get_original_print()
-            original_print(f"📋 Unified logging initialized:")
-            original_print(f"   📄 Combined log: {self.combined_log_file}")
-            original_print(f"   🖨️  Print log: {self.print_log_file}")
-            original_print(f"   📱 App log: {self.app_log_file}")
-        except Exception as e:
-            print(f"⚠️ Could not print setup message: {e}")
-    
-    def get_original_print(self):
-        """Get reference to original print function"""
-        # This ensures we can always print to console even after redirect
-        try:
-            if hasattr(__builtins__, 'print'):
-                return __builtins__.print
-            elif isinstance(__builtins__, dict) and 'print' in __builtins__:
-                return __builtins__['print']
-            else:
-                return print  # Fallback
+            os.makedirs(os.path.dirname(filename), exist_ok=True)
         except:
-            return print  # Ultimate fallback
-    
-    def setup_unified_logging(self):
-        """Setup logging that captures both logger and print statements"""
-        
-        # 1. Setup standard logging with multiple handlers
-        self.logger = logging.getLogger('WeighbridgeApp')
-        self.logger.setLevel(logging.DEBUG)
-        
-        # Clear any existing handlers to avoid duplicates
-        for handler in self.logger.handlers[:]:
-            self.logger.removeHandler(handler)
-        
-        # Create formatters
-        detailed_formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s'
-        )
-        
-        simple_formatter = logging.Formatter(
-            '%(asctime)s - %(levelname)s - %(message)s'
-        )
-        
-        # Handler 1: Combined log file (everything) - SAFE VERSION
-        try:
-            combined_handler = SafeFileHandler(self.combined_log_file)
-            combined_handler.setLevel(logging.DEBUG)
-            combined_handler.setFormatter(detailed_formatter)
-            self.logger.addHandler(combined_handler)
-        except Exception as e:
-            print(f"⚠️ Could not create combined log handler: {e}")
-        
-        # Handler 2: App-specific log file - SAFE VERSION
-        try:
-            app_handler = SafeFileHandler(self.app_log_file)
-            app_handler.setLevel(logging.INFO)
-            app_handler.setFormatter(detailed_formatter)
-            self.logger.addHandler(app_handler)
-        except Exception as e:
-            print(f"⚠️ Could not create app log handler: {e}")
-        
-        # Handler 3: Console output (so you still see logs on screen) - SAFE VERSION
-        try:
-            console_handler = logging.StreamHandler(self.original_stdout)
-            console_handler.setLevel(logging.INFO)
-            console_handler.setFormatter(simple_formatter)
-            self.logger.addHandler(console_handler)
-        except Exception as e:
-            print(f"⚠️ Could not create console handler: {e}")
-        
-        # 2. Redirect print statements to both console and file - SAFE VERSION
-        try:
-            self.setup_print_capture()
-        except Exception as e:
-            print(f"⚠️ Could not setup print capture: {e}")
-        
-        # Log the initialization
-        try:
-            self.logger.info("Unified logging system initialized")
-        except Exception as e:
-            print(f"⚠️ Could not log initialization: {e}")
-    
-    def setup_print_capture(self):
-        """FIXED: Setup print statement capture with better error handling"""
-        
-        try:
-            # Create custom stdout that writes to both console and log file
-            sys.stdout = PrintCapture(
-                self.original_stdout, 
-                self.print_log_file, 
-                self.combined_log_file,
-                self.lock,
-                "PRINT"
-            )
+            pass
             
-            # Also capture stderr (for error prints)
-            sys.stderr = PrintCapture(
-                self.original_stderr, 
-                self.print_log_file, 
-                self.combined_log_file,
-                self.lock,
-                "ERROR"
-            )
-        except Exception as e:
-            print(f"⚠️ Error setting up print capture: {e}")
-            # Don't crash - just continue without print capture
+        super().__init__(filename, mode, encoding, delay)
     
-    def restore_stdout(self):
-        """Restore original stdout (call this on app shutdown)"""
+    def emit(self, record):
+        """Emit a record with error handling"""
         try:
-            if hasattr(self, 'original_stdout') and self.original_stdout:
-                sys.stdout = self.original_stdout
-            if hasattr(self, 'original_stderr') and self.original_stderr:
-                sys.stderr = self.original_stderr
-            
-            if hasattr(self, 'logger'):
-                self.logger.info("Print capture restored")
-        except Exception as e:
+            super().emit(record)
+        except (OSError, ValueError, UnicodeEncodeError) as e:
+            # If file writing fails, try to print to console
             try:
-                print(f"⚠️ Error restoring stdout: {e}")
+                safe_print(f"File logging error: {e}")
+                safe_print(f"Failed to log: {record.getMessage()}")
             except:
                 pass
+        except Exception:
+            # Catch any other file logging errors silently
+            pass
 
-class PrintCapture:
-    """FIXED: Custom stdout that captures print statements to both console and file"""
+def safe_print(message):
+    """Print message safely, handling None streams"""
+    try:
+        # Try stdout first
+        if hasattr(sys, 'stdout') and sys.stdout is not None:
+            print(message)
+            return
+        
+        # Try __stdout__ 
+        if hasattr(sys, '__stdout__') and sys.__stdout__ is not None:
+            sys.__stdout__.write(str(message) + '\n')
+            sys.__stdout__.flush()
+            return
+            
+        # Try stderr
+        if hasattr(sys, 'stderr') and sys.stderr is not None:
+            sys.stderr.write(str(message) + '\n')
+            sys.stderr.flush()
+            return
+            
+        # Try __stderr__
+        if hasattr(sys, '__stderr__') and sys.__stderr__ is not None:
+            sys.__stderr__.write(str(message) + '\n')
+            sys.__stderr__.flush()
+            return
+            
+    except Exception:
+        pass  # Ultimate fallback - do nothing
+
+class StreamRedirector:
+    """FIXED: Safe stream redirector that handles None streams"""
     
-    def __init__(self, original_stream, print_log_file, combined_log_file, lock, stream_type="PRINT"):
+    def __init__(self, original_stream, stream_type="STDOUT"):
         self.original_stream = original_stream
-        self.print_log_file = print_log_file
-        self.combined_log_file = combined_log_file
-        self.lock = lock
         self.stream_type = stream_type
+        self.buffer = []
         
-        # Validate that original_stream is not None
+        # Ensure we have a fallback stream
         if self.original_stream is None:
-            self.original_stream = sys.__stdout__ if stream_type == "PRINT" else sys.__stderr__
+            if stream_type == "STDOUT":
+                self.original_stream = sys.__stdout__ if hasattr(sys, '__stdout__') else None
+            else:
+                self.original_stream = sys.__stderr__ if hasattr(sys, '__stderr__') else None
     
-    def write(self, text):
-        """FIXED: Write to both console and log file with better error handling"""
-        # Always write to original console first
+    def write(self, message):
+        """FIXED: Write with comprehensive error handling"""
         try:
+            # Store in buffer
+            self.buffer.append(message)
+            
+            # Try to write to original stream
             if self.original_stream and hasattr(self.original_stream, 'write'):
-                self.original_stream.write(text)
-                if hasattr(self.original_stream, 'flush'):
-                    self.original_stream.flush()
-        except Exception as e:
-            # Try fallback console output
+                try:
+                    self.original_stream.write(message)
+                    if hasattr(self.original_stream, 'flush'):
+                        self.original_stream.flush()
+                except:
+                    pass  # Don't crash if original write fails
+            
+        except Exception:
+            # If all else fails, store in buffer for later
             try:
-                if self.stream_type == "PRINT":
-                    sys.__stdout__.write(text)
-                else:
-                    sys.__stderr__.write(text)
+                self.buffer.append(message)
             except:
-                pass  # Continue even if console write fails completely
-        
-        # Write to log files with timestamp (only non-empty lines)
-        if text.strip():
-            try:
-                timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                log_line = f"{timestamp} - {self.stream_type} - {text.rstrip()}\n"
-                
-                with self.lock:
-                    # Write to print-specific log
-                    try:
-                        with open(self.print_log_file, 'a', encoding='utf-8') as f:
-                            f.write(log_line)
-                    except Exception:
-                        pass  # Continue if print log fails
-                    
-                    # Write to combined log
-                    try:
-                        with open(self.combined_log_file, 'a', encoding='utf-8') as f:
-                            f.write(log_line)
-                    except Exception:
-                        pass  # Continue if combined log fails
-                        
-            except Exception:
-                # Don't crash the application if logging fails
-                pass
+                pass  # Ultimate fallback
     
     def flush(self):
-        """FIXED: Flush both outputs with error handling"""
+        """FIXED: Flush with error handling"""
         try:
             if self.original_stream and hasattr(self.original_stream, 'flush'):
                 self.original_stream.flush()
         except Exception:
+            pass  # Don't crash if flush fails
+
+class UnifiedLogger:
+    """FIXED: Enhanced unified logger with better error handling"""
+    
+    def __init__(self, log_folder=None, app_name="advitia_app"):
+        """Initialize unified logging with comprehensive error handling"""
+        
+        # Initialize basic attributes first
+        self.app_name = app_name
+        self.log_folder = log_folder or getattr(config, 'LOGS_FOLDER', 'logs')
+        self.lock = threading.Lock()
+        
+        # Store original streams safely
+        self.original_stdout = self._get_safe_stream('stdout')
+        self.original_stderr = self._get_safe_stream('stderr')
+        
+        # Initialize log files
+        self._initialize_log_files()
+        
+        # Setup the logger
+        self._setup_logger()
+        
+        # Print initialization message safely
+        safe_print(f"📋 Unified logging initialized:")
+        safe_print(f"   📄 Combined log: {self.combined_log_file}")
+        safe_print(f"   🖨️  Print log: {self.print_log_file}")
+        safe_print(f"   📱 App log: {self.app_log_file}")
+    
+    def _get_safe_stream(self, stream_name):
+        """Get a stream safely, with fallbacks"""
+        try:
+            # Try the normal stream first
+            stream = getattr(sys, stream_name, None)
+            if stream is not None:
+                return stream
+            
+            # Try the backup stream
+            backup_name = f"__{stream_name}__"
+            backup_stream = getattr(sys, backup_name, None)
+            if backup_stream is not None:
+                return backup_stream
+                
+            # Return None if no valid stream found
+            return None
+            
+        except Exception:
+            return None
+    
+    def _initialize_log_files(self):
+        """Initialize log file paths"""
+        try:
+            # Ensure log folder exists
+            os.makedirs(self.log_folder, exist_ok=True)
+            
+            # Generate log filenames with current date
+            today = datetime.datetime.now()
+            date_str = today.strftime("%Y-%m-%d")
+            
+            self.combined_log_file = os.path.join(self.log_folder, f"{self.app_name}_combined_{date_str}.log")
+            self.print_log_file = os.path.join(self.log_folder, f"{self.app_name}_prints_{date_str}.log")
+            self.app_log_file = os.path.join(self.log_folder, f"{self.app_name}_app_{date_str}.log")
+            
+        except Exception as e:
+            # Fallback to current directory
+            safe_print(f"⚠️ Could not create log folder: {e}")
+            today = datetime.datetime.now()
+            date_str = today.strftime("%Y-%m-%d")
+            self.combined_log_file = f"{self.app_name}_combined_{date_str}.log"
+            self.print_log_file = f"{self.app_name}_prints_{date_str}.log" 
+            self.app_log_file = f"{self.app_name}_app_{date_str}.log"
+    
+    def _setup_logger(self):
+        """Setup the main logger with safe handlers"""
+        try:
+            # Get or create the main logger
+            self.logger = logging.getLogger(self.app_name)
+            self.logger.setLevel(logging.DEBUG)
+            
+            # Clear any existing handlers to avoid duplicates
+            for handler in self.logger.handlers[:]:
+                try:
+                    self.logger.removeHandler(handler)
+                    handler.close()
+                except:
+                    pass
+            
+            # Create formatters
+            detailed_formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s'
+            )
+            
+            simple_formatter = logging.Formatter(
+                '%(asctime)s - %(levelname)s - %(message)s'
+            )
+            
+            # Handler 1: Combined log file (everything)
             try:
-                # Fallback flush
-                if self.stream_type == "PRINT":
-                    sys.__stdout__.flush()
-                else:
-                    sys.__stderr__.flush()
-            except:
-                pass  # Don't crash if flush fails
+                combined_handler = SafeFileHandler(self.combined_log_file)
+                combined_handler.setLevel(logging.DEBUG)
+                combined_handler.setFormatter(detailed_formatter)
+                self.logger.addHandler(combined_handler)
+            except Exception as e:
+                safe_print(f"⚠️ Could not create combined log handler: {e}")
+            
+            # Handler 2: App-specific log file
+            try:
+                app_handler = SafeFileHandler(self.app_log_file)
+                app_handler.setLevel(logging.INFO)
+                app_handler.setFormatter(detailed_formatter)
+                self.logger.addHandler(app_handler)
+            except Exception as e:
+                safe_print(f"⚠️ Could not create app log handler: {e}")
+            
+            # Handler 3: Safe console output
+            try:
+                console_handler = SafeStreamHandler(self.original_stdout)
+                console_handler.setLevel(logging.INFO)
+                console_handler.setFormatter(simple_formatter)
+                self.logger.addHandler(console_handler)
+            except Exception as e:
+                safe_print(f"⚠️ Could not create console handler: {e}")
+            
+            # Test the logger
+            try:
+                self.logger.info("Unified logging system initialized")
+            except Exception as e:
+                safe_print(f"⚠️ Logger test failed: {e}")
+                
+        except Exception as e:
+            safe_print(f"⚠️ Error setting up logger: {e}")
+            # Create a fallback logger
+            self.logger = self._create_fallback_logger()
+    
+    def _create_fallback_logger(self):
+        """Create a fallback logger that just prints"""
+        class FallbackLogger:
+            def debug(self, msg): safe_print(f"DEBUG: {msg}")
+            def info(self, msg): safe_print(f"INFO: {msg}")
+            def warning(self, msg): safe_print(f"WARNING: {msg}")
+            def error(self, msg): safe_print(f"ERROR: {msg}")
+            def critical(self, msg): safe_print(f"CRITICAL: {msg}")
+        
+        return FallbackLogger()
+    
+    def restore_stdout(self):
+        """Restore original stdout safely"""
+        try:
+            if self.original_stdout is not None:
+                sys.stdout = self.original_stdout
+        except Exception:
+            pass
 
 class EnhancedLogger:
-    """Enhanced logger that provides both logging and print-style methods"""
+    """FIXED: Enhanced logger with safe error handling"""
     
     def __init__(self, name="advitia_app", log_folder=None):
         self.name = name
-        self.log_folder = log_folder or config.LOGS_FOLDER
+        self.log_folder = log_folder or getattr(config, 'LOGS_FOLDER', 'logs')
         
-        # Get or create the main logger
-        self.logger = logging.getLogger(name)
-        
-        # Only setup if not already configured
-        if not self.logger.handlers:
-            self.logger.setLevel(logging.DEBUG)
-            self.setup_handlers()
+        # Setup the logger safely
+        self._setup_logger()
     
-    def setup_handlers(self):
+    def _setup_logger(self):
+        """Setup logger with comprehensive error handling"""
+        try:
+            # Get or create the main logger
+            self.logger = logging.getLogger(self.name)
+            
+            # Only setup if not already configured
+            if not self.logger.handlers:
+                self.logger.setLevel(logging.DEBUG)
+                self._setup_handlers()
+        except Exception as e:
+            safe_print(f"⚠️ Error setting up enhanced logger: {e}")
+            self.logger = self._create_fallback_logger()
+    
+    def _setup_handlers(self):
         """Setup logging handlers with error handling"""
         try:
             # Create log filename
@@ -329,19 +367,30 @@ class EnhancedLogger:
                 file_handler.setFormatter(formatter)
                 self.logger.addHandler(file_handler)
             except Exception as e:
-                print(f"⚠️ Could not create file handler: {e}")
+                safe_print(f"⚠️ Could not create file handler: {e}")
             
             # Console handler - SAFE VERSION
             try:
-                console_handler = logging.StreamHandler()
+                console_handler = SafeStreamHandler()
                 console_handler.setLevel(logging.INFO)
                 console_handler.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
                 self.logger.addHandler(console_handler)
             except Exception as e:
-                print(f"⚠️ Could not create console handler: {e}")
+                safe_print(f"⚠️ Could not create console handler: {e}")
                 
         except Exception as e:
-            print(f"⚠️ Error setting up enhanced logger: {e}")
+            safe_print(f"⚠️ Error setting up enhanced logger: {e}")
+    
+    def _create_fallback_logger(self):
+        """Create a fallback logger"""
+        class FallbackLogger:
+            def debug(self, msg): safe_print(f"DEBUG: {msg}")
+            def info(self, msg): safe_print(f"INFO: {msg}")
+            def warning(self, msg): safe_print(f"WARNING: {msg}")
+            def error(self, msg): safe_print(f"ERROR: {msg}")
+            def critical(self, msg): safe_print(f"CRITICAL: {msg}")
+        
+        return FallbackLogger()
     
     # Standard logging methods with error handling
     def debug(self, message):
@@ -349,96 +398,80 @@ class EnhancedLogger:
         try:
             self.logger.debug(message)
         except:
-            print(f"DEBUG: {message}")
+            safe_print(f"DEBUG: {message}")
     
     def info(self, message):
         """Info level logging"""
         try:
             self.logger.info(message)
         except:
-            print(f"INFO: {message}")
+            safe_print(f"INFO: {message}")
     
     def warning(self, message):
         """Warning level logging"""
         try:
             self.logger.warning(message)
         except:
-            print(f"WARNING: {message}")
+            safe_print(f"WARNING: {message}")
     
     def error(self, message):
         """Error level logging"""
         try:
             self.logger.error(message)
         except:
-            print(f"ERROR: {message}")
+            safe_print(f"ERROR: {message}")
     
     def critical(self, message):
         """Critical level logging"""
         try:
             self.logger.critical(message)
         except:
-            print(f"CRITICAL: {message}")
+            safe_print(f"CRITICAL: {message}")
     
     # Print-style methods that also log
     def print_info(self, message):
         """Print and log info message"""
         try:
-            print(f"ℹ️ {message}")
+            safe_print(f"ℹ️ {message}")
             self.logger.info(message)
         except:
-            print(f"ℹ️ {message}")
+            safe_print(f"ℹ️ {message}")
     
     def print_success(self, message):
         """Print and log success message"""
         try:
-            print(f"✅ {message}")
+            safe_print(f"✅ {message}")
             self.logger.info(f"SUCCESS: {message}")
         except:
-            print(f"✅ {message}")
+            safe_print(f"✅ {message}")
     
     def print_warning(self, message):
         """Print and log warning message"""
         try:
-            print(f"⚠️ {message}")
+            safe_print(f"⚠️ {message}")
             self.logger.warning(message)
         except:
-            print(f"⚠️ {message}")
+            safe_print(f"⚠️ {message}")
     
     def print_error(self, message):
         """Print and log error message"""
         try:
-            print(f"❌ {message}")
+            safe_print(f"❌ {message}")
             self.logger.error(message)
         except:
-            print(f"❌ {message}")
+            safe_print(f"❌ {message}")
     
     def print_debug(self, message):
         """Print and log debug message"""
         try:
-            print(f"🔍 {message}")
+            safe_print(f"🔍 {message}")
             self.logger.debug(message)
         except:
-            print(f"🔍 {message}")
-    
-    def print_queue(self, message):
-        """Print and log queue-related message"""
-        try:
-            print(f"📥 {message}")
-            self.logger.info(f"QUEUE: {message}")
-        except:
-            print(f"📥 {message}")
-    
-    def print_sync(self, message):
-        """Print and log sync-related message"""
-        try:
-            print(f"🔄 {message}")
-            self.logger.info(f"SYNC: {message}")
-        except:
-            print(f"🔄 {message}")
+            safe_print(f"🔍 {message}")
 
 # Easy-to-use functions for your existing code
 def setup_unified_logging(app_name="advitia_app", log_folder=None):
-    """FIXED: Setup unified logging for the entire application
+    """FIXED: Setup unified logging with better error handling
     
     Args:
         app_name (str): Application name
@@ -448,10 +481,10 @@ def setup_unified_logging(app_name="advitia_app", log_folder=None):
         UnifiedLogger: Configured unified logger
     """
     try:
-        log_folder = log_folder or config.LOGS_FOLDER
+        log_folder = log_folder or getattr(config, 'LOGS_FOLDER', 'logs')
         return UnifiedLogger(log_folder, app_name)
     except Exception as e:
-        print(f"⚠️ Could not setup unified logging: {e}")
+        safe_print(f"⚠️ Could not setup unified logging: {e}")
         # Return a dummy logger that just prints
         class DummyLogger:
             def __init__(self):
@@ -461,7 +494,7 @@ def setup_unified_logging(app_name="advitia_app", log_folder=None):
         return DummyLogger()
 
 def setup_enhanced_logger(name="advitia_app", log_folder=None):
-    """Setup enhanced logger with both logging and print methods
+    """FIXED: Setup enhanced logger with better error handling
     
     Args:
         name (str): Logger name
@@ -471,208 +504,40 @@ def setup_enhanced_logger(name="advitia_app", log_folder=None):
         EnhancedLogger: Configured enhanced logger
     """
     try:
-        log_folder = log_folder or config.LOGS_FOLDER
+        log_folder = log_folder or getattr(config, 'LOGS_FOLDER', 'logs')
         return EnhancedLogger(name, log_folder)
     except Exception as e:
-        print(f"⚠️ Could not setup enhanced logger: {e}")
-        return EnhancedLogger(name, ".")  # Fallback to current directory
+        safe_print(f"⚠️ Could not setup enhanced logger: {e}")
+        return EnhancedLogger(name, ".")
 
-def get_app_logger(name="advitia_app"):
-    """Get the main application logger (after unified logging is setup)
-    
-    Args:
-        name (str): Logger name
-        
-    Returns:
-        logging.Logger: The main application logger
-    """
+# Exception handler for logging errors
+def log_exception(exc_type, exc_value, exc_traceback):
+    """Log uncaught exceptions"""
     try:
-        return logging.getLogger(name)
-    except Exception as e:
-        print(f"⚠️ Could not get app logger: {e}")
-        # Return a dummy logger
-        class DummyLogger:
-            def info(self, msg): print(f"INFO: {msg}")
-            def warning(self, msg): print(f"WARNING: {msg}")
-            def error(self, msg): print(f"ERROR: {msg}")
-            def debug(self, msg): print(f"DEBUG: {msg}")
-            def critical(self, msg): print(f"CRITICAL: {msg}")
-        return DummyLogger()
-
-# Context manager for temporary print capture
-class PrintCaptureContext:
-    """Context manager to temporarily capture prints to a specific file"""
-    
-    def __init__(self, log_file_path, capture_errors=True):
-        self.log_file_path = log_file_path
-        self.capture_errors = capture_errors
-        self.original_stdout = None
-        self.original_stderr = None
-        self.lock = threading.Lock()
+        if issubclass(exc_type, KeyboardInterrupt):
+            # Let KeyboardInterrupt through normally
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
         
-    def __enter__(self):
+        # Format the exception
+        error_msg = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+        
+        # Try to log it
         try:
-            self.original_stdout = sys.stdout
-            if self.capture_errors:
-                self.original_stderr = sys.stderr
-            
-            # Ensure directory exists
-            os.makedirs(os.path.dirname(self.log_file_path), exist_ok=True)
-            
-            # Redirect stdout
-            sys.stdout = PrintCapture(
-                self.original_stdout, 
-                self.log_file_path, 
-                self.log_file_path,
-                self.lock,
-                "PRINT"
-            )
-            
-            # Redirect stderr if requested
-            if self.capture_errors:
-                sys.stderr = PrintCapture(
-                    self.original_stderr, 
-                    self.log_file_path, 
-                    self.log_file_path,
-                    self.lock,
-                    "ERROR"
-                )
-        except Exception as e:
-            print(f"⚠️ Error in print capture context: {e}")
+            logger = logging.getLogger('advitia_app')
+            logger.error(f"Uncaught exception: {error_msg}")
+        except:
+            pass
         
-        return self
+        # Also print safely
+        safe_print(f"❌ Uncaught exception: {error_msg}")
         
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    except Exception:
+        # Ultimate fallback
         try:
-            if self.original_stdout:
-                sys.stdout = self.original_stdout
-            if self.capture_errors and self.original_stderr:
-                sys.stderr = self.original_stderr
-        except Exception as e:
-            print(f"⚠️ Error restoring print capture: {e}")
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        except:
+            pass
 
-# Utility functions
-def get_log_files_info(log_folder=None):
-    """Get information about existing log files
-    
-    Args:
-        log_folder (str): Log folder path
-        
-    Returns:
-        dict: Information about log files
-    """
-    try:
-        log_folder = log_folder or config.LOGS_FOLDER
-        if not os.path.exists(log_folder):
-            return {"error": "Log folder does not exist"}
-        
-        log_files = []
-        total_size = 0
-        
-        for filename in os.listdir(log_folder):
-            if filename.endswith('.log'):
-                file_path = os.path.join(log_folder, filename)
-                file_size = os.path.getsize(file_path)
-                file_mtime = os.path.getmtime(file_path)
-                
-                log_files.append({
-                    "name": filename,
-                    "size_bytes": file_size,
-                    "size_mb": round(file_size / (1024 * 1024), 2),
-                    "modified": datetime.datetime.fromtimestamp(file_mtime).strftime("%Y-%m-%d %H:%M:%S")
-                })
-                total_size += file_size
-        
-        return {
-            "log_folder": log_folder,
-            "total_files": len(log_files),
-            "total_size_mb": round(total_size / (1024 * 1024), 2),
-            "files": sorted(log_files, key=lambda x: x["modified"], reverse=True)
-        }
-    except Exception as e:
-        return {"error": f"Error getting log files info: {e}"}
-
-def cleanup_old_logs(log_folder=None, days_to_keep=7):
-    """Clean up log files older than specified days
-    
-    Args:
-        log_folder (str): Log folder path
-        days_to_keep (int): Number of days to keep logs
-        
-    Returns:
-        dict: Cleanup results
-    """
-    try:
-        log_folder = log_folder or config.LOGS_FOLDER
-        if not os.path.exists(log_folder):
-            return {"error": "Log folder does not exist"}
-        
-        cutoff_time = time.time() - (days_to_keep * 24 * 60 * 60)
-        deleted_files = []
-        total_size_freed = 0
-        
-        for filename in os.listdir(log_folder):
-            if filename.endswith('.log'):
-                file_path = os.path.join(log_folder, filename)
-                file_mtime = os.path.getmtime(file_path)
-                
-                if file_mtime < cutoff_time:
-                    file_size = os.path.getsize(file_path)
-                    try:
-                        os.remove(file_path)
-                        deleted_files.append(filename)
-                        total_size_freed += file_size
-                    except Exception as e:
-                        print(f"Error deleting {filename}: {e}")
-        
-        return {
-            "deleted_files": deleted_files,
-            "total_deleted": len(deleted_files),
-            "size_freed_mb": round(total_size_freed / (1024 * 1024), 2)
-        }
-    except Exception as e:
-        return {"error": f"Error during cleanup: {e}"}
-
-# Test and example functions
-def test_unified_logging():
-    """Test the unified logging system"""
-    print("🧪 Testing FIXED Unified Logging System")
-    print("=" * 50)
-    
-    try:
-        # Setup unified logging
-        unified_logger = setup_unified_logging("test_app", "logs")
-        
-        # Test different types of prints
-        print("📋 This is a regular print statement")
-        print("✅ Success message with emoji")
-        print("❌ Error message with emoji")
-        print("🔄 Processing message")
-        print("📊 Data: 123, Status: OK")
-        
-        # Test enhanced logger
-        enhanced_logger = setup_enhanced_logger("TestApp", "logs")
-        enhanced_logger.print_success("Enhanced logger success message")
-        enhanced_logger.print_warning("Enhanced logger warning message")
-        enhanced_logger.print_error("Enhanced logger error message")
-        
-        # Test standard logging
-        app_logger = get_app_logger()
-        app_logger.info("Standard logging info message")
-        app_logger.warning("Standard logging warning message")
-        app_logger.error("Standard logging error message")
-        
-        print("🎉 Test completed! Check the logs folder for output files.")
-        
-        # Show log files info
-        log_info = get_log_files_info("logs")
-        print(f"\n📁 Log files created: {log_info.get('total_files', 0)}")
-        for file_info in log_info.get('files', []):
-            print(f"   📄 {file_info['name']} ({file_info['size_mb']} MB)")
-            
-    except Exception as e:
-        print(f"⚠️ Test failed: {e}")
-
-if __name__ == "__main__":
-    # Run the test when script is executed directly
-    test_unified_logging()
+# Install the exception handler
+sys.excepthook = log_exception

@@ -1360,15 +1360,13 @@ class MainForm:
             
             # Reset form fields for next vehicle but keep site settings
             self.vehicle_var.set("")
-            self.agency_var.set("")  # Reset agency for next vehicle
-            
             # Clear weighment data
             self.first_weight_var.set("")
             self.first_timestamp_var.set("")
             self.second_weight_var.set("")
             self.second_timestamp_var.set("")
             self.net_weight_var.set("")
-            self.material_type_var.set("Inert")  # Reset to default
+            self.material_type_var.set("")  # Reset to default
             
             # Reset weighment state to first weighment
             self.current_weighment = "first"
@@ -1691,14 +1689,12 @@ class MainForm:
             
             # Reset variables
             self.vehicle_var.set("")
-            self.agency_var.set("")
             self.first_weight_var.set("")
             self.first_timestamp_var.set("")
             self.second_weight_var.set("")
             self.second_timestamp_var.set("")
             self.net_weight_var.set("")
-            self.material_type_var.set("Inert")
-            
+            self.material_type_var.set("")
             # Reset weighment state
             self.current_weighment = "first"
             self.weighment_state_var.set("First Weighment")
@@ -1764,13 +1760,12 @@ class MainForm:
             
             # Reset variables
             self.vehicle_var.set("")
-            self.agency_var.set("")
             self.first_weight_var.set("")
             self.first_timestamp_var.set("")
             self.second_weight_var.set("")
             self.second_timestamp_var.set("")
             self.net_weight_var.set("")
-            self.material_type_var.set("Inert")
+            self.material_type_var.set("")
             
             # Reset weighment state
             self.current_weighment = "first"

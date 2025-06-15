@@ -321,7 +321,7 @@ class WeighbridgeManager:
             self.logger.print_error(f"Error in test weight simulation: {e}")
     
     def _parse_weight(self, data_line):
-        """Parse weight from received data with logging
+        """Parse weight from received data with logging - UPDATED with new format support
         
         Args:
             data_line: Raw data string from weighbridge
@@ -330,12 +330,38 @@ class WeighbridgeManager:
             float: Parsed weight in kg, or None if parsing failed
         """
         try:
-            # Common weight patterns from different weighbridge models
+            # Check for the new "Wt:" format first (e.g., "1600Wt:    1500Wt:    1500Wt:")
+            wt_pattern = r'^(\d{2,5})[^0-9]+.*Wt:$'
+            wt_matches = re.findall(wt_pattern, data_line)
+            
+            if wt_matches:
+                # Found weights in "NumberWt:" format
+                weights = [int(match) for match in wt_matches]
+                self.logger.print_debug(f"Found weights in Wt: format: {weights}")
+                
+                # Use the first weight value (you can modify this logic as needed)
+                # Alternative approaches:
+                # - Use the last weight: weight = weights[-1]
+                # - Use average: weight = sum(weights) / len(weights)
+                # - Use maximum: weight = max(weights)
+                weight = weights[0]
+                
+                self.logger.print_debug(f"Selected weight from Wt: format: {weight} kg")
+                return float(weight)
+            
+            # Common weight patterns from different weighbridge models (existing patterns)
             patterns = [
                 r'(\d+\.?\d*)\s*kg',  # "1234.5 kg" or "1234 kg"
                 r'(\d+\.?\d*)\s*KG',  # "1234.5 KG"
                 r'(\d+\.?\d*)',       # Just the number
-                r'.*?(\d+\.?\d*)\s*$' # Number at end of string
+                r'.*?(\d+\.?\d*)\s*$',
+                r'(\d{2,5})[^0-9]*Wt:$',
+                r'(\d{2,5})[^0-9]*.*Wt:$',
+                r'(\d{2,5})[^0-9]*.*Wt :$',
+                r'^(\d{2,5})[^0-9]+.*Wt: $',
+                r'^(\d{2,5}).*Wt:$',
+                r'^(\d{2,5}).*Wt :$',
+                r'^(\d{2,5}).*Wt: $'                                # Number at end of string
             ]
             
             for pattern in patterns:
@@ -375,45 +401,22 @@ class WeighbridgeManager:
             
             # Only report stable weights
             if self.stable_count >= self.stable_readings_required:
-                self.logger.print_info(f"Stable weight reading: {weight:.2f} kg")
-                
-                # Call the callback if available
                 if self.weight_callback:
-                    try:
-                        self.weight_callback(weight)
-                    except Exception as e:
-                        self.logger.print_error(f"Error in weight callback: {e}")
-            
+                    self.weight_callback(weight)
+                    self.logger.print_debug(f"Stable weight reported: {weight:.2f} kg")
+                else:
+                    self.logger.print_debug(f"Stable weight (no callback): {weight:.2f} kg")
+                    
         except Exception as e:
             self.logger.print_error(f"Error processing weight: {e}")
     
     def get_current_weight(self):
-        """Get the current weight reading with logging
+        """Get the current weight reading
         
         Returns:
             float: Current weight in kg
         """
-        try:
-            current_weight = self.last_weight
-            self.logger.print_debug(f"Current weight requested: {current_weight:.2f} kg")
-            return current_weight
-        except Exception as e:
-            self.logger.print_error(f"Error getting current weight: {e}")
-            return 0.0
-    
-    def is_weight_stable(self):
-        """Check if current weight reading is stable
-        
-        Returns:
-            bool: True if weight is stable
-        """
-        try:
-            is_stable = self.stable_count >= self.stable_readings_required
-            self.logger.print_debug(f"Weight stability check: {is_stable} (count: {self.stable_count})")
-            return is_stable
-        except Exception as e:
-            self.logger.print_error(f"Error checking weight stability: {e}")
-            return False
+        return self.last_weight
     
     def get_connection_status(self):
         """Get detailed connection status with logging

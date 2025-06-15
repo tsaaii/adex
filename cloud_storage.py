@@ -721,6 +721,518 @@ class CloudStorageService:
         
         return results
     
+    # NEW: TODAY-ONLY BACKUP METHODS
+    def backup_today_only(self, agency_name, site_name, data_folder="data"):
+        """🎯 BACKUP TODAY'S FILES ONLY - Modified comprehensive backup for current day only
+        
+        This method backs up ONLY today's files when "Full Backup Today" is clicked.
+        It will upload only current day files to: Agency/Site/YYYY-MM-DD/folder_type/
+        
+        Args:
+            agency_name (str): Agency name
+            site_name (str): Site name
+            data_folder (str): Base data folder path (default: "data")
+            
+        Returns:
+            dict: Backup results with detailed statistics for today's files only
+        """
+        if not self.is_connected():
+            return {
+                "success": False,
+                "error": "❌ Not connected to cloud storage",
+                "images": {"uploaded": 0, "total": 0},
+                "json_backups": {"uploaded": 0, "total": 0},
+                "reports": {"uploaded": 0, "total": 0}
+            }
+        
+        start_time = datetime.datetime.now()
+        today_str = start_time.strftime("%Y-%m-%d")
+        
+        # Force use the correct data folder from config
+        try:
+            import config
+            data_folder = config.DATA_FOLDER  # Always use "data" from config
+        except:
+            data_folder = "data"  # Fallback
+        
+        print(f"\n🚀 Starting TODAY ONLY backup for {agency_name} - {site_name}")
+        print(f"📅 Date: {today_str}")
+        print(f"📁 Data folder: {data_folder}")
+        print(f"⚠️  BACKING UP TODAY'S FILES ONLY - OTHER DAYS WILL BE IGNORED")
+        print(f"☁️  Cloud structure: {agency_name}/{site_name}/{today_str}/[images|json_backups|reports]/")
+        print("=" * 80)
+        
+        results = {
+            "success": True,
+            "agency": agency_name,
+            "site": site_name,
+            "date": today_str,
+            "start_time": start_time.isoformat(),
+            "images": {"uploaded": 0, "total": 0, "errors": []},
+            "json_backups": {"uploaded": 0, "total": 0, "errors": []},
+            "reports": {"uploaded": 0, "total": 0, "errors": []},
+            "total_files_uploaded": 0,
+            "total_files_found": 0,
+            "all_errors": [],
+            "cloud_structure": {
+                "images": f"{agency_name}/{site_name}/{today_str}/images/",
+                "json_backups": f"{agency_name}/{site_name}/{today_str}/json_backups/",
+                "reports": f"{agency_name}/{site_name}/{today_str}/reports/"
+            }
+        }
+        
+        # 1. Backup today's images only
+        print(f"\n1️⃣  TODAY'S IMAGES BACKUP")
+        try:
+            # Get today's images folder
+            try:
+                import config
+                base_images_folder = config.IMAGES_FOLDER if hasattr(config, 'IMAGES_FOLDER') else os.path.join(data_folder, "images")
+                todays_images_folder = os.path.join(base_images_folder, today_str)
+            except:
+                todays_images_folder = os.path.join(data_folder, "images", today_str)
+            
+            print(f"🔍 Looking for today's images in: {os.path.abspath(todays_images_folder)}")
+            
+            if os.path.exists(todays_images_folder):
+                uploaded, total, errors = self.backup_images_folder_today_only(agency_name, site_name, todays_images_folder)
+                results["images"]["uploaded"] = uploaded
+                results["images"]["total"] = total
+                results["images"]["errors"] = errors
+                results["all_errors"].extend(errors)
+                print(f"   📊 Today's Images: {uploaded}/{total} files uploaded")
+            else:
+                print(f"   ⚠️ Today's images folder not found: {todays_images_folder}")
+                print(f"   📊 Today's Images: 0/0 files uploaded")
+        except Exception as e:
+            error_msg = f"Today's images backup error: {str(e)}"
+            results["images"]["errors"].append(error_msg)
+            results["all_errors"].append(error_msg)
+            print(f"   ❌ Today's images backup failed: {error_msg}")
+        
+        # 2. Backup today's JSON backups only
+        print(f"\n2️⃣  TODAY'S JSON BACKUPS")
+        try:
+            # Get today's JSON backups folder
+            try:
+                import config
+                base_json_folder = config.JSON_BACKUPS_FOLDER if hasattr(config, 'JSON_BACKUPS_FOLDER') else os.path.join(data_folder, "json_backups")
+                todays_json_folder = os.path.join(base_json_folder, today_str)
+            except:
+                todays_json_folder = os.path.join(data_folder, "json_backups", today_str)
+            
+            print(f"🔍 Looking for today's JSON backups in: {os.path.abspath(todays_json_folder)}")
+            
+            if os.path.exists(todays_json_folder):
+                uploaded, total, errors = self.backup_json_backups_folder_today_only(agency_name, site_name, todays_json_folder)
+                results["json_backups"]["uploaded"] = uploaded
+                results["json_backups"]["total"] = total
+                results["json_backups"]["errors"] = errors
+                results["all_errors"].extend(errors)
+                print(f"   📊 Today's JSON: {uploaded}/{total} files uploaded")
+            else:
+                print(f"   ⚠️ Today's JSON backups folder not found: {todays_json_folder}")
+                print(f"   📊 Today's JSON: 0/0 files uploaded")
+        except Exception as e:
+            error_msg = f"Today's JSON backups error: {str(e)}"
+            results["json_backups"]["errors"].append(error_msg)
+            results["all_errors"].append(error_msg)
+            print(f"   ❌ Today's JSON backups failed: {error_msg}")
+        
+        # 3. Backup today's reports only - MOST IMPORTANT
+        print(f"\n3️⃣  TODAY'S REPORTS BACKUP")
+        try:
+            # Get today's reports folder
+            try:
+                import config
+                base_reports_folder = config.REPORTS_FOLDER
+                todays_reports_folder = os.path.join(base_reports_folder, today_str)
+            except:
+                todays_reports_folder = os.path.join(data_folder, "reports", today_str)
+            
+            print(f"🔍 Looking for today's reports in: {os.path.abspath(todays_reports_folder)}")
+            
+            if os.path.exists(todays_reports_folder):
+                uploaded, total, errors = self.backup_reports_folder_today_only(agency_name, site_name, todays_reports_folder)
+                results["reports"]["uploaded"] = uploaded
+                results["reports"]["total"] = total
+                results["reports"]["errors"] = errors
+                results["all_errors"].extend(errors)
+                print(f"   📊 Today's Reports: {uploaded}/{total} files uploaded")
+            else:
+                print(f"   ⚠️ Today's reports folder not found: {todays_reports_folder}")
+                print(f"   📊 Today's Reports: 0/0 files uploaded")
+        except Exception as e:
+            error_msg = f"Today's reports backup error: {str(e)}"
+            results["reports"]["errors"].append(error_msg)
+            results["all_errors"].append(error_msg)
+            print(f"   ❌ Today's reports backup failed: {error_msg}")
+        
+        # Calculate totals and completion time
+        results["total_files_uploaded"] = (results["images"]["uploaded"] + 
+                                         results["json_backups"]["uploaded"] + 
+                                         results["reports"]["uploaded"])
+        results["total_files_found"] = (results["images"]["total"] + 
+                                      results["json_backups"]["total"] + 
+                                      results["reports"]["total"])
+        
+        end_time = datetime.datetime.now()
+        duration = end_time - start_time
+        results["end_time"] = end_time.isoformat()
+        results["duration_seconds"] = duration.total_seconds()
+        
+        # Determine overall success
+        results["success"] = len(results["all_errors"]) == 0
+        
+        # Print final summary
+        print("\n" + "=" * 80)
+        print(f"🎯 TODAY ONLY BACKUP COMPLETED for {agency_name} - {site_name}")
+        print(f"📅 Date: {today_str}")
+        print(f"⏱️  Duration: {duration.total_seconds():.1f} seconds")
+        print(f"📊 Total files: {results['total_files_uploaded']}/{results['total_files_found']} uploaded")
+        print(f"🖼️  Images: {results['images']['uploaded']}/{results['images']['total']}")
+        print(f"📄 JSON: {results['json_backups']['uploaded']}/{results['json_backups']['total']}")
+        print(f"📊 Reports: {results['reports']['uploaded']}/{results['reports']['total']}")
+        
+        if results["success"]:
+            print(f"✅ SUCCESS! All today's files backed up successfully")
+        else:
+            print(f"⚠️  PARTIAL SUCCESS - {len(results['all_errors'])} errors occurred")
+            for error in results["all_errors"][:3]:  # Show first 3 errors
+                print(f"   ❌ {error}")
+            if len(results["all_errors"]) > 3:
+                print(f"   ... and {len(results['all_errors']) - 3} more errors")
+        
+        print("=" * 80)
+        return results
+
+    def backup_reports_folder_today_only(self, agency_name, site_name, todays_reports_folder):
+        """Backup ONLY today's reports folder - NO recursion to other days
+        
+        Args:
+            agency_name (str): Agency name
+            site_name (str): Site name
+            todays_reports_folder (str): Path to today's reports folder (e.g., data/reports/2024-05-29)
+            
+        Returns:
+            tuple: (files_uploaded, total_files_found, errors)
+        """
+        if not self.is_connected():
+            return 0, 0, ["❌ Not connected to cloud storage"]
+        
+        try:
+            if not os.path.exists(todays_reports_folder):
+                print(f"⚠️  Today's reports folder not found: {todays_reports_folder}")
+                return 0, 0, [f"Today's reports folder not found: {todays_reports_folder}"]
+            
+            today_str = datetime.datetime.now().strftime("%Y-%m-%d")
+            cloud_base_path = self.get_cloud_path(agency_name, site_name, today_str, "reports")
+            
+            tracking_data = self.get_backup_tracking_data()
+            reports_tracking = tracking_data.get("daily_reports_backed_up", {})
+            
+            files_uploaded = 0
+            total_files_found = 0
+            errors = []
+            
+            print(f"📊 Starting today's reports backup to: {cloud_base_path}")
+            print(f"📁 Source folder: {todays_reports_folder}")
+            
+            # ONLY scan files in today's folder - NO RECURSION
+            try:
+                files_in_today = os.listdir(todays_reports_folder)
+                print(f"📋 Found {len(files_in_today)} items in today's folder")
+                
+                for file in files_in_today:
+                    file_path = os.path.join(todays_reports_folder, file)
+                    
+                    # Skip if it's a directory (we only want files)
+                    if os.path.isdir(file_path):
+                        print(f"⏭️  Skipping directory: {file}")
+                        continue
+                    
+                    # Only process files
+                    if os.path.isfile(file_path):
+                        total_files_found += 1
+                        
+                        # Cloud filename (just the filename, no subfolders)
+                        cloud_filename = f"{cloud_base_path}{file}"
+                        
+                        # Check if file needs backup using hash comparison
+                        current_hash = self.get_file_hash(file_path)
+                        
+                        # Check tracking data to avoid duplicates
+                        if (file_path in reports_tracking and 
+                            reports_tracking[file_path].get("hash") == current_hash):
+                            print(f"⏭️  Skipping duplicate: {file}")
+                            continue
+                        
+                        try:
+                            # Upload file to cloud
+                            blob = self.bucket.blob(cloud_filename)
+                            
+                            # Set appropriate content type based on file extension
+                            file_extension = os.path.splitext(file_path)[1].lower()
+                            content_type_map = {
+                                '.pdf': 'application/pdf', 
+                                '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+                                '.png': 'image/png', 
+                                '.json': 'application/json', 
+                                '.txt': 'text/plain',
+                                '.csv': 'text/csv', 
+                                '.html': 'text/html',
+                                '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                            }
+                            content_type = content_type_map.get(file_extension, 'application/octet-stream')
+                            
+                            blob.upload_from_filename(file_path, content_type=content_type)
+                            
+                            # Update tracking data
+                            reports_tracking[file_path] = {
+                                "hash": current_hash,
+                                "upload_date": datetime.datetime.now().isoformat(),
+                                "cloud_path": cloud_filename,
+                                "file_size": os.path.getsize(file_path),
+                                "agency": agency_name,
+                                "site": site_name,
+                                "date": today_str,
+                                "last_modified": datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).isoformat()
+                            }
+                            
+                            files_uploaded += 1
+                            print(f"   ✅ Uploaded: {file}")
+                            
+                        except Exception as e:
+                            error_msg = f"Error uploading {file}: {str(e)}"
+                            errors.append(error_msg)
+                            print(f"   ❌ {error_msg}")
+                            
+            except Exception as e:
+                error_msg = f"Error reading today's reports folder: {str(e)}"
+                errors.append(error_msg)
+                print(f"❌ {error_msg}")
+            
+            # Save tracking data
+            tracking_data["daily_reports_backed_up"] = reports_tracking
+            tracking_data["last_backup_date"] = datetime.datetime.now().isoformat()
+            self.save_backup_tracking_data(tracking_data)
+            
+            print(f"📊 Today's reports backup completed: {files_uploaded}/{total_files_found} files uploaded")
+            return files_uploaded, total_files_found, errors
+            
+        except Exception as e:
+            error_msg = f"Error backing up today's reports: {str(e)}"
+            print(f"❌ {error_msg}")
+            return 0, 0, [error_msg]
+
+    def backup_images_folder_today_only(self, agency_name, site_name, todays_images_folder):
+        """Backup ONLY today's images folder - NO recursion to other days
+        
+        Args:
+            agency_name (str): Agency name
+            site_name (str): Site name
+            todays_images_folder (str): Path to today's images folder
+            
+        Returns:
+            tuple: (files_uploaded, total_files_found, errors)
+        """
+        if not self.is_connected():
+            return 0, 0, ["❌ Not connected to cloud storage"]
+        
+        try:
+            if not os.path.exists(todays_images_folder):
+                print(f"⚠️  Today's images folder not found: {todays_images_folder}")
+                return 0, 0, [f"Today's images folder not found: {todays_images_folder}"]
+            
+            today_str = datetime.datetime.now().strftime("%Y-%m-%d")
+            cloud_base_path = self.get_cloud_path(agency_name, site_name, today_str, "images")
+            
+            tracking_data = self.get_backup_tracking_data()
+            images_tracking = tracking_data.get("images_backed_up", {})
+            
+            files_uploaded = 0
+            total_files_found = 0
+            errors = []
+            
+            print(f"🖼️  Starting today's images backup to: {cloud_base_path}")
+            
+            # Get all image files from today's folder only
+            image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff', '.tif'}
+            
+            try:
+                files_in_today = os.listdir(todays_images_folder)
+                
+                for file in files_in_today:
+                    if not any(file.lower().endswith(ext) for ext in image_extensions):
+                        continue
+                        
+                    file_path = os.path.join(todays_images_folder, file)
+                    
+                    if os.path.isfile(file_path):
+                        total_files_found += 1
+                        
+                        cloud_filename = f"{cloud_base_path}{file}"
+                        
+                        # Check if file needs backup using hash comparison
+                        current_hash = self.get_file_hash(file_path)
+                        
+                        if (file_path in images_tracking and 
+                            images_tracking[file_path].get("hash") == current_hash):
+                            print(f"⏭️  Skipping duplicate image: {file}")
+                            continue
+                        
+                        try:
+                            # Upload image to cloud
+                            blob = self.bucket.blob(cloud_filename)
+                            
+                            # Set appropriate content type
+                            file_extension = os.path.splitext(file_path)[1].lower()
+                            content_type_map = {
+                                '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+                                '.gif': 'image/gif', '.bmp': 'image/bmp', '.webp': 'image/webp',
+                                '.tiff': 'image/tiff', '.tif': 'image/tiff'
+                            }
+                            content_type = content_type_map.get(file_extension, 'image/jpeg')
+                            
+                            blob.upload_from_filename(file_path, content_type=content_type)
+                            
+                            # Update tracking data
+                            images_tracking[file_path] = {
+                                "hash": current_hash,
+                                "upload_date": datetime.datetime.now().isoformat(),
+                                "cloud_path": cloud_filename,
+                                "file_size": os.path.getsize(file_path),
+                                "agency": agency_name,
+                                "site": site_name,
+                                "date": today_str,
+                                "last_modified": datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).isoformat()
+                            }
+                            
+                            files_uploaded += 1
+                            print(f"   ✅ Uploaded: {file}")
+                            
+                        except Exception as e:
+                            error_msg = f"Error uploading {file}: {str(e)}"
+                            errors.append(error_msg)
+                            print(f"   ❌ {error_msg}")
+                            
+            except Exception as e:
+                error_msg = f"Error reading today's images folder: {str(e)}"
+                errors.append(error_msg)
+                print(f"❌ {error_msg}")
+            
+            # Save tracking data
+            tracking_data["images_backed_up"] = images_tracking
+            tracking_data["last_backup_date"] = datetime.datetime.now().isoformat()
+            self.save_backup_tracking_data(tracking_data)
+            
+            print(f"📊 Today's images backup completed: {files_uploaded}/{total_files_found} files uploaded")
+            return files_uploaded, total_files_found, errors
+            
+        except Exception as e:
+            error_msg = f"Error backing up today's images: {str(e)}"
+            print(f"❌ {error_msg}")
+            return 0, 0, [error_msg]
+
+    def backup_json_backups_folder_today_only(self, agency_name, site_name, todays_json_folder):
+        """Backup ONLY today's JSON backups folder - NO recursion to other days
+        
+        Args:
+            agency_name (str): Agency name
+            site_name (str): Site name
+            todays_json_folder (str): Path to today's JSON backups folder
+            
+        Returns:
+            tuple: (files_uploaded, total_files_found, errors)
+        """
+        if not self.is_connected():
+            return 0, 0, ["❌ Not connected to cloud storage"]
+        
+        try:
+            if not os.path.exists(todays_json_folder):
+                print(f"⚠️  Today's JSON backups folder not found: {todays_json_folder}")
+                return 0, 0, [f"Today's JSON backups folder not found: {todays_json_folder}"]
+            
+            today_str = datetime.datetime.now().strftime("%Y-%m-%d")
+            cloud_base_path = self.get_cloud_path(agency_name, site_name, today_str, "json_backups")
+            
+            tracking_data = self.get_backup_tracking_data()
+            json_tracking = tracking_data.get("json_backups_backed_up", {})
+            
+            files_uploaded = 0
+            total_files_found = 0
+            errors = []
+            
+            print(f"📄 Starting today's JSON backups backup to: {cloud_base_path}")
+            
+            try:
+                files_in_today = os.listdir(todays_json_folder)
+                
+                for file in files_in_today:
+                    if not file.lower().endswith('.json'):
+                        continue
+                        
+                    file_path = os.path.join(todays_json_folder, file)
+                    
+                    if os.path.isfile(file_path):
+                        total_files_found += 1
+                        
+                        cloud_filename = f"{cloud_base_path}{file}"
+                        
+                        # Check if file needs backup using hash comparison
+                        current_hash = self.get_file_hash(file_path)
+                        
+                        if (file_path in json_tracking and 
+                            json_tracking[file_path].get("hash") == current_hash):
+                            print(f"⏭️  Skipping duplicate JSON: {file}")
+                            continue
+                        
+                        try:
+                            # Upload JSON to cloud
+                            blob = self.bucket.blob(cloud_filename)
+                            blob.upload_from_filename(file_path, content_type="application/json")
+                            
+                            # Update tracking data
+                            json_tracking[file_path] = {
+                                "hash": current_hash,
+                                "upload_date": datetime.datetime.now().isoformat(),
+                                "cloud_path": cloud_filename,
+                                "file_size": os.path.getsize(file_path),
+                                "agency": agency_name,
+                                "site": site_name,
+                                "date": today_str,
+                                "last_modified": datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).isoformat()
+                            }
+                            
+                            files_uploaded += 1
+                            print(f"   ✅ Uploaded: {file}")
+                            
+                        except Exception as e:
+                            error_msg = f"Error uploading {file}: {str(e)}"
+                            errors.append(error_msg)
+                            print(f"   ❌ {error_msg}")
+                            
+            except Exception as e:
+                error_msg = f"Error reading today's JSON backups folder: {str(e)}"
+                errors.append(error_msg)
+                print(f"❌ {error_msg}")
+            
+            # Save tracking data
+            tracking_data["json_backups_backed_up"] = json_tracking
+            tracking_data["last_backup_date"] = datetime.datetime.now().isoformat()
+            self.save_backup_tracking_data(tracking_data)
+            
+            print(f"📊 Today's JSON backups completed: {files_uploaded}/{total_files_found} files uploaded")
+            return files_uploaded, total_files_found, errors
+            
+        except Exception as e:
+            error_msg = f"Error backing up today's JSON backups: {str(e)}"
+            print(f"❌ {error_msg}")
+            return 0, 0, [error_msg]
+    
+    # END OF TODAY-ONLY BACKUP METHODS
+    
     def quick_backup_single_folder(self, agency_name, site_name, folder_type, data_folder="data"):
         """Quick backup of a single folder type
         
@@ -1460,8 +1972,11 @@ def example_backup_usage():
     print("# Initialize service")
     print('cloud_service = CloudStorageService("your-bucket-name", "path/to/credentials.json")')
     print("")
-    print("# Perform comprehensive backup")
+    print("# Perform comprehensive backup (all days)")
     print('results = cloud_service.comprehensive_backup("Tharuni", "Guntur")')
+    print("")
+    print("# Perform today-only backup")
+    print('results = cloud_service.backup_today_only("Tharuni", "Guntur")')
     print("")
     print("# Check results")
     print("if results['success']:")
@@ -1470,7 +1985,11 @@ def example_backup_usage():
     print("    print(f'❌ Backup had {len(results[\"all_errors\"])} errors')")
     print("")
     print("# Files will be organized as:")
-    print("# Tharuni/Guntur/2025-05-30/images/")
-    print("# Tharuni/Guntur/2025-05-30/json_backups/")
-    print("# Tharuni/Guntur/2025-05-30/reports/")
+    print("# Tharuni/Guntur/2025-06-14/images/")
+    print("# Tharuni/Guntur/2025-06-14/json_backups/")
+    print("# Tharuni/Guntur/2025-06-14/reports/")
+    print("")
+    print("# TODAY-ONLY vs COMPREHENSIVE:")
+    print("# comprehensive_backup() - Backs up ALL days in all folders")
+    print("# backup_today_only() - Backs up ONLY current day folder (2025-06-14)")
     print("="*50)
