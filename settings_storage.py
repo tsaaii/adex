@@ -575,7 +575,7 @@ class SettingsStorage:
             return False
     
     def save_sites(self, sites_data):
-        """Save sites, incharges and transfer parties to file
+        """Save sites, incharges and transfer parties to file with atomic write and backup
         
         Args:
             sites_data: Dict with 'sites', 'incharges', and 'transfer_parties' keys
@@ -583,16 +583,123 @@ class SettingsStorage:
         Returns:
             bool: True if successful, False otherwise
         """
+        import tempfile
+        import shutil
+        import os
+        
         try:
-            # Ensure transfer_parties exists
+            # Validate input data
+            if not isinstance(sites_data, dict):
+                print(f"Error: sites_data must be a dict, got {type(sites_data)}")
+                return False
+                
+            # Ensure all required keys exist with defaults
+            if 'sites' not in sites_data:
+                sites_data['sites'] = ["Guntur"]
+            if 'incharges' not in sites_data:
+                sites_data['incharges'] = ["Site Manager"]  
             if 'transfer_parties' not in sites_data:
                 sites_data['transfer_parties'] = ["Advitia Labs"]
+            if 'agencies' not in sites_data:
+                sites_data['agencies'] = ["Default Agency"]
                 
-            with open(self.sites_file, 'w') as f:
-                json.dump(sites_data, f, indent=4)
-            return True
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(self.sites_file), exist_ok=True)
+            
+            # Create backup of existing file (if it exists and is valid)
+            backup_path = f"{self.sites_file}.backup"
+            if os.path.exists(self.sites_file):
+                try:
+                    # Verify existing file is valid JSON before backing up
+                    with open(self.sites_file, 'r') as f:
+                        json.load(f)  # This will raise exception if invalid
+                    shutil.copy2(self.sites_file, backup_path)
+                    print(f"Created backup: {backup_path}")
+                except (json.JSONDecodeError, Exception) as e:
+                    print(f"Existing sites file is corrupt, not backing up: {e}")
+            
+            # Use atomic write with temporary file
+            temp_file = None
+            try:
+                # Create temporary file in same directory as target
+                temp_fd, temp_file = tempfile.mkstemp(
+                    dir=os.path.dirname(self.sites_file),
+                    prefix='sites_temp_',
+                    suffix='.json'
+                )
+                
+                # Write to temporary file
+                with os.fdopen(temp_fd, 'w') as f:
+                    json.dump(sites_data, f, indent=4)
+                    f.flush()  # Ensure data is written to disk
+                    os.fsync(f.fileno())  # Force write to disk
+                
+                # Verify the temporary file was written correctly
+                with open(temp_file, 'r') as f:
+                    verified_data = json.load(f)
+                    
+                # If verification passes, atomically replace the original file
+                if os.name == 'nt':  # Windows
+                    # On Windows, remove target first
+                    if os.path.exists(self.sites_file):
+                        os.remove(self.sites_file)
+                    shutil.move(temp_file, self.sites_file)
+                else:  # Unix/Linux
+                    # On Unix, rename is atomic
+                    os.rename(temp_file, self.sites_file)
+                
+                temp_file = None  # Successfully moved, don't clean up
+                
+                # Remove backup file after successful write
+                if os.path.exists(backup_path):
+                    os.remove(backup_path)
+                    
+                print(f"Sites data saved successfully to: {self.sites_file}")
+                return True
+                
+            except Exception as write_error:
+                print(f"Error during atomic write: {write_error}")
+                
+                # Clean up temporary file if it exists
+                if temp_file and os.path.exists(temp_file):
+                    try:
+                        os.remove(temp_file)
+                    except:
+                        pass
+                
+                # Restore from backup if available
+                if os.path.exists(backup_path):
+                    try:
+                        shutil.copy2(backup_path, self.sites_file)
+                        print(f"Restored sites file from backup")
+                    except Exception as restore_error:
+                        print(f"Error restoring from backup: {restore_error}")
+                
+                return False
+                
         except Exception as e:
             print(f"Error saving sites: {e}")
+            
+            # Last resort: create default sites file if it doesn't exist
+            if not os.path.exists(self.sites_file):
+                try:
+                    default_sites = {
+                        "sites": ["Guntur"],
+                        "incharges": ["Site Manager"],
+                        "transfer_parties": ["Advitia Labs"],
+                        "agencies": ["Default Agency"]
+                    }
+                    
+                    os.makedirs(os.path.dirname(self.sites_file), exist_ok=True)
+                    with open(self.sites_file, 'w') as f:
+                        json.dump(default_sites, f, indent=4)
+                        
+                    print("Created default sites file as fallback")
+                    return True
+                    
+                except Exception as fallback_error:
+                    print(f"Error creating fallback sites file: {fallback_error}")
+                    
             return False
     
     def authenticate_user(self, username, password):
@@ -603,19 +710,39 @@ class SettingsStorage:
             password: Password
             
         Returns:
-            tuple: (success, role)
+            tuple: (success, role) - success is bool, role is string or None
         """
-        users = self.get_users()
-        if username in users:
+        try:
+            # Input validation
+            if not username or not password:
+                return False, None
+                
+            # Get users data
+            users = self.get_users()
+            
+            # Check if user exists
+            if username not in users:
+                return False, None
+                
             user_data = users[username]
             stored_hash = user_data.get('password', '')
             
-            # Verify password
-            if stored_hash == self.hash_password(password):
-                return True, user_data.get('role', 'user')
-        
-        return False, None
-    
+            # Verify password using hash comparison
+            input_hash = self.hash_password(password)
+            
+            if stored_hash == input_hash:
+                role = user_data.get('role', 'user')
+                print(f"Authentication successful for user: {username} (role: {role})")
+                return True, role
+            else:
+                print(f"Authentication failed for user: {username} - password mismatch")
+                return False, None
+                
+        except Exception as e:
+            print(f"Error authenticating user {username}: {e}")
+            return False, None
+
+
     def isAuthenticated(self, username, password):
         """Check if user is authenticated for settings access
         

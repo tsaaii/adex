@@ -1,5 +1,36 @@
 #pyinstaller --onedir --windowed --add-data "data;data" --collect-all=cv2 --collect-all=pandas --collect-all=PIL --hidden-import=serial --hidden-import=google.cloud --hidden-import=psutil --optimize=2 --strip --noupx --name="Swaccha_Andhra2.0" --icon=right.ico advitia_app.py
-#pyinstaller ^  --onedir ^  --windowed ^  --name="SAC_monitor_0613" ^  --icon=right.ico ^  --add-data "data;data" ^  --hidden-import=serial ^  --hidden-import=serial.tools.list_ports ^  --hidden-import=google.cloud.storage ^  --hidden-import=google.api_core.exceptions ^  --hidden-import=google.auth ^  --hidden-import=PIL._tkinter_finder ^  --hidden-import=PIL.Image ^  --hidden-import=PIL.ImageTk ^  --hidden-import=pandas._libs.testing ^  --hidden-import=cv2 ^  --hidden-import=reportlab.pdfgen.canvas ^  --hidden-import=reportlab.lib.pagesizes ^  --hidden-import=reportlab.platypus ^  --hidden-import=psutil ^  --hidden-import=tkinter.filedialog ^  --hidden-import=tkinter.messagebox ^  --exclude-module=matplotlib ^  --exclude-module=scipy ^  --exclude-module=jupyter ^  --exclude-module=cv2.aruco ^  --exclude-module=cv2.face ^  --exclude-module=cv2.tracking ^  --optimize=2 ^  --strip ^  --uac-admin ^  advitia_app.py
+# pyinstaller ^
+#   --onedir ^
+#   --windowed ^
+#   --name="SAC_monitor_0614" ^
+#   --icon=right.ico ^
+#   --add-data "data;data" ^
+#   --hidden-import=serial ^
+#   --hidden-import=serial.tools.list_ports ^
+#   --hidden-import=google.cloud.storage ^
+#   --hidden-import=google.api_core.exceptions ^
+#   --hidden-import=google.auth ^
+#   --hidden-import=PIL._tkinter_finder ^
+#   --hidden-import=PIL.Image ^
+#   --hidden-import=PIL.ImageTk ^
+#   --hidden-import=pandas._libs.testing ^
+#   --hidden-import=cv2 ^
+#   --hidden-import=reportlab.pdfgen.canvas ^
+#   --hidden-import=reportlab.lib.pagesizes ^
+#   --hidden-import=reportlab.platypus ^
+#   --hidden-import=psutil ^
+#   --hidden-import=tkinter.filedialog ^
+#   --hidden-import=tkinter.messagebox ^
+#   --exclude-module=matplotlib ^
+#   --exclude-module=scipy ^
+#   --exclude-module=jupyter ^
+#   --exclude-module=cv2.aruco ^
+#   --exclude-module=cv2.face ^
+#   --exclude-module=cv2.tracking ^
+#   --optimize=2 ^
+#   --strip ^
+#   advitia_app.py
+
 import tkinter as tk
 import os
 import datetime
@@ -330,7 +361,7 @@ class TharuniApp:
                 save_callback=self.save_record,
                 view_callback=self.view_records,
                 clear_callback=self.clear_form,
-                exit_callback=self.on_closing
+                exit_callback=self.confirm_exit
             )
             self.logger.info("Main form created")
 
@@ -373,6 +404,16 @@ class TharuniApp:
         except Exception as e:
             self.logger.error(f"Error creating main panel: {e}")
             raise
+    def confirm_exit(self):
+        """Ask for confirmation before exiting"""
+        try:
+            result = messagebox.askyesno("Exit Application", 
+                                        "Are you sure you want to exit the application?")
+            if result:
+                self.on_closing()
+        except Exception as e:
+            self.logger.error(f"Error in confirm_exit: {e}")
+            self.on_closing()
 
     def save_record(self):
         """FIXED: Save current record - smart ticket increment logic"""

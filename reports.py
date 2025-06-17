@@ -201,6 +201,8 @@ class ReportGenerator:
         refresh_btn = ttk.Button(button_frame, text="Refresh Data", command=self.refresh_records)
         refresh_btn.pack(side=tk.LEFT, padx=5)
     
+
+    
     def create_selection_frame(self):
         """Create the record selection frame with checkboxes"""
         selection_frame = ttk.LabelFrame(self.report_window, text="Select Records for Export", padding=5)

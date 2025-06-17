@@ -1169,6 +1169,8 @@ class MainForm:
                 self.clear_form()
         except Exception as e:
             print(f"Error in clear callback: {e}")
+            # Don't call exit callback on error - just clear the form
+            self.clear_form()
 
     def trigger_exit_callback(self):
         """Trigger the exit callback"""
@@ -1776,45 +1778,6 @@ class MainForm:
             self.first_back_image_path = None
             self.second_front_image_path = None
             self.second_back_image_path = None
-            
-            # Reset images using image handler
-            if hasattr(self, 'image_handler'):
-                self.image_handler.reset_images()
-            
-            # Reset cameras if they exist
-            if hasattr(self, 'front_camera') and self.front_camera:
-                try:
-                    if hasattr(self.front_camera, 'stop_continuous_feed'):
-                        self.front_camera.stop_continuous_feed()
-                    elif hasattr(self.front_camera, 'stop_camera'):
-                        self.front_camera.stop_camera()
-                        
-                    # Reset captured image and display
-                    self.front_camera.captured_image = None
-                    if hasattr(self.front_camera, 'canvas'):
-                        self.front_camera.canvas.delete("all")
-                        self.front_camera.show_status_message("Click 'Start Feed' to begin")
-                    if hasattr(self.front_camera, 'save_button'):
-                        self.front_camera.save_button.config(state=tk.DISABLED)
-                except Exception as e:
-                    print(f"🎫 FORM DEBUG: Error resetting front camera: {e}")
-                    
-            if hasattr(self, 'back_camera') and self.back_camera:
-                try:
-                    if hasattr(self.back_camera, 'stop_continuous_feed'):
-                        self.back_camera.stop_continuous_feed()
-                    elif hasattr(self.back_camera, 'stop_camera'):
-                        self.back_camera.stop_camera()
-                        
-                    # Reset captured image and display
-                    self.back_camera.captured_image = None
-                    if hasattr(self.back_camera, 'canvas'):
-                        self.back_camera.canvas.delete("all")
-                        self.back_camera.show_status_message("Click 'Start Feed' to begin")
-                    if hasattr(self.back_camera, 'save_button'):
-                        self.back_camera.save_button.config(state=tk.DISABLED)
-                except Exception as e:
-                    print(f"🎫 FORM DEBUG: Error resetting back camera: {e}")
             
             # Reserve the next ticket number
             self.reserve_next_ticket_number()
