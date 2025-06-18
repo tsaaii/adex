@@ -55,6 +55,10 @@ try:
     CONNECTIVITY_AVAILABLE = True
 except ImportError:
     CONNECTIVITY_AVAILABLE = False
+if config.HARDCODED_MODE:
+    from hardcoded_settings import HardcodedSettingsStorage
+else:
+    from settings_storage import SettingsStorage
 
 def setup_app_logging():
     """FIXED: Set up application-wide logging with better error handling"""
@@ -136,14 +140,20 @@ class TharuniApp:
             self.data_manager = DataManager()
             self.logger.info("Data manager initialized")
             
-            # Initialize settings storage
-            self.settings_storage = SettingsStorage()
-            self.logger.info("Settings storage initialized")
+            # MODIFIED: Initialize settings storage based on mode
+            if config.HARDCODED_MODE:
+                from hardcoded_settings import HardcodedSettingsStorage
+                self.settings_storage = HardcodedSettingsStorage()
+                self.logger.info("Using hardcoded settings storage")
+            else:
+                self.settings_storage = SettingsStorage()
+                self.logger.info("Using file-based settings storage")
             
-            # IMPORTANT: Verify settings integrity at startup
-            if not self.settings_storage.verify_settings_integrity():
-                self.logger.warning("Settings integrity check failed - reinitializing settings files")
-                self.settings_storage.initialize_files()
+            # IMPORTANT: Verify settings integrity at startup (only for non-hardcoded mode)
+            if not config.HARDCODED_MODE:
+                if not self.settings_storage.verify_settings_integrity():
+                    self.logger.warning("Settings integrity check failed - reinitializing settings files")
+                    self.settings_storage.initialize_files()
             
             # Initialize UI styles
             self.style = create_styles()
@@ -185,58 +195,83 @@ class TharuniApp:
                                f"Failed to initialize application:\n{str(e)}\n\nCheck logs for details.")
             self.root.quit()
 
+            
     def authenticate_user(self):
-        """Show login dialog and authenticate user"""
+        """Simplified authentication for hardcoded mode"""
         try:
             self.logger.info("Starting user authentication")
-            login = LoginDialog(self.root, self.settings_storage, show_select=True)
             
-            if login.result:
-                self.logged_in_user = login.username
-                self.user_role = login.role
-                self.selected_site = login.site
-                self.selected_incharge = login.incharge  # Store the selected incharge
-                self.logger.info(f"Authentication successful: {self.logged_in_user}")
+            if config.HARDCODED_MODE:
+                if config.REQUIRE_PASSWORD:
+                    # Simple password dialog
+                    import tkinter.simpledialog as simpledialog
+                    password = simpledialog.askstring("Login", "Enter password:", show='*')
+                    
+                    if password and password == config.HARDCODED_PASSWORD:
+                        self.logged_in_user = config.HARDCODED_USER
+                        self.user_role = "admin"
+                        self.selected_site = config.HARDCODED_SITE
+                        self.selected_incharge = config.HARDCODED_INCHARGE
+                        self.logger.info(f"Hardcoded authentication successful: {self.logged_in_user}")
+                    else:
+                        self.logger.info("Authentication failed - exiting application")
+                        self.root.quit()
+                        return
+                else:
+                    # No authentication required
+                    self.logged_in_user = config.HARDCODED_USER
+                    self.user_role = "admin"
+                    self.selected_site = config.HARDCODED_SITE
+                    self.selected_incharge = config.HARDCODED_INCHARGE
+                    self.logger.info(f"Auto-login: {self.logged_in_user}")
             else:
-                # Exit application if login failed or canceled
-                self.logger.info("Authentication canceled - exiting application")
-                self.root.quit()
+                # Original login dialog for non-hardcoded mode
+                from login_dialog import LoginDialog
+                login = LoginDialog(self.root, self.settings_storage, show_select=True)
                 
+                if login.result:
+                    self.logged_in_user = login.username
+                    self.user_role = login.role
+                    self.selected_site = login.site
+                    self.selected_incharge = login.incharge
+                    self.logger.info(f"Authentication successful: {self.logged_in_user}")
+                else:
+                    self.logger.info("Authentication canceled - exiting application")
+                    self.root.quit()
+                    
         except Exception as e:
             self.logger.error(f"Error during authentication: {e}")
-            messagebox.showerror("Authentication Error", f"Authentication failed: {str(e)}")
             self.root.quit()
 
     def setup_data_context(self):
-        """Set up the data context based on login selections"""
+        """Set up data context with hardcoded values when in hardcoded mode"""
         try:
             self.logger.info("Setting up data context")
             
-            # Get the first agency from settings if none selected during login
-            sites_data = self.settings_storage.get_sites()
-            agencies = sites_data.get('agencies', ['Default Agency'])
+            if config.HARDCODED_MODE:
+                # Use hardcoded values
+                agency_name = config.HARDCODED_AGENCY
+                site_name = config.HARDCODED_SITE
+                self.logger.info("Using hardcoded agency and site values")
+            else:
+                # Original logic for dynamic selection
+                sites_data = self.settings_storage.get_sites()
+                agencies = sites_data.get('agencies', ['Default Agency'])
+                agency_name = agencies[0] if agencies else 'Default Agency'
+                site_name = self.selected_site if self.selected_site else 'Guntur'
             
-            # Use the first agency if available, or fallback
-            agency_name = agencies[0] if agencies else 'Default Agency'
-            
-            # Use selected site or default
-            site_name = self.selected_site if self.selected_site else 'Guntur'
-            
-            # Set the data context for dynamic filename
             self.data_manager.set_agency_site_context(agency_name, site_name)
             
-            # Store context for reference
             self.current_agency = agency_name
             self.current_site = site_name
             
             self.logger.info(f"Data context initialized: Agency='{agency_name}', Site='{site_name}'")
             self.logger.info(f"Data will be saved to: {self.data_manager.get_current_data_file()}")
-            self.logger.info(f"PDFs will be saved to: {self.data_manager.today_pdf_folder}")
+            self.logger.info(f"PDFs will be saved to: {self.data_manager.get_daily_folder('pdf')}")
             
         except Exception as e:
             self.logger.error(f"Error setting up data context: {e}")
-            # Fallback to default context
-            self.data_manager.set_agency_site_context('Default Agency', 'Guntur')
+            raise
 
     def create_widgets(self):
         """Create all widgets and layout for the application"""

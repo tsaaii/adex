@@ -51,6 +51,84 @@ class SettingsPanel:
         # IMPORTANT: Load saved settings AFTER creating the panel
         self.load_all_saved_settings()
 
+
+    def create_panel(self):
+        """Create settings panel with tabs"""
+        # Create settings notebook
+        self.settings_notebook = ttk.Notebook(self.parent)
+        self.settings_notebook.pack(fill=tk.BOTH, expand=True)
+        
+        # Weighbridge settings tab
+        weighbridge_tab = ttk.Frame(self.settings_notebook, style="TFrame")
+        self.settings_notebook.add(weighbridge_tab, text="Weighbridge")
+        
+        # Camera settings tab
+        camera_tab = ttk.Frame(self.settings_notebook, style="TFrame")
+        self.settings_notebook.add(camera_tab, text="Cameras")
+        
+        # Only create User and Site management tabs if NOT in hardcoded mode
+        if not config.HARDCODED_MODE:
+            # User management tab (only visible to admin)
+            users_tab = ttk.Frame(self.settings_notebook, style="TFrame")
+            self.settings_notebook.add(users_tab, text="Users")
+            
+            # Site management tab (only visible to admin)
+            sites_tab = ttk.Frame(self.settings_notebook, style="TFrame")
+            self.settings_notebook.add(sites_tab, text="Sites")
+            
+            # Create user and site management content
+            self.create_user_management(users_tab)
+            self.create_site_management(sites_tab)
+        
+        # Create tab contents for core tabs (always present)
+        self.create_weighbridge_settings(weighbridge_tab)
+        self.create_camera_settings(camera_tab)
+
+        # Admin controls (lock/unlock) - only show if admin and not hardcoded mode
+        if self.user_role == 'admin' and not config.HARDCODED_MODE:
+            lock_frame = ttk.Frame(self.parent)
+            lock_frame.pack(fill=tk.X, padx=5, pady=5)
+            
+            if self.are_settings_locked():
+                unlock_btn = HoverButton(lock_frame,
+                                    text="🔓 Unlock Settings",
+                                    bg=config.COLORS["warning"],
+                                    fg=config.COLORS["button_text"],
+                                    padx=10, pady=3,
+                                    command=self.unlock_settings)
+                unlock_btn.pack(side=tk.RIGHT, padx=5)
+            else:
+                lock_btn = HoverButton(lock_frame,
+                                    text="🔒 Lock Settings",
+                                    bg=config.COLORS["error"],
+                                    fg=config.COLORS["button_text"],
+                                    padx=10, pady=3,
+                                    command=self.lock_settings)
+                lock_btn.pack(side=tk.RIGHT, padx=5)
+
+            if self.are_settings_locked():
+                self.disable_all_settings()
+
+    def create_sites_tab(self):
+        """Create sites management tab - disabled in hardcoded mode"""
+        if config.HARDCODED_MODE:
+            # Create a simple label explaining hardcoded mode
+            info_frame = ttk.Frame(self.sites_frame, padding=20)
+            info_frame.pack(fill=tk.BOTH, expand=True)
+            
+            ttk.Label(info_frame, 
+                    text="Sites Management is disabled.\n\n"
+                        f"Current Configuration:\n"
+                        f"Agency: {config.HARDCODED_AGENCY}\n"
+                        f"Site: {config.HARDCODED_SITE}\n"
+                        f"Transfer Party: {config.HARDCODED_TRANSFER_PARTY}\n"
+                        f"Incharge: {config.HARDCODED_INCHARGE}\n\n"
+                        f"To modify these values, edit the config.py file.",
+                    font=("Segoe UI", 12),
+                    justify=tk.CENTER).pack(expand=True)
+            return
+
+
     def load_all_saved_settings(self):
         """Load all saved settings after panel creation - UPDATED"""
         try:
@@ -262,6 +340,42 @@ class SettingsPanel:
         except Exception as e:
             print(f"Error applying camera settings: {e}")
             self.cam_status_var.set(f"Error applying settings: {str(e)}")
+
+
+    def create_settings_tabs_hidden(self):
+        """Alternative: Create settings notebook with hidden tabs in hardcoded mode"""
+        # Create the notebook
+        self.settings_notebook = ttk.Notebook(self.parent, style="TNotebook")
+        self.settings_notebook.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # Weighbridge settings tab
+        weighbridge_tab = ttk.Frame(self.settings_notebook, style="TFrame")
+        self.settings_notebook.add(weighbridge_tab, text="Weighbridge")
+        
+        # Camera settings tab
+        camera_tab = ttk.Frame(self.settings_notebook, style="TFrame")
+        self.settings_notebook.add(camera_tab, text="Cameras")
+        
+        # Always create the tabs but hide them in hardcoded mode
+        users_tab = ttk.Frame(self.settings_notebook, style="TFrame")
+        sites_tab = ttk.Frame(self.settings_notebook, style="TFrame")
+        
+        if config.HARDCODED_MODE:
+            # Add but immediately hide the tabs
+            self.settings_notebook.add(users_tab, text="Users")
+            self.settings_notebook.add(sites_tab, text="Sites")
+            self.settings_notebook.tab(2, state="hidden")  # Hide Users tab
+            self.settings_notebook.tab(3, state="hidden")  # Hide Sites tab
+        else:
+            # Normal mode - add and show tabs
+            self.settings_notebook.add(users_tab, text="Users")
+            self.settings_notebook.add(sites_tab, text="Sites")
+            self.create_user_management(users_tab)
+            self.create_site_management(sites_tab)
+        
+        # Create tab contents for enabled tabs
+        self.create_weighbridge_settings(weighbridge_tab)
+        self.create_camera_settings(camera_tab)            
 
     def get_current_camera_settings(self):
         """Get current camera settings from UI with HTTP support
@@ -726,57 +840,6 @@ class SettingsPanel:
             if "back_camera_index" in camera_settings:
                 self.back_cam_index_var.set(camera_settings["back_camera_index"])
     
-    def create_panel(self):
-        """Create settings panel with tabs"""
-        # Create settings notebook
-        self.settings_notebook = ttk.Notebook(self.parent)
-        self.settings_notebook.pack(fill=tk.BOTH, expand=True)
-        
-        # Weighbridge settings tab
-        weighbridge_tab = ttk.Frame(self.settings_notebook, style="TFrame")
-        self.settings_notebook.add(weighbridge_tab, text="Weighbridge")
-        
-        # Camera settings tab
-        camera_tab = ttk.Frame(self.settings_notebook, style="TFrame")
-        self.settings_notebook.add(camera_tab, text="Cameras")
-        
-        # User management tab (only visible to admin)
-        users_tab = ttk.Frame(self.settings_notebook, style="TFrame")
-        self.settings_notebook.add(users_tab, text="Users")
-        
-        # Site management tab (only visible to admin)
-        sites_tab = ttk.Frame(self.settings_notebook, style="TFrame")
-        self.settings_notebook.add(sites_tab, text="Sites")
-        
-        # Create tab contents
-        self.create_weighbridge_settings(weighbridge_tab)
-        self.create_camera_settings(camera_tab)
-        self.create_user_management(users_tab)
-        self.create_site_management(sites_tab)
-
-        if self.user_role == 'admin':
-            lock_frame = ttk.Frame(self.parent)
-            lock_frame.pack(fill=tk.X, padx=5, pady=5)
-            
-            if self.are_settings_locked():
-                unlock_btn = HoverButton(lock_frame,
-                                    text="🔓 Unlock Settings",
-                                    bg=config.COLORS["warning"],
-                                    fg=config.COLORS["button_text"],
-                                    padx=10, pady=3,
-                                    command=self.unlock_settings)
-                unlock_btn.pack(side=tk.RIGHT, padx=5)
-            else:
-                lock_btn = HoverButton(lock_frame,
-                                    text="🔒 Lock Settings",
-                                    bg=config.COLORS["error"],
-                                    fg=config.COLORS["button_text"],
-                                    padx=10, pady=3,
-                                    command=self.lock_settings)
-                lock_btn.pack(side=tk.RIGHT, padx=5)
-
-            if self.are_settings_locked():
-                self.disable_all_settings()
 
 
 

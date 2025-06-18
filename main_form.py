@@ -63,6 +63,36 @@ class MainForm:
         # Initialize vehicle autocomplete
         self.vehicle_autocomplete.refresh_cache()
 
+                # Initialize logger property
+        self._setup_logger()
+        
+        self.logger.info("MainForm initialized")
+
+    def _setup_logger(self):
+        """Setup logger for MainForm"""
+        try:
+            import logging
+            self.logger = logging.getLogger('MainForm')
+            
+            # If no handlers, add a basic one
+            if not self.logger.handlers:
+                handler = logging.StreamHandler()
+                formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                handler.setFormatter(formatter)
+                self.logger.addHandler(handler)
+                self.logger.setLevel(logging.INFO)
+                
+        except Exception as e:
+            # Fallback logger
+            class FallbackLogger:
+                def info(self, msg): print(f"MainForm INFO: {msg}")
+                def warning(self, msg): print(f"MainForm WARNING: {msg}")
+                def error(self, msg): print(f"MainForm ERROR: {msg}")
+                def debug(self, msg): print(f"MainForm DEBUG: {msg}")
+            
+            self.logger = FallbackLogger()
+            print(f"MainForm logger setup failed: {e}, using fallback")
+
     def create_form(self, parent):
         """Create the main data entry form with weighment panel including current weight display"""
         # Vehicle Information Frame
@@ -1453,7 +1483,12 @@ class MainForm:
         return None
 
     def on_agency_change(self, *args):
-        """Handle agency selection change to update data file context"""
+        """Handle agency selection change - simplified for hardcoded mode"""
+        if config.HARDCODED_MODE:
+            # In hardcoded mode, context never changes
+            return
+        
+        # Original logic for dynamic mode
         try:
             if hasattr(self, 'agency_var') and hasattr(self, 'site_var'):
                 agency_name = self.agency_var.get()
@@ -1468,8 +1503,9 @@ class MainForm:
                         if app and hasattr(app, 'data_manager'):
                             app.data_manager.set_agency_site_context(agency_name, site_name)
                             print(f"Updated data context via app: {agency_name}_{site_name}")
+                            
         except Exception as e:
-            print(f"Error updating data context: {e}")
+            print(f"Error in on_agency_change: {e}")
 
     def on_site_change(self, *args):
         """Handle site selection change to update data file context"""
@@ -1896,32 +1932,39 @@ class MainForm:
             self.site_incharge_var.set(site_incharge)
 
     def load_sites_and_agencies(self, settings_storage):
-        """Load sites, agencies and transfer parties from settings storage"""
-        if not settings_storage:
-            return
+        """Load sites, agencies and transfer parties from settings storage or hardcoded values"""
+        if config.HARDCODED_MODE:
+            # Use hardcoded values
+            sites = config.HARDCODED_SITES
+            agencies = config.HARDCODED_AGENCIES
+            transfer_parties = config.HARDCODED_TRANSFER_PARTIES
             
-        sites_data = settings_storage.get_sites()
-        
-        # Update site combo
-        sites = sites_data.get('sites', ['Guntur'])
-        if hasattr(self, 'site_combo') and self.site_combo:
-            self.site_combo['values'] = tuple(sites)
-            if self.site_var.get() not in sites and sites:
-                self.site_var.set(sites[0])
-        
-        # Update agency combo
-        agencies = sites_data.get('agencies', ['Default Agency'])
-        if hasattr(self, 'agency_combo') and self.agency_combo:
-            self.agency_combo['values'] = tuple(agencies)
-            if not self.agency_var.get() and agencies:
-                self.agency_var.set(agencies[0])
+            self.logger.info("Using hardcoded dropdown values")
+        else:
+            # Original logic
+            if not settings_storage:
+                return
                 
-        # Update transfer party combo
-        transfer_parties = sites_data.get('transfer_parties', ['Advitia Labs'])
-        if hasattr(self, 'tpt_combo') and self.tpt_combo:
-            self.tpt_combo['values'] = tuple(transfer_parties)
-            if not self.tpt_var.get() and transfer_parties:
-                self.tpt_var.set(transfer_parties[0])
+            sites_data = settings_storage.get_sites()
+            sites = sites_data.get('sites', ['Guntur'])
+            agencies = sites_data.get('agencies', ['Default Agency'])
+            transfer_parties = sites_data.get('transfer_parties', ['Advitia Labs'])
+        
+        # Update dropdowns
+        if hasattr(self, 'site_combo'):
+            self.site_combo['values'] = sites
+            if sites and not self.site_var.get():
+                self.site_combo.current(0)
+        
+        if hasattr(self, 'agency_combo'):
+            self.agency_combo['values'] = agencies
+            if agencies and not self.agency_var.get():
+                self.agency_combo.current(0)
+        
+        if hasattr(self, 'tpt_combo'):
+            self.tpt_combo['values'] = transfer_parties
+            if transfer_parties and not self.tpt_var.get():
+                self.tpt_combo.current(0)
 
     def on_closing(self):
         """Handle cleanup when closing - FIXED METHOD"""
