@@ -42,12 +42,27 @@ def create_form(self, parent):
     
     # Site Name Entry - Column 1
     self.site_combo = ttk.Combobox(form_inner, textvariable=self.site_var, state="readonly", width=config.STD_WIDTH)
-    self.site_combo['values'] = ('Guntur',)
-    self.site_combo.grid(row=1, column=1, sticky=tk.W, padx=3, pady=3)
     
     # Agency Name Combobox - Column 2 (now a dropdown)
     self.agency_combo = ttk.Combobox(form_inner, textvariable=self.agency_var, state="readonly", width=config.STD_WIDTH)
-    self.agency_combo['values'] = ('Default Agency',)  # Default value, will be updated from settings
+    
+    # MODIFIED: Set dropdown values based on hardcoded mode
+    if config.HARDCODED_MODE:
+        # Use hardcoded values for comboboxes
+        self.site_combo['values'] = config.HARDCODED_SITES
+        self.agency_combo['values'] = config.HARDCODED_AGENCIES
+        
+        # Set default selections
+        if config.HARDCODED_SITES:
+            self.site_var.set(config.HARDCODED_SITES[0])
+        if config.HARDCODED_AGENCIES:
+            self.agency_var.set(config.HARDCODED_AGENCIES[0])
+    else:
+        # Original dynamic loading
+        self.site_combo['values'] = ('Guntur',)
+        self.agency_combo['values'] = ('Default Agency',)  # Default value, will be updated from settings
+    
+    self.site_combo.grid(row=1, column=1, sticky=tk.W, padx=3, pady=3)
     self.agency_combo.grid(row=1, column=2, sticky=tk.W, padx=3, pady=3)
     
     # =================== ROW 2: Second row of labels ===================
@@ -71,7 +86,16 @@ def create_form(self, parent):
     
     # Transfer Party Name Combobox - Column 1 (now a dropdown)
     self.tpt_combo = ttk.Combobox(form_inner, textvariable=self.tpt_var, state="readonly", width=config.STD_WIDTH)
-    self.tpt_combo['values'] = ('Advitia Labs',)  # Default value, will be updated from settings
+    
+    # MODIFIED: Set transfer party values based on hardcoded mode
+    if config.HARDCODED_MODE:
+        self.tpt_combo['values'] = config.HARDCODED_TRANSFER_PARTIES
+        # Set default selection
+        if config.HARDCODED_TRANSFER_PARTIES:
+            self.tpt_var.set(config.HARDCODED_TRANSFER_PARTIES[0])
+    else:
+        self.tpt_combo['values'] = ('Advitia Labs',)  # Default value, will be updated from settings
+    
     self.tpt_combo.grid(row=3, column=1, sticky=tk.W, padx=3, pady=3)
     
     # Material Type Combo - Column 2
@@ -79,8 +103,14 @@ def create_form(self, parent):
                                     textvariable=self.material_type_var, 
                                     state="readonly", 
                                     width=config.STD_WIDTH)
-    material_type_combo['values'] = ('Legacy/MSW','Inert', 'Soil', 'Construction and Demolition', 
-                                'RDF(REFUSE DERIVED FUEL)')
+    
+    # MODIFIED: Set material values based on hardcoded mode
+    if config.HARDCODED_MODE:
+        material_type_combo['values'] = config.HARDCODED_MATERIALS
+    else:
+        material_type_combo['values'] = ('Legacy/MSW','Inert', 'Soil', 'Construction and Demolition', 
+                                    'RDF(REFUSE DERIVED FUEL)')
+    
     material_type_combo.grid(row=3, column=2, sticky=tk.W, padx=3, pady=3)
     
     # =================== WEIGHMENT PANEL (WITH CURRENT WEIGHT DISPLAY) ===================

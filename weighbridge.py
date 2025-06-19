@@ -337,7 +337,7 @@ class WeighbridgeManager:
             if wt_matches:
                 # Found weights in "NumberWt:" format
                 weights = [int(match) for match in wt_matches]
-                self.logger.print_debug(f"Found weights in Wt: format: {weights}")
+                #self.logger.print_debug(f"Found weights in Wt: format: {weights}")
                 
                 # Use the first weight value (you can modify this logic as needed)
                 # Alternative approaches:
@@ -369,7 +369,7 @@ class WeighbridgeManager:
                 if match:
                     weight_str = match.group(1)
                     weight = float(weight_str)
-                    self.logger.print_debug(f"Parsed weight: {weight} kg from pattern: {pattern}")
+                    #self.logger.print_debug(f"Parsed weight: {weight} kg from pattern: {pattern}")
                     return weight
             
             self.logger.print_warning(f"No weight pattern matched for data: '{data_line}'")

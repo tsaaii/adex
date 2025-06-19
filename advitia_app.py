@@ -2,7 +2,7 @@
 # pyinstaller ^
 #   --onedir ^
 #   --windowed ^
-#   --name="SAC_monitor_0614" ^
+#   --name="SAC_monitor_Yemmigannur" ^
 #   --icon=right.ico ^
 #   --add-data "data;data" ^
 #   --hidden-import=serial ^
@@ -195,7 +195,7 @@ class TharuniApp:
                                f"Failed to initialize application:\n{str(e)}\n\nCheck logs for details.")
             self.root.quit()
 
-            
+
     def authenticate_user(self):
         """Simplified authentication for hardcoded mode"""
         try:

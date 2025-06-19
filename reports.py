@@ -826,7 +826,6 @@ class ReportGenerator:
             
             agency_info = self.address_config.get('agencies', {}).get(agency_name, {})
             site_info = self.address_config.get('sites', {}).get(site_name, {})
-            
             # Add title with agency info
             elements.append(Paragraph(agency_info.get('name', agency_name), header_style))
             

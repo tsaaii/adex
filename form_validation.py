@@ -23,13 +23,15 @@ class FormValidator:
             ticket_no = self.main_form.rst_var.get().strip()
             vehicle_no = self.main_form.vehicle_var.get().strip()
             agency_name = self.main_form.agency_var.get().strip()
+            material_type = self.main_form.material_type_var.get().strip()  # Added material type validation
             
-            self.logger.info(f"Field values: ticket='{ticket_no}', vehicle='{vehicle_no}', agency='{agency_name}'")
+            self.logger.info(f"Field values: ticket='{ticket_no}', vehicle='{vehicle_no}', agency='{agency_name}', material_type='{material_type}'")
             
             required_fields = {
                 "Ticket No": ticket_no,
                 "Vehicle No": vehicle_no,
-                "Agency Name": agency_name
+                "Agency Name": agency_name,
+                "Material Type": material_type  # Added to required fields
             }
             
             missing_fields = [field for field, value in required_fields.items() if not value]
