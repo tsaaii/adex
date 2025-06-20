@@ -188,6 +188,8 @@ class TharuniApp:
                 self.logger.info("Application initialization completed successfully")
             else:
                 self.logger.info("User authentication failed or canceled - exiting")
+                self.root.destroy()
+                return
                 
         except Exception as e:
             self.logger.error(f"Critical error during application initialization: {e}")
@@ -197,27 +199,29 @@ class TharuniApp:
 
 
     def authenticate_user(self):
-        """Simplified authentication for hardcoded mode"""
+        """Enhanced authentication with logo, site display, and better UI"""
         try:
             self.logger.info("Starting user authentication")
             
             if config.HARDCODED_MODE:
                 if config.REQUIRE_PASSWORD:
-                    # Simple password dialog
-                    import tkinter.simpledialog as simpledialog
-                    password = simpledialog.askstring("Login", "Enter password:", show='*')
+                    # Enhanced password dialog with logo and site info
+                    result = self.show_enhanced_login_dialog()
                     
-                    if password and password == config.HARDCODED_PASSWORD:
+                    if result and result == config.HARDCODED_PASSWORD:
                         self.logged_in_user = config.HARDCODED_USER
                         self.user_role = "admin"
                         self.selected_site = config.HARDCODED_SITE
                         self.selected_incharge = config.HARDCODED_INCHARGE
                         self.logger.info(f"Hardcoded authentication successful: {self.logged_in_user}")
                     else:
-                        self.logger.info("Authentication failed - exiting application")
-                        self.root.quit()
+                        self.logger.info("Authentication canceled - exiting application")
+                        self.root.destroy()
                         return
                 else:
+                    # Show welcome dialog even without password requirement
+                    self.show_welcome_dialog()
+                    
                     # No authentication required
                     self.logged_in_user = config.HARDCODED_USER
                     self.user_role = "admin"
@@ -237,11 +241,431 @@ class TharuniApp:
                     self.logger.info(f"Authentication successful: {self.logged_in_user}")
                 else:
                     self.logger.info("Authentication canceled - exiting application")
-                    self.root.quit()
-                    
+                    self.root.destroy()
+        
         except Exception as e:
-            self.logger.error(f"Error during authentication: {e}")
+            self.logger.error(f"Authentication error: {e}")
             self.root.quit()
+
+
+
+    def show_enhanced_login_dialog(self):
+        """Show enhanced login dialog with logo and site information"""
+        try:
+            import tkinter as tk
+            from tkinter import ttk
+            from PIL import Image, ImageTk
+            import os
+            
+            # Create modal dialog
+            dialog = tk.Toplevel(self.root)
+            dialog.title("Weight Management System - Login")
+            dialog.transient(self.root)
+            dialog.grab_set()
+            
+            # Center the dialog and make it larger
+            dialog_width = 450
+            dialog_height = 550
+            
+            # Get main window position and size
+            self.root.update_idletasks()
+            main_x = self.root.winfo_x()
+            main_y = self.root.winfo_y()
+            main_width = self.root.winfo_width()
+            main_height = self.root.winfo_height()
+            
+            # Calculate center position relative to main window
+            x = main_x + (main_width - dialog_width) // 2
+            y = main_y + (main_height - dialog_height) // 2
+            
+            dialog.geometry(f"{dialog_width}x{dialog_height}+{x}+{y}")
+            dialog.resizable(False, False)
+            
+            # Configure dialog colors
+            dialog.configure(bg=config.COLORS.get("background", "#f0f0f0"))
+            
+            # Main frame with padding
+            main_frame = ttk.Frame(dialog)
+            main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+            
+            # Logo section
+            logo_frame = ttk.Frame(main_frame)
+            logo_frame.pack(fill=tk.X, pady=(0, 20))
+            
+            # Try to load logo
+            logo_loaded = False
+            try:
+                # Look for logo in multiple locations
+                possible_logo_paths = [
+                    os.path.join("assets", "logo.png"),
+                    os.path.join("assets", "logo.jpg"),
+                    os.path.join("images", "logo.png"),
+                    os.path.join("images", "logo.jpg"),
+                    "logo.png",
+                    "logo.jpg"
+                ]
+                
+                for logo_path in possible_logo_paths:
+                    if os.path.exists(logo_path):
+                        try:
+                            # Load and resize logo
+                            logo_image = Image.open(logo_path)
+                            # Resize logo to fit nicely (max 150x100)
+                            logo_image.thumbnail((150, 100), Image.Resampling.LANCZOS)
+                            logo_photo = ImageTk.PhotoImage(logo_image)
+                            
+                            logo_label = ttk.Label(logo_frame, image=logo_photo)
+                            logo_label.image = logo_photo  # Keep reference
+                            logo_label.pack(pady=(0, 10))
+                            logo_loaded = True
+                            break
+                        except Exception as e:
+                            self.logger.warning(f"Could not load logo from {logo_path}: {e}")
+                            continue
+                            
+            except Exception as e:
+                self.logger.warning(f"Logo loading error: {e}")
+            
+            # If no logo loaded, show company name
+            if not logo_loaded:
+                company_label = ttk.Label(logo_frame, 
+                                        text="Weight Management System",
+                                        font=("Segoe UI", 16, "bold"),
+                                        foreground=config.COLORS.get("primary", "#2E86AB"))
+                company_label.pack(pady=(0, 10))
+            
+            # Site information section
+            site_frame = ttk.LabelFrame(main_frame, text="Site Information", padding=15)
+            site_frame.pack(fill=tk.X, pady=(0, 20))
+            
+            # Site name
+            site_name_label = ttk.Label(site_frame, 
+                                    text=f"Site: {config.HARDCODED_SITE}",
+                                    font=("Segoe UI", 12, "bold"),
+                                    foreground=config.COLORS.get("success", "#28a745"))
+            site_name_label.pack(anchor=tk.W, pady=(0, 5))
+            
+            # Incharge
+            incharge_label = ttk.Label(site_frame, 
+                                    text=f"Site Incharge: {config.HARDCODED_INCHARGE}",
+                                    font=("Segoe UI", 10))
+            incharge_label.pack(anchor=tk.W, pady=(0, 5))
+            
+            # User info
+            user_label = ttk.Label(site_frame, 
+                                text=f"User: {config.HARDCODED_USER}",
+                                font=("Segoe UI", 10))
+            user_label.pack(anchor=tk.W)
+            
+            # Login section
+            login_frame = ttk.LabelFrame(main_frame, text="Authentication", padding=15)
+            login_frame.pack(fill=tk.X, pady=(0, 20))
+            
+            # Password label
+            password_label = ttk.Label(login_frame, 
+                                    text="Enter Password to Continue:",
+                                    font=("Segoe UI", 10))
+            password_label.pack(anchor=tk.W, pady=(0, 10))
+            
+            # Password entry
+            self.password_var = tk.StringVar()
+            password_entry = ttk.Entry(login_frame, 
+                                    textvariable=self.password_var,
+                                    show='*', 
+                                    font=("Segoe UI", 11),
+                                    width=30)
+            password_entry.pack(fill=tk.X, pady=(0, 10))
+            
+            # Error message label (initially hidden) - using tk.Label for better color control
+            self.error_var = tk.StringVar()
+            error_label = tk.Label(login_frame, 
+                                textvariable=self.error_var,
+                                font=("Segoe UI", 9, "bold"),
+                                fg="red",
+                                bg=dialog.cget("bg"),
+                                wraplength=400,
+                                justify=tk.LEFT)
+            error_label.pack(fill=tk.X, pady=(0, 15))
+            
+            # Focus on password entry
+            password_entry.focus_set()
+            
+            # Buttons frame
+            button_frame = ttk.Frame(main_frame)
+            button_frame.pack(fill=tk.X)
+            
+            # Result storage
+            self.dialog_result = None
+            
+            def clear_error():
+                """Clear error message when user starts typing"""
+                self.error_var.set("")
+                # Reset password entry style
+                try:
+                    password_entry.configure(style="TEntry")
+                except:
+                    try:
+                        password_entry.configure(background="white")
+                    except:
+                        pass
+            
+            def show_error(message):
+                """Show error message and highlight password field"""
+                self.error_var.set(message)
+                
+                # Make sure error label is visible and red
+                error_label.configure(fg="red", bg=dialog.cget("bg"))
+                
+                # Create a custom style for error state
+                try:
+                    style = ttk.Style()
+                    style.configure("Error.TEntry", 
+                                fieldbackground="#ffe6e6", 
+                                bordercolor="red",
+                                focuscolor="red")
+                    password_entry.configure(style="Error.TEntry")
+                except Exception as e:
+                    # Fallback: try to change the background directly
+                    try:
+                        password_entry.configure(background="#ffe6e6")
+                    except:
+                        pass
+                
+                # Clear password field
+                self.password_var.set("")
+                password_entry.focus_set()
+                
+                # Flash the error message for attention
+                flash_count = 0
+                def flash_error():
+                    nonlocal flash_count
+                    if flash_count < 6:  # Flash 3 times
+                        current_color = error_label.cget("fg")
+                        new_color = "#ff0000" if current_color == "#990000" else "#990000"
+                        error_label.configure(fg=new_color)
+                        flash_count += 1
+                        if hasattr(dialog, 'winfo_exists') and dialog.winfo_exists():
+                            dialog.after(200, flash_error)
+                    else:
+                        # End with red color
+                        error_label.configure(fg="red")
+                
+                flash_error()
+            
+            def validate_password():
+                """Validate the entered password"""
+                entered_password = self.password_var.get().strip()
+                
+                if not entered_password:
+                    show_error("⚠️ Password cannot be empty!")
+                    return False
+                
+                if entered_password == config.HARDCODED_PASSWORD:
+                    return True
+                else:
+                    show_error("❌ Invalid password! Please try again.")
+                    return False
+            
+            def on_login():
+                """Handle login button click"""
+                if validate_password():
+                    self.dialog_result = self.password_var.get()
+                    dialog.destroy()
+            
+            def on_cancel():
+                self.dialog_result = None
+                dialog.destroy()
+            
+            # Bind password field events
+            self.password_var.trace('w', lambda *args: clear_error())  # Clear error when typing
+            
+            # Login button
+            login_btn = ttk.Button(button_frame, 
+                                text="🔐 Login", 
+                                command=on_login,
+                                style="Accent.TButton")
+            login_btn.pack(side=tk.RIGHT, padx=(10, 0))
+            
+            # Cancel button
+            cancel_btn = ttk.Button(button_frame, 
+                                text="❌ Cancel", 
+                                command=on_cancel)
+            cancel_btn.pack(side=tk.RIGHT)
+            
+            # Bind Enter key to login with validation
+            def on_enter(event):
+                on_login()
+            
+            dialog.bind('<Return>', on_enter)
+            password_entry.bind('<Return>', on_enter)
+            
+            # Bind Escape key to cancel
+            dialog.bind('<Escape>', lambda e: on_cancel())
+            
+            # Status bar
+            status_frame = ttk.Frame(main_frame)
+            status_frame.pack(fill=tk.X, pady=(15, 0))
+            
+            timestamp_label = ttk.Label(status_frame, 
+                                    text=f"Login Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                                    font=("Segoe UI", 8),
+                                    foreground="gray")
+            timestamp_label.pack(anchor=tk.W)
+            
+            # Wait for dialog to close
+            dialog.wait_window()
+            
+            return self.dialog_result
+            
+        except Exception as e:
+            self.logger.error(f"Enhanced login dialog error: {e}")
+            # Fallback to simple dialog
+            import tkinter.simpledialog as simpledialog
+            return simpledialog.askstring("Login", "Enter password:", show='*')
+
+    def show_welcome_dialog(self):
+        """Show welcome dialog for auto-login mode"""
+        try:
+            import tkinter as tk
+            from tkinter import ttk
+            from PIL import Image, ImageTk
+            import os
+            
+            # Create modal dialog
+            dialog = tk.Toplevel(self.root)
+            dialog.title("Weight Management System - Welcome")
+            dialog.transient(self.root)
+            dialog.grab_set()
+            
+            # Smaller dialog for welcome
+            dialog_width = 400
+            dialog_height = 450
+            
+            # Get main window position and size
+            self.root.update_idletasks()
+            main_x = self.root.winfo_x()
+            main_y = self.root.winfo_y()
+            main_width = self.root.winfo_width()
+            main_height = self.root.winfo_height()
+            
+            # Calculate center position relative to main window
+            x = main_x + (main_width - dialog_width) // 2
+            y = main_y + (main_height - dialog_height) // 2
+            
+            dialog.geometry(f"{dialog_width}x{dialog_height}+{x}+{y}")
+            dialog.resizable(False, False)
+            
+            # Configure dialog colors
+            dialog.configure(bg=config.COLORS.get("background", "#f0f0f0"))
+            
+            # Main frame with padding
+            main_frame = ttk.Frame(dialog)
+            main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+            
+            # Logo section (same as login dialog)
+            logo_frame = ttk.Frame(main_frame)
+            logo_frame.pack(fill=tk.X, pady=(0, 20))
+            
+            # Try to load logo (same logic as login dialog)
+            logo_loaded = False
+            try:
+                possible_logo_paths = [
+                    os.path.join("assets", "logo.png"),
+                    os.path.join("assets", "logo.jpg"),
+                    os.path.join("images", "logo.png"),
+                    os.path.join("images", "logo.jpg"),
+                    "logo.png",
+                    "logo.jpg"
+                ]
+                
+                for logo_path in possible_logo_paths:
+                    if os.path.exists(logo_path):
+                        try:
+                            logo_image = Image.open(logo_path)
+                            logo_image.thumbnail((150, 100), Image.Resampling.LANCZOS)
+                            logo_photo = ImageTk.PhotoImage(logo_image)
+                            
+                            logo_label = ttk.Label(logo_frame, image=logo_photo)
+                            logo_label.image = logo_photo
+                            logo_label.pack(pady=(0, 10))
+                            logo_loaded = True
+                            break
+                        except Exception:
+                            continue
+                            
+            except Exception as e:
+                self.logger.warning(f"Logo loading error: {e}")
+            
+            if not logo_loaded:
+                company_label = ttk.Label(logo_frame, 
+                                        text="Weight Management System",
+                                        font=("Segoe UI", 16, "bold"),
+                                        foreground=config.COLORS.get("primary", "#2E86AB"))
+                company_label.pack(pady=(0, 10))
+            
+            # Welcome message
+            welcome_label = ttk.Label(main_frame,
+                                    text="Welcome!",
+                                    font=("Segoe UI", 14, "bold"))
+            welcome_label.pack(pady=(0, 20))
+            
+            # Site information section
+            site_frame = ttk.LabelFrame(main_frame, text="Site Information", padding=15)
+            site_frame.pack(fill=tk.X, pady=(0, 20))
+            
+            # Site details
+            site_info = [
+                ("Site", config.HARDCODED_SITE),
+                ("Incharge", config.HARDCODED_INCHARGE),
+                ("User", config.HARDCODED_USER),
+                ("Login Time", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            ]
+            
+            for label_text, value_text in site_info:
+                info_frame = ttk.Frame(site_frame)
+                info_frame.pack(fill=tk.X, pady=2)
+                
+                label = ttk.Label(info_frame, 
+                                text=f"{label_text}:",
+                                font=("Segoe UI", 10, "bold"),
+                                width=12)
+                label.pack(side=tk.LEFT)
+                
+                value = ttk.Label(info_frame, 
+                                text=value_text,
+                                font=("Segoe UI", 10))
+                value.pack(side=tk.LEFT)
+            
+            # Continue button
+            continue_btn = ttk.Button(main_frame, 
+                                    text="Continue to Application", 
+                                    command=lambda: dialog.destroy(),
+                                    style="Accent.TButton")
+            continue_btn.pack(pady=20)
+            
+            # Auto-close after 3 seconds
+            def auto_close():
+                try:
+                    dialog.destroy()
+                except:
+                    pass
+            
+            dialog.after(3000, auto_close)  # Auto-close after 3 seconds
+            
+            # Bind Enter key and Escape key
+            dialog.bind('<Return>', lambda e: dialog.destroy())
+            dialog.bind('<Escape>', lambda e: dialog.destroy())
+            
+            # Focus on continue button
+            continue_btn.focus_set()
+            
+            # Wait for dialog to close
+            dialog.wait_window()
+            
+        except Exception as e:
+            self.logger.error(f"Welcome dialog error: {e}")
+            # If welcome dialog fails, just continue
+            pass
 
     def setup_data_context(self):
         """Set up data context with hardcoded values when in hardcoded mode"""
@@ -849,13 +1273,6 @@ class TharuniApp:
             
             # Build info text parts
             info_parts = []
-            
-            # User info
-            user_text = f"User: {self.logged_in_user}"
-            if self.user_role == 'admin':
-                user_text += " (Admin)"
-            info_parts.append(user_text)
-            
             # Site info
             if self.selected_site:
                 info_parts.append(f"Site: {self.selected_site}")
@@ -863,15 +1280,6 @@ class TharuniApp:
             # Incharge info
             if self.selected_incharge:
                 info_parts.append(f"Incharge: {self.selected_incharge}")
-            
-            # Data file info
-            if hasattr(self, 'data_manager'):
-                current_file = os.path.basename(self.data_manager.get_current_data_file())
-                info_parts.append(f"Data: {current_file}")
-                
-                # PDF folder info
-                if hasattr(self.data_manager, 'today_folder_name'):
-                    info_parts.append(f"PDF: {self.data_manager.today_folder_name}")
             
             # Join all info with separators
             info_text = " • ".join(info_parts)
@@ -943,35 +1351,31 @@ class TharuniApp:
 
 
     def logout(self):
-        """Restart the entire application on logout for a clean slate"""
-        # Reset user info
-        self.logged_in_user = None
-        self.user_role = None
-        self.selected_site = None
-        self.selected_incharge = None
-        
-        # Clean up resources before destroying app
-        if hasattr(self, 'main_form'):
-            self.main_form.on_closing()
-        
-        if hasattr(self, 'settings_panel'):
-            self.settings_panel.on_closing()
-        
-        # Store current app details for restart
-        import sys
-        import os
-        python_executable = sys.executable
-        script_path = os.path.abspath(sys.argv[0])
-        
-        # Destroy the root window to close the current instance
-        self.root.destroy()
-        
-        # Restart the application in a new process
-        import subprocess
-        subprocess.Popen([python_executable, script_path])
-        
-        # Exit this process
-        sys.exit(0)
+        """Logout and close application"""
+        try:
+            self.logger.info("User logging out...")
+            
+            # Clean up resources
+            if hasattr(self, 'main_form'):
+                self.main_form.on_closing()
+            
+            if hasattr(self, 'settings_panel'):
+                self.settings_panel.on_closing()
+            
+            # Reset user info
+            self.logged_in_user = None
+            self.user_role = None
+            self.selected_site = None
+            self.selected_incharge = None
+            
+            self.logger.info("Logout completed - closing application")
+            
+            # Simply close the application
+            self.root.destroy()
+            
+        except Exception as e:
+            self.logger.error(f"Error during logout: {e}")
+            self.root.destroy()
 
 
 
@@ -1104,12 +1508,16 @@ class TharuniApp:
             self.logger.error(f"Error clearing form: {e}")
 
     def on_closing(self):
-
-        if CONNECTIVITY_AVAILABLE:
-            cleanup_connectivity(self)
         """Handle application closing with enhanced logging"""
         try:
             self.logger.info("Application closing - saving settings...")
+            
+            # Cancel any pending periodic refresh
+            if hasattr(self, '_refresh_job'):
+                try:
+                    self.root.after_cancel(self._refresh_job)
+                except:
+                    pass
             
             # Save settings through settings panel
             if hasattr(self, 'settings_panel'):
@@ -1118,6 +1526,13 @@ class TharuniApp:
             # Clean up resources
             if hasattr(self, 'main_form'):
                 self.main_form.on_closing()
+            
+            # Clean up connectivity if available
+            if CONNECTIVITY_AVAILABLE:
+                try:
+                    cleanup_connectivity(self)
+                except:
+                    pass
             
             self.logger.info("="*60)
             self.logger.info("APPLICATION SHUTDOWN COMPLETED")
@@ -1134,13 +1549,19 @@ class TharuniApp:
 if __name__ == "__main__":
     # Create root window
     root = tk.Tk()
+    app = None
     
     try:
         # Create application instance
         app = TharuniApp(root)
         
-        # Start the application
-        root.mainloop()
+        # Only start mainloop if user successfully logged in
+        if app and app.logged_in_user:
+            root.mainloop()
+        else:
+            # Authentication failed or canceled - close gracefully
+            root.destroy()
+            
     except Exception as e:
         # Log any critical startup errors
         print(f"Critical application error: {e}")
@@ -1148,10 +1569,20 @@ if __name__ == "__main__":
         traceback.print_exc()
         
         # Show error dialog
-        messagebox.showerror("Critical Error", 
-                           f"Application failed to start:\n{str(e)}\n\nCheck logs for details.")
+        try:
+            from tkinter import messagebox
+            messagebox.showerror("Critical Error", 
+                               f"Application failed to start:\n{str(e)}\n\nCheck logs for details.")
+        except:
+            pass
     finally:
         try:
+            if app and hasattr(app, 'on_closing'):
+                app.on_closing()
             root.destroy()
         except:
             pass
+        
+        # Ensure clean exit
+        import sys
+        sys.exit(0)

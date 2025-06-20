@@ -1,4 +1,5 @@
 # Enhanced camera.py - Resource-optimized with auto-start and comprehensive logging
+# Updated with stability and performance improvements
 
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -33,8 +34,6 @@ class OptimizedCameraView:
         self.camera_name = camera_name
         self.setup_logging()
         
-        #self.logger.print_info(f"Initializing optimized {self.camera_name} camera")
-        
         self.parent = parent
         self.camera_index = camera_index
         self.camera_type = camera_type
@@ -63,12 +62,23 @@ class OptimizedCameraView:
         self.auto_reconnect = True
         self.reconnect_delay = 5.0  # Seconds between reconnection attempts
         
-        # Frame management - optimized
+        # ENHANCED: Use threading events instead of time.sleep()
+        self.stop_event = threading.Event()
+        self.frame_ready_event = threading.Event()
+        
+        # ENHANCED: Frame management - optimized with direct buffer
         self.current_frame = None
         self.captured_image = None
         self.frame_lock = threading.Lock()
         self.display_frame = None
-        self.frame_queue = queue.Queue(maxsize=2)  # Small queue to prevent memory buildup
+        
+        # ENHANCED: Replace queue with direct memory buffer for better performance
+        self.frame_buffer = {
+            'raw_frame': None,
+            'processed_frame': None,
+            'timestamp': 0,
+            'buffer_lock': threading.Lock()
+        }
         
         # Performance tracking
         self.last_frame_time = 0
@@ -77,6 +87,7 @@ class OptimizedCameraView:
         self.fps_timer = time.time()
         self.dropped_frames = 0
         self.total_frames = 0
+        self.frame_skip_counter = 0  # ENHANCED: Track frame skips
         
         # Connection state with enhanced monitoring
         self.connection_stable = False
@@ -98,8 +109,6 @@ class OptimizedCameraView:
         self.last_mouse_x = 0
         self.last_mouse_y = 0
         
-        #self.logger.print_debug(f"Camera settings: Index={camera_index}, Type={camera_type}, Auto-start={auto_start}")
-        
         # Create UI
         self.create_ui()
         
@@ -107,14 +116,11 @@ class OptimizedCameraView:
         self.start_resource_monitoring()
         
         # Auto-start camera feed (always enabled for continuous operation)
-        #self.logger.print_info("Auto-starting camera for continuous operation")
         self.start_continuous_feed()
         
         # Start watchdog for auto-recovery
         self.start_watchdog()
         
-        #self.logger.print_success(f"{self.camera_name} camera initialized with auto-start enabled")
-    
     def setup_logging(self):
         """Setup enhanced logging for camera operations"""
         try:
@@ -151,7 +157,7 @@ class OptimizedCameraView:
         """Start resource monitoring thread"""
         try:
             def monitor_resources():
-                while self.should_be_running:
+                while not self.stop_event.is_set():
                     try:
                         current_time = time.time()
                         if current_time - self.last_resource_check >= self.resource_check_interval:
@@ -167,10 +173,11 @@ class OptimizedCameraView:
                             if int(current_time) % 30 == 0:  # Every 30 seconds
                                 self.logger.print_debug(f"Resource usage - CPU: {self.cpu_usage:.1f}%, Memory: {self.memory_usage:.1f}%")
                         
-                        time.sleep(1)
+                        # ENHANCED: Use event wait instead of sleep
+                        self.stop_event.wait(1.0)
                     except Exception as e:
                         self.logger.print_error(f"Resource monitoring error: {e}")
-                        time.sleep(5)
+                        self.stop_event.wait(5.0)
             
             resource_thread = threading.Thread(target=monitor_resources, daemon=True)
             resource_thread.start()
@@ -203,24 +210,23 @@ class OptimizedCameraView:
         try:
             def watchdog():
                 self.logger.print_debug("Camera watchdog started")
-                while self.should_be_running:
+                while not self.stop_event.is_set():
                     try:
                         # Check if camera should be running but isn't
                         if self.should_be_running and not self.is_running:
-                            #self.logger.print_warning("Camera not running but should be - attempting restart")
                             self.start_continuous_feed()
                         
                         # Check for stale connections
                         if self.last_successful_frame:
                             time_since_frame = datetime.datetime.now() - self.last_successful_frame
                             if time_since_frame.total_seconds() > 30:  # No frames for 30 seconds
-                                #self.logger.print_warning("No frames received for 30 seconds - restarting camera")
                                 self.restart_feed()
                         
-                        time.sleep(self.reconnect_delay)
+                        # ENHANCED: Use event wait instead of sleep
+                        self.stop_event.wait(self.reconnect_delay)
                     except Exception as e:
                         self.logger.print_error(f"Watchdog error: {e}")
-                        time.sleep(10)
+                        self.stop_event.wait(10.0)
             
             watchdog_thread = threading.Thread(target=watchdog, daemon=True)
             watchdog_thread.start()
@@ -231,8 +237,6 @@ class OptimizedCameraView:
     def create_ui(self):
         """Create optimized camera UI"""
         try:
-            #self.logger.print_debug("Creating optimized camera UI")
-            
             # Main frame
             self.frame = ttk.Frame(self.parent)
             self.frame.pack(fill=tk.BOTH, expand=True, padx=3, pady=3)
@@ -304,8 +308,6 @@ class OptimizedCameraView:
                                        font=("Segoe UI", 7), foreground="green")
             self.perf_label.pack(side=tk.RIGHT, padx=2)
             
-            #self.logger.print_success("Optimized camera UI created successfully")
-            
         except Exception as e:
             self.logger.print_error(f"Error creating camera UI: {e}")
             raise
@@ -326,22 +328,18 @@ class OptimizedCameraView:
     def set_rtsp_config(self, rtsp_url):
         """Configure camera for RTSP stream"""
         try:
-            #self.logger.print_info(f"Configuring RTSP: {rtsp_url}")
             self.rtsp_url = rtsp_url
             self.camera_type = "RTSP"
             self.restart_feed()
-            #self.logger.print_success("RTSP configuration updated")
         except Exception as e:
             self.logger.print_error(f"Error setting RTSP config: {e}")
     
     def set_http_config(self, http_url):
         """Configure camera for HTTP stream"""
         try:
-            #self.logger.print_info(f"Configuring HTTP: {http_url}")
             self.http_url = http_url
             self.camera_type = "HTTP"
             self.restart_feed()
-            #self.logger.print_success("HTTP configuration updated")
         except Exception as e:
             self.logger.print_error(f"Error setting HTTP config: {e}")
     
@@ -352,11 +350,10 @@ class OptimizedCameraView:
                 self.logger.print_debug("Camera feed already running")
                 return
             
-            #self.logger.print_info("Starting optimized continuous camera feed")
             self.connection_attempts += 1
-            
             self.is_running = True
             self.consecutive_failures = 0
+            self.stop_event.clear()  # Reset stop event
             
             # Update UI
             self._update_status("Starting camera...")
@@ -370,39 +367,32 @@ class OptimizedCameraView:
             # Start UI update loop
             self._schedule_ui_update()
             
-            #self.logger.print_success("Continuous camera feed started successfully")
-            
         except Exception as e:
-            #self.logger.print_error(f"Error starting camera feed: {e}")
             self._update_status(f"Start error: {str(e)}")
             self.is_running = False
     
     def _optimized_video_loop(self):
         """Optimized video capture loop with resource management"""
-        #self.logger.print_info("Optimized video capture loop started")
+        self.logger.print_info("Optimized video capture loop started")
         consecutive_failures = 0
-        frame_skip_counter = 0
         last_gc_time = time.time()
         
-        while self.is_running:
+        while not self.stop_event.is_set() and self.is_running:
             try:
-                # Resource-based frame skipping
-                if self.cpu_usage > self.frame_skip_threshold:
-                    frame_skip_counter += 1
-                    if frame_skip_counter % 3 == 0:  # Skip every 3rd frame under high load
-                        time.sleep(0.05)
-                        continue
+                # ENHANCED: Check frame skip conditions BEFORE reading frame
+                if self._should_skip_frame():
+                    self.frame_skip_counter += 1
+                    self.stop_event.wait(0.02)  # Short wait instead of processing frame
+                    continue
                 
                 # Initialize camera if needed
                 if not self.cap or not self._test_camera_connection():
                     if not self._initialize_camera():
                         consecutive_failures += 1
-                        #self.logger.print_warning(f"Camera initialization failed (attempt {consecutive_failures})")
                         if consecutive_failures > self.max_consecutive_failures:
-                            #self.logger.print_error("Too many initialization failures, will retry via watchdog")
-                            time.sleep(self.reconnect_delay)
+                            self.stop_event.wait(self.reconnect_delay)
                             consecutive_failures = 0
-                        time.sleep(2)
+                        self.stop_event.wait(2.0)
                         continue
                     else:
                         consecutive_failures = 0
@@ -411,7 +401,7 @@ class OptimizedCameraView:
                 current_time = time.time()
                 target_frame_time = 1.0 / self.target_fps
                 if current_time - self.last_frame_time < target_frame_time:
-                    time.sleep(0.01)
+                    self.stop_event.wait(0.01)
                     continue
                 
                 # Read frame with timeout
@@ -423,20 +413,14 @@ class OptimizedCameraView:
                     # Process frame efficiently
                     processed_frame = self._process_frame_optimized(frame)
                     
-                    # Update frames thread-safely with queue
-                    try:
-                        if not self.frame_queue.full():
-                            self.frame_queue.put((frame.copy(), processed_frame), block=False)
-                        else:
-                            # Queue full - drop frame and log
-                            self.dropped_frames += 1
-                            try:
-                                self.frame_queue.get_nowait()  # Remove old frame
-                                self.frame_queue.put((frame.copy(), processed_frame), block=False)
-                            except queue.Empty:
-                                pass
-                    except Exception as e:
-                        self.logger.print_error(f"Frame queue error: {e}")
+                    # ENHANCED: Update frames using direct buffer instead of queue
+                    with self.frame_buffer['buffer_lock']:
+                        self.frame_buffer['raw_frame'] = frame.copy()
+                        self.frame_buffer['processed_frame'] = processed_frame
+                        self.frame_buffer['timestamp'] = current_time
+                    
+                    # Signal that new frame is ready
+                    self.frame_ready_event.set()
                     
                     # Update timing and stats
                     self.last_frame_time = current_time
@@ -459,14 +443,13 @@ class OptimizedCameraView:
                     self.dropped_frames += 1
                     
                     if consecutive_failures > self.max_consecutive_failures:
-                        #self.logger.print_error("Too many consecutive frame failures, reinitializing camera")
                         self._close_camera()
                         self.camera_available = False
                         self.connection_stable = False
                         consecutive_failures = 0
-                        time.sleep(1)
+                        self.stop_event.wait(1.0)
                     else:
-                        time.sleep(0.05)
+                        self.stop_event.wait(0.05)
                 
                 # Periodic garbage collection
                 if current_time - last_gc_time > 60:  # Every minute
@@ -476,15 +459,24 @@ class OptimizedCameraView:
                 
             except Exception as e:
                 consecutive_failures += 1
-                #self.logger.print_error(f"Video loop error (failure #{consecutive_failures}): {e}")
                 self._close_camera()
                 self.camera_available = False
                 self.connection_stable = False
-                time.sleep(1)
+                self.stop_event.wait(1.0)
         
         # Cleanup when loop exits
         self.logger.print_info("Optimized video capture loop ending")
         self._close_camera()
+    
+    def _should_skip_frame(self):
+        """ENHANCED: Determine if frame should be skipped based on system load"""
+        try:
+            # Skip frames under high CPU load
+            if self.cpu_usage > self.frame_skip_threshold:
+                return self.frame_skip_counter % 3 == 0  # Skip every 3rd frame
+            return False
+        except Exception:
+            return False
     
     def _read_frame_with_timeout(self):
         """Read frame with timeout to prevent blocking"""
@@ -528,14 +520,15 @@ class OptimizedCameraView:
             pass  # Don't log watermark errors to avoid spam
     
     def _initialize_camera(self):
-        """Initialize camera with optimized settings"""
+        """ENHANCED: Initialize camera with FFMPEG backend for RTSP stability"""
         try:
             self.logger.print_debug(f"Initializing {self.camera_type} camera")
             self._close_camera()
             
             if self.camera_type == "RTSP" and self.rtsp_url:
                 self.logger.print_info(f"Connecting to RTSP: {self.rtsp_url}")
-                self.cap = cv2.VideoCapture(self.rtsp_url)
+                # ENHANCED: Use FFMPEG backend for better RTSP stability
+                self.cap = cv2.VideoCapture(self.rtsp_url, cv2.CAP_FFMPEG)
                 # Optimized RTSP settings
                 self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
                 self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -543,11 +536,9 @@ class OptimizedCameraView:
                 self.cap.set(cv2.CAP_PROP_FPS, self.target_fps)
                 
             elif self.camera_type == "HTTP" and self.http_url:
-                #self.logger.print_info(f"Configuring HTTP: {self.http_url}")
                 return True
                 
             else:  # USB camera
-                #self.logger.print_info(f"Connecting to USB camera: {self.camera_index}")
                 self.cap = cv2.VideoCapture(self.camera_index)
                 if self.cap and self.cap.isOpened():
                     # Optimized USB camera settings
@@ -559,16 +550,13 @@ class OptimizedCameraView:
             # Test camera connection
             success = self._test_camera_connection()
             if success:
-                #self.logger.print_success(f"{self.camera_type} camera initialized successfully")
                 self.camera_available = True
             else:
-                #self.logger.print_error(f"{self.camera_type} camera initialization failed")
                 self.camera_available = False
             
             return success
             
         except Exception as e:
-            #self.logger.print_error(f"Camera initialization error: {e}")
             self.camera_available = False
             return False
     
@@ -602,7 +590,6 @@ class OptimizedCameraView:
         except Exception as e:
             current_time = time.time()
             if current_time - self.last_error_time > self.error_cooldown:
-                #self.logger.print_warning(f"HTTP frame read error: {e}")
                 self.last_error_time = current_time
             return False, None
     
@@ -610,36 +597,41 @@ class OptimizedCameraView:
         """Close camera resources"""
         try:
             if self.cap:
-                #self.logger.print_debug("Closing camera resources")
                 self.cap.release()
                 self.cap = None
         except Exception as e:
             self.logger.print_error(f"Error closing camera: {e}")
     
     def _schedule_ui_update(self):
-        """Schedule optimized UI updates"""
-        if self.is_running:
+        """ENHANCED: Schedule optimized UI updates using after_idle"""
+        if self.is_running and not self.stop_event.is_set():
             self._update_display_optimized()
-            self.parent.after(66, self._schedule_ui_update)  # ~15 FPS UI updates
+            # ENHANCED: Use after_idle for better performance when system is busy
+            self.parent.after_idle(lambda: self.parent.after(66, self._schedule_ui_update))
     
     def _update_display_optimized(self):
-        """Optimized display update"""
+        """ENHANCED: Optimized display update using direct buffer"""
         try:
-            # Get frame from queue
-            if not self.frame_queue.empty():
-                try:
-                    current_frame, display_frame = self.frame_queue.get_nowait()
-                    with self.frame_lock:
-                        self.current_frame = current_frame
-                        self.display_frame = display_frame
-                except queue.Empty:
-                    return
-            
-            if self.display_frame is None:
+            # Check if new frame is available
+            if not self.frame_ready_event.is_set():
                 return
             
+            # Get frame from buffer
+            with self.frame_buffer['buffer_lock']:
+                current_frame = self.frame_buffer['raw_frame']
+                display_frame = self.frame_buffer['processed_frame']
+                self.frame_ready_event.clear()  # Reset event
+            
+            if display_frame is None:
+                return
+            
+            # Update current frame for capture
+            with self.frame_lock:
+                self.current_frame = current_frame
+                self.display_frame = display_frame
+            
             # Convert and resize efficiently
-            frame_rgb = cv2.cvtColor(self.display_frame, cv2.COLOR_BGR2RGB)
+            frame_rgb = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
             
             # Get canvas dimensions
             canvas_width = max(self.canvas.winfo_width(), 320)
@@ -668,8 +660,9 @@ class OptimizedCameraView:
             if current_time - self.fps_timer >= 1.0:
                 fps = self.frame_count / (current_time - self.fps_timer)
                 drop_rate = (self.dropped_frames / max(self.total_frames, 1)) * 100
+                skip_rate = (self.frame_skip_counter / max(self.total_frames, 1)) * 100
                 
-                perf_text = f"FPS: {fps:.1f} | CPU: {self.cpu_usage:.0f}% | Drop: {drop_rate:.1f}%"
+                perf_text = f"FPS: {fps:.1f} | CPU: {self.cpu_usage:.0f}% | Drop: {drop_rate:.1f}% | Skip: {skip_rate:.1f}%"
                 self._update_perf_safe(perf_text)
                 
                 self.frame_count = 0
@@ -679,6 +672,7 @@ class OptimizedCameraView:
                 if self.total_frames > 1000:
                     self.total_frames = 100
                     self.dropped_frames = int(self.dropped_frames * 0.1)
+                    self.frame_skip_counter = int(self.frame_skip_counter * 0.1)
                 
         except Exception as e:
             self.logger.print_error(f"Performance counter error: {e}")
@@ -693,14 +687,11 @@ class OptimizedCameraView:
                     self.captured_image = self.current_frame.copy()
                     self.save_button.config(state=tk.NORMAL)
                     self._update_status("Frame captured - ready to save")
-                    #self.logger.print_success("Frame captured successfully")
                     return True
                 else:
                     self._update_status("No frame available")
-                    #self.logger.print_warning("No frame available for capture")
                     return False
         except Exception as e:
-            #self.logger.print_error(f"Capture error: {e}")
             self._update_status(f"Capture error: {str(e)}")
             return False
     
@@ -717,26 +708,24 @@ class OptimizedCameraView:
                     self._update_status("Image saved successfully")
                     self.save_button.config(state=tk.DISABLED)
                     self.captured_image = None
-                    #self.logger.print_success("Image saved successfully")
                     return True
                 else:
                     self._update_status("Save failed")
-                    #self.logger.print_error("Image save failed")
                     return False
             else:
                 self._update_status("Save function not configured")
                 return False
                 
         except Exception as e:
-            #self.logger.print_error(f"Save error: {e}")
             self._update_status(f"Save error: {str(e)}")
             return False
     
     def stop_continuous_feed(self):
         """Stop camera feed"""
         try:
-            #self.logger.print_info("Stopping camera feed")
+            self.logger.print_info("Stopping camera feed")
             self.is_running = False
+            self.stop_event.set()  # Signal all threads to stop
             
             if self.video_thread and self.video_thread.is_alive():
                 self.video_thread.join(timeout=3)
@@ -744,8 +733,6 @@ class OptimizedCameraView:
             self._close_camera()
             self._update_status("Camera stopped")
             self._update_feed_button("▶️ Start Feed", config.COLORS["primary"])
-            
-            #self.logger.print_success("Camera feed stopped")
             
         except Exception as e:
             self.logger.print_error(f"Error stopping camera: {e}")
@@ -768,7 +755,7 @@ class OptimizedCameraView:
             self.logger.print_info("Restarting camera feed")
             if self.is_running:
                 self.stop_continuous_feed()
-                time.sleep(0.5)
+                self.stop_event.wait(0.5)
             self.start_continuous_feed()
         except Exception as e:
             self.logger.print_error(f"Error restarting feed: {e}")
@@ -776,11 +763,9 @@ class OptimizedCameraView:
     def shutdown_camera(self):
         """Shutdown camera completely"""
         try:
-            #self.logger.print_info("Shutting down camera completely")
             self.should_be_running = False
             self.auto_reconnect = False
             self.stop_continuous_feed()
-            #self.logger.print_success("Camera shutdown complete")
         except Exception as e:
             self.logger.print_error(f"Error during camera shutdown: {e}")
     
@@ -795,14 +780,14 @@ class OptimizedCameraView:
     def _update_status_safe(self, status):
         """Thread-safe status update"""
         try:
-            self.parent.after(0, lambda: self._update_status(status))
+            self.parent.after_idle(lambda: self._update_status(status))
         except Exception as e:
             self.logger.print_error(f"Safe status update error: {e}")
     
     def _update_perf_safe(self, perf_text):
         """Thread-safe performance update"""
         try:
-            self.parent.after(0, lambda: self.perf_var.set(perf_text))
+            self.parent.after_idle(lambda: self.perf_var.set(perf_text))
         except Exception as e:
             self.logger.print_error(f"Performance update error: {e}")
     
@@ -913,7 +898,8 @@ class OptimizedCameraView:
                 'cpu_usage': self.cpu_usage,
                 'memory_usage': self.memory_usage,
                 'dropped_frames': self.dropped_frames,
-                'total_frames': self.total_frames
+                'total_frames': self.total_frames,
+                'frame_skip_counter': self.frame_skip_counter
             }
             return status
         except Exception as e:

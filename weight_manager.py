@@ -2,19 +2,22 @@ import tkinter as tk
 from tkinter import messagebox
 import datetime
 import random
+import time
 import config
 
 class WeightManager:
     def __init__(self, main_form):
         self.main_form = main_form
         self.last_weight = 0.0
+        self.weight_capture_timeout = 5.0  # seconds to wait for stable weight
+        self.min_weight_change = 0.0  # minimum kg change to consider valid weighment
         
     def capture_weight(self):
-        """Capture weight - FIXED to properly check test mode and weighbridge connection"""
+        """Capture weight - Enhanced with better error handling and validation"""
         try:
             print("Capture weight called")
             
-            # FIXED: Check test mode first using improved method
+            # Check test mode first using improved method
             if self.is_test_mode_enabled():
                 print("Test mode is enabled - generating random weight")
                 # Generate random weight - bypass all connection checks
@@ -30,7 +33,7 @@ class WeightManager:
                 
             else:
                 print("Test mode disabled - using real weighbridge")
-                # FIXED: Use real weighbridge with proper connection checks
+                # Enhanced: Use real weighbridge with improved error handling
                 return self.capture_real_weighbridge_weight()
                 
         except Exception as e:
@@ -41,7 +44,7 @@ class WeightManager:
             return False
     
     def is_test_mode_enabled(self):
-        """IMPROVED: Check if test mode is enabled with multiple fallback methods"""
+        """Enhanced: Check if test mode is enabled with better error handling"""
         try:
             print("Checking test mode...")
             
@@ -98,7 +101,7 @@ class WeightManager:
             return False
     
     def generate_random_weight(self):
-        """Generate a realistic random weight for testing"""
+        """Enhanced: Generate more realistic random weights with better validation"""
         try:
             import random
             
@@ -108,39 +111,72 @@ class WeightManager:
             if current_weighment == "first":
                 # First weighment: heavier (loaded truck)
                 # Generate weight between 15,000 - 45,000 kg
-                weight = random.uniform(15000, 45000)
-                print(f"First weighment - generated: {weight}")
+                base_weight = random.uniform(15000, 45000)
+                print(f"First weighment - base: {base_weight}")
             else:
                 # Second weighment: lighter (empty truck)
-                # Generate weight between 5,000 - 15,000 kg
-                weight = random.uniform(5000, 15000)
-                print(f"Second weighment - generated: {weight}")
+                # Enhanced: Consider the first weight to ensure logical difference
+                try:
+                    first_weight_str = self.main_form.first_weight_var.get()
+                    if first_weight_str:
+                        first_weight = float(first_weight_str)
+                        # Second weight should be significantly lighter
+                        max_second = min(first_weight - 1000, 15000)  # At least 1 ton lighter
+                        base_weight = random.uniform(5000, max_second)
+                        print(f"Second weighment - considering first weight {first_weight}, generated: {base_weight}")
+                    else:
+                        base_weight = random.uniform(5000, 15000)
+                        print(f"Second weighment - no first weight, generated: {base_weight}")
+                except (ValueError, AttributeError):
+                    base_weight = random.uniform(5000, 15000)
+                    print(f"Second weighment - fallback generated: {base_weight}")
             
             # Round to nearest 10 kg for realism
-            weight = round(weight / 10) * 10
+            weight = round(base_weight / 10) * 10
+            
+            # Add small random variation (±50 kg) to simulate real weighbridge behavior
+            variation = random.uniform(-50, 50)
+            weight += variation
+            weight = max(0, weight)  # Ensure non-negative
             
             return float(weight)
             
         except Exception as e:
             print(f"Error generating random weight: {e}")
-            # Fallback to simple random weight
+            # Enhanced fallback with better defaults
             import random
-            return round(random.uniform(5000, 30000), 2)
+            current_weighment = getattr(self.main_form, 'current_weighment', 'first')
+            if current_weighment == "first":
+                return round(random.uniform(20000, 40000), 2)
+            else:
+                return round(random.uniform(8000, 12000), 2)
     
     def capture_real_weighbridge_weight(self):
-        """FIXED: Capture weight from real weighbridge using the working old method"""
+        """Enhanced: Capture weight from real weighbridge with improved stability checking"""
         try:
             print("Attempting to capture from real weighbridge")
             
-            # FIXED: Use the working method from the old code
-            current_weight = self.get_current_weighbridge_value()
-            if current_weight is None:
+            # Enhanced: Check connection status first using new methods
+            if not self.is_weighbridge_connected():
+                messagebox.showerror("Weighbridge Error", 
+                                   "Weighbridge is not connected. Please connect the weighbridge in Settings tab.")
                 return False
             
-            print(f"Captured weighbridge weight: {current_weight}")
+            # Enhanced: Wait for stable weight reading
+            stable_weight = self.wait_for_stable_weight()
+            if stable_weight is None:
+                messagebox.showerror("Weighbridge Error", 
+                                   "Could not get stable weight reading. Please ensure vehicle is properly positioned.")
+                return False
+            
+            print(f"Captured stable weighbridge weight: {stable_weight}")
+            
+            # Enhanced: Validate weight makes sense for the weighment type
+            if not self.validate_captured_weight(stable_weight):
+                return False
             
             # Process the captured weight
-            self.process_captured_weight(current_weight)
+            self.process_captured_weight(stable_weight)
             return True
                 
         except Exception as e:
@@ -148,35 +184,129 @@ class WeightManager:
             messagebox.showerror("Error", f"Failed to capture weighbridge weight: {str(e)}")
             return False
     
-    def get_current_weighbridge_value(self):
-        """FIXED: Get the current value from the weighbridge using the working old method"""
+    def wait_for_stable_weight(self):
+        """Enhanced: Wait for stable weight reading with timeout"""
         try:
-            print("Getting current weighbridge value...")
+            print("Waiting for stable weight reading...")
             
-            # Use the same working method from the old code
+            weighbridge, weight_var, status_var = config.get_global_weighbridge_info()
+            if not weighbridge or not weight_var:
+                return None
+            
+            start_time = time.time()
+            stable_readings = []
+            required_stable_readings = 5  # Need 5 consecutive stable readings
+            
+            while (time.time() - start_time) < self.weight_capture_timeout:
+                # Get current weight
+                current_weight = self.get_current_weighbridge_value()
+                if current_weight is None:
+                    time.sleep(0.2)
+                    continue
+                
+                # Check if this reading is stable (within tolerance of previous readings)
+                if len(stable_readings) == 0:
+                    stable_readings.append(current_weight)
+                else:
+                    # Check if within tolerance of last reading
+                    weight_tolerance = getattr(config, 'WEIGHT_TOLERANCE', 1.0)
+                    if abs(current_weight - stable_readings[-1]) <= weight_tolerance:
+                        stable_readings.append(current_weight)
+                        
+                        # Keep only recent readings
+                        if len(stable_readings) > required_stable_readings:
+                            stable_readings.pop(0)
+                    else:
+                        # Weight changed significantly, reset
+                        stable_readings = [current_weight]
+                
+                # Check if we have enough stable readings
+                if len(stable_readings) >= required_stable_readings:
+                    final_weight = sum(stable_readings) / len(stable_readings)
+                    print(f"Got stable weight: {final_weight:.2f} kg after {len(stable_readings)} readings")
+                    return final_weight
+                
+                time.sleep(0.2)  # Check every 200ms
+            
+            # Timeout - return best available reading if any
+            if stable_readings:
+                final_weight = sum(stable_readings) / len(stable_readings)
+                print(f"Timeout - returning average of {len(stable_readings)} readings: {final_weight:.2f} kg")
+                return final_weight
+            
+            print("Timeout - no stable weight obtained")
+            return None
+            
+        except Exception as e:
+            print(f"Error waiting for stable weight: {e}")
+            return None
+    
+    def validate_captured_weight(self, weight):
+        """Enhanced: Validate that captured weight makes sense"""
+        try:
+            current_weighment = getattr(self.main_form, 'current_weighment', 'first')
+            
+            # Basic range check
+            if weight < 0 or weight > 8000000:  # 0.1 to 80 tons
+                messagebox.showerror("Invalid Weight", 
+                                   f"Weight {weight:.2f} kg is outside valid range (0-8000000 kg)")
+                return False
+            
+            # Enhanced: Check against previous weighment for logical consistency
+            if current_weighment == "second":
+                try:
+                    first_weight_str = self.main_form.first_weight_var.get()
+                    if first_weight_str:
+                        first_weight = float(first_weight_str)
+                        weight_difference = abs(first_weight - weight)
+                        
+                        # Check minimum weight change
+                        if weight_difference < self.min_weight_change:
+                            result = messagebox.askyesno("Small Weight Change", 
+                                                       f"Weight difference is only {weight_difference:.2f} kg.\n"
+                                                       f"First: {first_weight:.2f} kg\n"
+                                                       f"Second: {weight:.2f} kg\n\n"
+                                                       "This seems unusually small. Continue anyway?")
+                            if not result:
+                                return False
+                        
+                        # Check for impossible weight change (too large)
+                        if weight_difference > 60000:  # More than 60 tons difference
+                            messagebox.showerror("Invalid Weight Change", 
+                                               f"Weight difference of {weight_difference:.2f} kg is too large.\n"
+                                               f"Please check weighbridge calibration.")
+                            return False
+                            
+                except (ValueError, AttributeError):
+                    pass  # First weight not available or invalid
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error validating weight: {e}")
+            return True  # Default to accepting weight if validation fails
+    
+    def get_current_weighbridge_value(self):
+        """Enhanced: Get current weighbridge value with better error handling"""
+        try:
+            # Get weighbridge info
             weighbridge, weight_var, status_var = config.get_global_weighbridge_info()
             
             if weighbridge is None or weight_var is None or status_var is None:
-                messagebox.showerror("Application Error", 
-                                "Cannot access weighbridge settings. Please restart the application.")
+                print("Could not get weighbridge info")
+                return None
+            
+            # Enhanced: Check connection using improved method from new weighbridge code
+            connection_status = weighbridge.get_connection_status()
+            if not connection_status.get('connected', False):
+                print(f"Weighbridge not connected: {connection_status}")
                 return None
             
             # Get weight from the weighbridge display
             weight_str = weight_var.get()
             print(f"Weight string from weighbridge: '{weight_str}'")
             
-            # FIXED: Use the exact same connection check as the working old code
-            is_connected = (weighbridge is not None and 
-                        status_var.get() == "Status: Connected")
-            
-            print(f"Weighbridge connection status: '{status_var.get()}' -> Connected: {is_connected}")
-            
-            if not is_connected:
-                messagebox.showerror("Weighbridge Error", 
-                                "Weighbridge is not connected. Please connect the weighbridge in Settings tab.")
-                return None
-            
-            # Extract number from string like "123.45 kg" - same as old working code
+            # Extract number from string like "123.45 kg"
             import re
             match = re.search(r'(\d+\.?\d*)', weight_str)
             if match:
@@ -184,31 +314,38 @@ class WeightManager:
                 print(f"Extracted weight value: {weight_value}")
                 return weight_value
             else:
-                messagebox.showerror("Error", "Could not read weight from weighbridge. Please check connection.")
+                print("Could not parse weight from string")
                 return None
                 
         except Exception as e:
             print(f"Error in get_current_weighbridge_value: {e}")
-            messagebox.showerror("Weighbridge Error", f"Error reading weighbridge: {str(e)}")
             return None
     
     def is_weighbridge_connected(self):
-        """FIXED: Check if weighbridge is actually connected using the working old method"""
+        """Enhanced: Check weighbridge connection using improved methods"""
         try:
             print("Checking weighbridge connection...")
             
-            # Use the exact same method as the working old code
             weighbridge, weight_var, status_var = config.get_global_weighbridge_info()
             
-            if weighbridge is None or status_var is None:
-                print("Could not get weighbridge info")
+            if weighbridge is None:
+                print("No weighbridge manager found")
                 return False
             
-            # FIXED: Use the exact same check as the working old code
-            is_connected = (weighbridge is not None and 
-                        status_var.get() == "Status: Connected")
+            # Enhanced: Use the new connection status method if available
+            if hasattr(weighbridge, 'get_connection_status'):
+                status = weighbridge.get_connection_status()
+                is_connected = status.get('connected', False)
+                print(f"Enhanced connection check: {is_connected}")
+                return is_connected
             
-            print(f"Weighbridge status: '{status_var.get()}' -> Connected: {is_connected}")
+            # Fallback: Use the old method
+            if status_var is None:
+                print("No status variable found")
+                return False
+            
+            is_connected = status_var.get() == "Status: Connected"
+            print(f"Legacy connection check: '{status_var.get()}' -> Connected: {is_connected}")
             return is_connected
             
         except Exception as e:
@@ -216,7 +353,7 @@ class WeightManager:
             return False
     
     def process_captured_weight(self, weight):
-        """Process the captured weight (common for both test and real mode)"""
+        """Enhanced: Process captured weight with better validation and formatting"""
         try:
             import datetime
             from tkinter import messagebox
@@ -255,15 +392,26 @@ class WeightManager:
                     self.main_form.weighment_state_var.set("Weighment Complete")
                     
                     mode_text = "TEST MODE" if self.is_test_mode_enabled() else "WEIGHBRIDGE"
+                    
+                    # Enhanced: Show more detailed results
+                    heavier_weight = max(first_weight, weight)
+                    lighter_weight = min(first_weight, weight)
+                    weight_type = "Loaded" if first_weight > weight else "Empty"
+                    
                     messagebox.showinfo("Second Weight Captured", 
                                        f"Second weighment: {weight:.2f} kg\n"
                                        f"Net weight: {net_weight:.2f} kg\n"
+                                       f"Heaviest: {heavier_weight:.2f} kg ({weight_type})\n"
+                                       f"Lightest: {lighter_weight:.2f} kg\n"
                                        f"Time: {timestamp}\n"
                                        f"Mode: {mode_text}\n\n"
                                        "Both weighments complete. Ready to save record.")
                 except ValueError:
                     messagebox.showerror("Error", "Invalid first weight value")
+                    return False
             
+            # Enhanced: Update last weight for future reference
+            self.last_weight = weight
             return True
             
         except Exception as e:
@@ -272,7 +420,7 @@ class WeightManager:
             return False
     
     def get_settings_storage(self):
-        """IMPROVED: Get settings storage instance with multiple fallback methods"""
+        """Enhanced: Get settings storage with better error handling"""
         try:
             # Method 1: Try to find through parent hierarchy
             app = self.find_main_app()
@@ -295,21 +443,26 @@ class WeightManager:
             
             # Method 3: Create new instance as fallback
             print("Creating new SettingsStorage instance")
-            from settings_storage import SettingsStorage
-            return SettingsStorage()
+            try:
+                from settings_storage import SettingsStorage
+                return SettingsStorage()
+            except ImportError:
+                print("Could not import SettingsStorage")
+                return None
             
         except Exception as e:
             print(f"Error getting settings storage: {e}")
             return None
     
     def find_main_app(self):
-        """IMPROVED: Find the main app instance with better hierarchy traversal"""
+        """Enhanced: Find main app with better traversal and timeout"""
         try:
             # Start from main form and traverse up
             widget = self.main_form.parent
             attempts = 0
+            max_attempts = 15
             
-            while widget and attempts < 15:  # Increased attempts
+            while widget and attempts < max_attempts:
                 attempts += 1
                 
                 # Check for main app indicators
@@ -320,7 +473,7 @@ class WeightManager:
                 # Check class name for app identification
                 if hasattr(widget, '__class__'):
                     class_name = widget.__class__.__name__
-                    if 'App' in class_name:
+                    if 'App' in class_name or 'Main' in class_name:
                         print(f"Found app class: {class_name}")
                         return widget
                 
@@ -336,7 +489,7 @@ class WeightManager:
                             widget = widget._root().nametowidget(parent_name)
                         else:
                             break
-                    except:
+                    except Exception:
                         break
                 else:
                     break
@@ -349,12 +502,46 @@ class WeightManager:
             return None
 
     def handle_weighbridge_weight(self, weight):
-        """Handle weight from weighbridge - delegates to weight manager"""
+        """Enhanced: Handle weight from weighbridge with validation"""
         try:
             print(f"Weighbridge weight received: {weight}")
-            # Update current weight display
+            
+            # Enhanced: Validate received weight
+            if weight is None or weight < 0 or weight > 100000:
+                print(f"Invalid weight received: {weight}")
+                return False
+            
+            # Update current weight display with formatting
             self.main_form.current_weight_var.set(f"{weight:.2f} kg")
+            
+            # Enhanced: Update last weight for stability tracking
+            self.last_weight = weight
+            
             return True
+            
         except Exception as e:
             print(f"Error handling weighbridge weight: {e}")
+            return False
+    
+    def reset_weighment(self):
+        """Enhanced: Reset weighment state for new transaction"""
+        try:
+            print("Resetting weighment state")
+            
+            # Reset weighment state
+            self.main_form.current_weighment = "first"
+            self.main_form.weighment_state_var.set("First Weighment")
+            
+            # Clear weight values but keep current display
+            self.main_form.first_weight_var.set("0.00")
+            self.main_form.second_weight_var.set("0.00")
+            self.main_form.net_weight_var.set("0.00")
+            self.main_form.first_timestamp_var.set("")
+            self.main_form.second_timestamp_var.set("")
+            
+            print("Weighment state reset successfully")
+            return True
+            
+        except Exception as e:
+            print(f"Error resetting weighment: {e}")
             return False

@@ -221,11 +221,6 @@ class MainForm:
                                     width=12, style="Weight.TEntry", state="readonly")
         self.first_weight_entry.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
 
-        # First Timestamp
-        first_timestamp_label = ttk.Label(weighment_frame, textvariable=self.first_timestamp_var, 
-                                        font=("Segoe UI", 8), foreground="blue")
-        first_timestamp_label.grid(row=1, column=2, sticky=tk.E, padx=5, pady=5)
-
         # Second Row - Second Weighment
         ttk.Label(weighment_frame, text="Second Weighment:", font=("Segoe UI", 9, "bold")).grid(
             row=2, column=0, sticky=tk.W, padx=5, pady=5)
@@ -234,11 +229,6 @@ class MainForm:
         self.second_weight_entry = ttk.Entry(weighment_frame, textvariable=self.second_weight_var, 
                                         width=12, style="Weight.TEntry", state="readonly")
         self.second_weight_entry.grid(row=2, column=1, sticky=tk.W, padx=5, pady=5)
-
-        # Second Timestamp
-        second_timestamp_label = ttk.Label(weighment_frame, textvariable=self.second_timestamp_var, 
-                                         font=("Segoe UI", 8), foreground="blue")
-        second_timestamp_label.grid(row=2, column=2, sticky=tk.E, padx=5, pady=5)
 
         # Third Row - Net Weight
         ttk.Label(weighment_frame, text="Net Weight:", font=("Segoe UI", 9, "bold")).grid(

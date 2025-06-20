@@ -1,4 +1,4 @@
-# Enhanced weighbridge.py with comprehensive logging
+# Enhanced weighbridge.py with comprehensive logging and USB reliability improvements
 
 import serial
 import serial.tools.list_ports
@@ -7,6 +7,9 @@ import time
 import re
 import datetime
 import os
+import signal
+import sys
+from contextlib import contextmanager
 
 # Import the unified logging system
 try:
@@ -19,7 +22,7 @@ except ImportError:
 import config
 
 class WeighbridgeManager:
-    """Enhanced weighbridge manager with comprehensive logging and test mode support"""
+    """Enhanced weighbridge manager with comprehensive logging, USB reliability, and test mode support"""
     
     def __init__(self, weight_callback=None):
         """Initialize weighbridge manager with logging
@@ -42,16 +45,27 @@ class WeighbridgeManager:
         self.test_mode = False
         self.last_test_weight = 0.0
         
-        # Weight reading configuration
+        # Weight reading configuration - made configurable
         self.last_weight = 0.0
-        self.weight_tolerance = 1.0  # kg tolerance for stable readings
-        self.stable_readings_required = 3
+        self.weight_tolerance = getattr(config, 'WEIGHT_TOLERANCE', 1.0)  # kg tolerance for stable readings
+        self.stable_readings_required = getattr(config, 'STABLE_READINGS_REQUIRED', 3)
         self.stable_count = 0
         
         # Connection monitoring
         self.connection_attempts = 0
         self.max_connection_attempts = 3
         self.last_successful_read = None
+        
+        # USB reliability improvements
+        self.consecutive_errors = 0
+        self.max_consecutive_errors = 3  # Lower threshold for faster recovery
+        self.reconnect_delay = 2.0  # Seconds to wait before reconnection
+        
+        # Pre-compiled regex patterns for better performance
+        self._compile_weight_patterns()
+        
+        # Register signal handlers for graceful shutdown
+        self._register_signal_handlers()
         
         self.logger.print_success("WeighbridgeManager initialized successfully")
         
@@ -83,6 +97,85 @@ class WeighbridgeManager:
             def print_debug(self, msg): print(f"🔍 WeighbridgeManager - {msg}")
         
         return FallbackLogger()
+    
+    def _compile_weight_patterns(self):
+        """Pre-compile regex patterns for better performance"""
+        try:
+            # Single comprehensive pattern for all weight formats
+            self.weight_pattern = re.compile(
+                r'(?:'
+                r'(\d{2,5})[^0-9]+.*?Wt:\s*$|'  # "1600Wt:" format
+                r'(\d+\.?\d*)\s*(?:kg|KG)|'      # "1234.5 kg" format
+                r'(\d+\.?\d*)\s*$|'              # Just the number at end
+                r'.*?(\d+\.?\d*)\s*$'            # Number at end of string
+                r')',
+                re.IGNORECASE
+            )
+            self.logger.print_debug("Weight parsing patterns compiled successfully")
+        except Exception as e:
+            self.logger.print_error(f"Error compiling weight patterns: {e}")
+            # Fallback to None, will use slower individual patterns
+            self.weight_pattern = None
+    
+    def _register_signal_handlers(self):
+        """Register signal handlers for graceful shutdown"""
+        try:
+            def signal_handler(signum, frame):
+                self.logger.print_warning(f"Received signal {signum}, shutting down gracefully")
+                self.close()
+                sys.exit(0)
+            
+            signal.signal(signal.SIGINT, signal_handler)
+            signal.signal(signal.SIGTERM, signal_handler)
+            self.logger.print_debug("Signal handlers registered")
+        except Exception as e:
+            self.logger.print_warning(f"Could not register signal handlers: {e}")
+    
+    def _validate_serial_parameters(self, port, baud_rate, data_bits, parity, stop_bits):
+        """Validate serial parameters before attempting connection
+        
+        Args:
+            port: COM port
+            baud_rate: Baud rate
+            data_bits: Data bits
+            parity: Parity setting
+            stop_bits: Stop bits
+            
+        Returns:
+            tuple: (is_valid, error_message)
+        """
+        try:
+            # Validate port
+            if not port or not isinstance(port, str):
+                return False, "Invalid port specified"
+            
+            # Validate baud rate
+            valid_baud_rates = [300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200]
+            if baud_rate not in valid_baud_rates:
+                return False, f"Invalid baud rate: {baud_rate}. Valid rates: {valid_baud_rates}"
+            
+            # Validate data bits
+            if data_bits not in [5, 6, 7, 8]:
+                return False, f"Invalid data bits: {data_bits}. Valid values: 5, 6, 7, 8"
+            
+            # Validate parity
+            valid_parity = ['None', 'Odd', 'Even', 'Mark', 'Space']
+            if parity not in valid_parity:
+                return False, f"Invalid parity: {parity}. Valid values: {valid_parity}"
+            
+            # Validate stop bits
+            if stop_bits not in [1, 1.5, 2]:
+                return False, f"Invalid stop bits: {stop_bits}. Valid values: 1, 1.5, 2"
+            
+            # Check if port exists
+            available_ports = [port.device for port in serial.tools.list_ports.comports()]
+            if port not in available_ports:
+                return False, f"Port {port} not found. Available ports: {available_ports}"
+            
+            return True, "Parameters valid"
+            
+        except Exception as e:
+            return False, f"Error validating parameters: {e}"
         
     def set_test_mode(self, enabled):
         """Set test mode on/off
@@ -102,29 +195,61 @@ class WeighbridgeManager:
             self.logger.print_info("Test mode DISABLED - switching to real weighbridge mode")
     
     def get_available_ports(self):
-        """Get list of available COM ports with logging
+        """Get list of available COM ports with logging and USB adapter detection
         
         Returns:
-            list: Available COM port names
+            list: Available COM port names with adapter information
         """
         try:
             self.logger.print_debug("Scanning for available COM ports")
             ports = serial.tools.list_ports.comports()
-            port_list = [port.device for port in ports]
+            port_info = []
             
-            if port_list:
-                self.logger.print_success(f"Found {len(port_list)} COM ports: {', '.join(port_list)}")
+            for port in ports:
+                port_data = {
+                    'device': port.device,
+                    'description': port.description,
+                    'manufacturer': getattr(port, 'manufacturer', 'Unknown'),
+                    'vid': getattr(port, 'vid', None),
+                    'pid': getattr(port, 'pid', None)
+                }
+                
+                # Identify USB-to-Serial adapters
+                if port.vid and port.pid:
+                    # Common USB-to-Serial chip vendors
+                    if port.vid == 0x0403:  # FTDI
+                        port_data['adapter_type'] = 'FTDI'
+                        port_data['recommended'] = True
+                    elif port.vid == 0x1A86:  # CH340/CH341
+                        port_data['adapter_type'] = 'CH340'
+                        port_data['recommended'] = True
+                    elif port.vid == 0x067B:  # Prolific
+                        port_data['adapter_type'] = 'Prolific'
+                        port_data['recommended'] = False
+                    else:
+                        port_data['adapter_type'] = 'Generic'
+                        port_data['recommended'] = False
+                
+                port_info.append(port_data)
+            
+            if port_info:
+                self.logger.print_success(f"Found {len(port_info)} COM ports")
+                for port in port_info:
+                    adapter_info = f" ({port.get('adapter_type', 'Unknown')})" if 'adapter_type' in port else ""
+                    recommended = " ✓" if port.get('recommended', False) else ""
+                    self.logger.print_debug(f"  {port['device']}: {port['description']}{adapter_info}{recommended}")
             else:
                 self.logger.print_warning("No COM ports found")
-                
-            return port_list
+            
+            # Return simple list for backward compatibility
+            return [port['device'] for port in port_info]
             
         except Exception as e:
             self.logger.print_error(f"Error getting COM ports: {e}")
             return []
     
     def connect(self, port, baud_rate=9600, data_bits=8, parity='None', stop_bits=1.0):
-        """Connect to weighbridge with comprehensive logging
+        """Connect to weighbridge with comprehensive logging and parameter validation
         
         Args:
             port: COM port (e.g., 'COM1')
@@ -142,18 +267,25 @@ class WeighbridgeManager:
             self.logger.print_info(f"Connection attempt #{self.connection_attempts} to weighbridge")
             self.logger.print_debug(f"Parameters: Port={port}, Baud={baud_rate}, Data={data_bits}, Parity={parity}, Stop={stop_bits}")
             
+            # Validate parameters first
+            is_valid, error_msg = self._validate_serial_parameters(port, baud_rate, data_bits, parity, stop_bits)
+            if not is_valid:
+                self.logger.print_error(f"Parameter validation failed: {error_msg}")
+                return False
+            
             if self.test_mode:
                 self.logger.print_warning("Test mode enabled - simulating weighbridge connection")
                 self.is_connected = True
                 self._start_test_mode_thread()
                 self.logger.print_success("Test mode weighbridge connection established")
                 return True
-                
-            # Validate parameters
-            if not port:
-                self.logger.print_error("No COM port specified")
-                return False
-                
+            
+            # Close existing connection if any
+            if self.serial_connection and self.serial_connection.is_open:
+                self.logger.print_debug("Closing existing connection before reconnecting")
+                self.serial_connection.close()
+                time.sleep(0.5)  # Give port time to close
+            
             # Convert parity string to serial constant
             parity_map = {
                 'None': serial.PARITY_NONE,
@@ -166,7 +298,7 @@ class WeighbridgeManager:
             parity_setting = parity_map.get(parity, serial.PARITY_NONE)
             self.logger.print_debug(f"Using parity setting: {parity} -> {parity_setting}")
             
-            # Create serial connection
+            # Create serial connection with lower timeout for faster thread exit
             self.logger.print_info(f"Establishing serial connection to {port}")
             self.serial_connection = serial.Serial(
                 port=port,
@@ -174,12 +306,21 @@ class WeighbridgeManager:
                 bytesize=data_bits,
                 parity=parity_setting,
                 stopbits=stop_bits,
-                timeout=1
+                timeout=0.1,  # Lower timeout for faster response
+                write_timeout=1.0,
+                exclusive=True  # Prevent other processes from accessing the port
             )
             
             # Test the connection
             if self.serial_connection.is_open:
                 self.logger.print_success(f"Serial port {port} opened successfully")
+                
+                # Clear any existing data in buffer
+                self.serial_connection.reset_input_buffer()
+                self.serial_connection.reset_output_buffer()
+                
+                # Reset error counters
+                self.consecutive_errors = 0
                 
                 # Start reading thread
                 self.should_read = True
@@ -198,11 +339,39 @@ class WeighbridgeManager:
                 return False
             
         except serial.SerialException as e:
-            self.logger.print_error(f"Serial connection error: {e}")
+            self.logger.print_error(f"Serial adapter error (USB device may be disconnected): {e}")
+            self._handle_adapter_error()
+            return False
+        except OSError as e:
+            self.logger.print_error(f"OS-level port access error: {e}")
+            self.logger.print_info("Try checking Device Manager or reconnecting the USB adapter")
             return False
         except Exception as e:
             self.logger.print_error(f"Unexpected error connecting to weighbridge: {e}")
             return False
+    
+    def _handle_adapter_error(self):
+        """Handle USB adapter disconnection or errors"""
+        try:
+            self.logger.print_warning("Handling USB adapter error")
+            
+            # Force disconnect
+            self.is_connected = False
+            self.should_read = False
+            
+            # Close connection if it exists
+            if self.serial_connection:
+                try:
+                    if self.serial_connection.is_open:
+                        self.serial_connection.close()
+                except:
+                    pass  # Connection might already be broken
+                self.serial_connection = None
+            
+            self.logger.print_info("Adapter error handled - ready for reconnection")
+            
+        except Exception as e:
+            self.logger.print_error(f"Error handling adapter error: {e}")
     
     def disconnect(self):
         """Disconnect from weighbridge with logging
@@ -224,19 +393,34 @@ class WeighbridgeManager:
                     self.logger.print_success("Reading thread stopped successfully")
             
             # Close serial connection
-            if self.serial_connection and self.serial_connection.is_open:
-                self.logger.print_debug("Closing serial connection")
-                self.serial_connection.close()
-                self.logger.print_success("Serial connection closed")
+            if self.serial_connection:
+                try:
+                    if self.serial_connection.is_open:
+                        self.logger.print_debug("Closing serial connection")
+                        self.serial_connection.close()
+                        self.logger.print_success("Serial connection closed")
+                except Exception as e:
+                    self.logger.print_warning(f"Error closing serial connection: {e}")
+                finally:
+                    self.serial_connection = None
             
             self.is_connected = False
-            self.serial_connection = None
+            self.consecutive_errors = 0
             
             self.logger.print_success("Weighbridge disconnected successfully")
             return True
             
         except Exception as e:
             self.logger.print_error(f"Error disconnecting from weighbridge: {e}")
+            return False
+    
+    def close(self):
+        """Explicit cleanup method - preferred over relying on __del__"""
+        try:
+            self.logger.print_info("Explicit cleanup requested")
+            return self.disconnect()
+        except Exception as e:
+            self.logger.print_error(f"Error during explicit cleanup: {e}")
             return False
     
     def _start_test_mode_thread(self):
@@ -250,10 +434,8 @@ class WeighbridgeManager:
             self.logger.print_error(f"Error starting test mode thread: {e}")
     
     def _read_weight_loop(self):
-        """Main weight reading loop with comprehensive logging"""
+        """Main weight reading loop with comprehensive logging and USB reliability"""
         self.logger.print_info("Weight reading loop started")
-        consecutive_errors = 0
-        max_consecutive_errors = 5
         
         while self.should_read:
             try:
@@ -266,19 +448,36 @@ class WeighbridgeManager:
                 if self.serial_connection and self.serial_connection.is_open:
                     # Check for data available
                     if self.serial_connection.in_waiting > 0:
-                        # Read from serial port
-                        line = self.serial_connection.readline().decode('utf-8', errors='ignore').strip()
-                        
-                        if line:
-                            self.logger.print_debug(f"Raw data received: '{line}'")
-                            weight = self._parse_weight(line)
+                        try:
+                            # Read from serial port
+                            line = self.serial_connection.readline().decode('utf-8', errors='ignore').strip()
                             
-                            if weight is not None:
-                                self._process_weight(weight)
-                                consecutive_errors = 0  # Reset error counter on successful read
-                                self.last_successful_read = datetime.datetime.now()
-                            else:
-                                self.logger.print_warning(f"Could not parse weight from: '{line}'")
+                            if line:
+                                self.logger.print_debug(f"Raw data received: '{line}'")
+                                weight = self._parse_weight(line)
+                                
+                                if weight is not None:
+                                    self._process_weight(weight)
+                                    self.consecutive_errors = 0  # Reset error counter on successful read
+                                    self.last_successful_read = datetime.datetime.now()
+                                else:
+                                    self.logger.print_warning(f"Could not parse weight from: '{line}'")
+                        
+                        except serial.SerialException as e:
+                            self.consecutive_errors += 1
+                            self.logger.print_error(f"USB adapter error during read (#{self.consecutive_errors}): {e}")
+                            
+                            if self.consecutive_errors >= self.max_consecutive_errors:
+                                self.logger.print_critical("USB adapter appears disconnected - stopping reads")
+                                self._handle_adapter_error()
+                                break
+                            
+                            time.sleep(self.reconnect_delay)
+                            continue
+                        
+                        except UnicodeDecodeError as e:
+                            self.logger.print_warning(f"Unicode decode error (possible baud rate mismatch): {e}")
+                            continue
                     
                     # Check for timeout
                     if self.last_successful_read:
@@ -290,11 +489,11 @@ class WeighbridgeManager:
                 time.sleep(0.1)  # Small delay to prevent CPU spinning
                 
             except Exception as e:
-                consecutive_errors += 1
-                self.logger.print_error(f"Error in weight reading loop (#{consecutive_errors}): {e}")
+                self.consecutive_errors += 1
+                self.logger.print_error(f"Error in weight reading loop (#{self.consecutive_errors}): {e}")
                 
-                if consecutive_errors >= max_consecutive_errors:
-                    self.logger.print_critical(f"Too many consecutive errors ({consecutive_errors}), stopping weight reading")
+                if self.consecutive_errors >= self.max_consecutive_errors:
+                    self.logger.print_critical(f"Too many consecutive errors ({self.consecutive_errors}), stopping weight reading")
                     break
                 
                 time.sleep(1)  # Longer delay after error
@@ -321,7 +520,7 @@ class WeighbridgeManager:
             self.logger.print_error(f"Error in test weight simulation: {e}")
     
     def _parse_weight(self, data_line):
-        """Parse weight from received data with logging - UPDATED with new format support
+        """Parse weight from received data with optimized pattern matching
         
         Args:
             data_line: Raw data string from weighbridge
@@ -330,6 +529,18 @@ class WeighbridgeManager:
             float: Parsed weight in kg, or None if parsing failed
         """
         try:
+            # Use pre-compiled pattern if available
+            if self.weight_pattern:
+                match = self.weight_pattern.search(data_line)
+                if match:
+                    # Get the first non-None group
+                    for group in match.groups():
+                        if group:
+                            weight = float(group)
+                            self.logger.print_debug(f"Parsed weight: {weight} kg using compiled pattern")
+                            return weight
+            
+            # Fallback to individual patterns if compiled pattern fails
             # Check for the new "Wt:" format first (e.g., "1600Wt:    1500Wt:    1500Wt:")
             wt_pattern = r'^(\d{2,5})[^0-9]+.*Wt:$'
             wt_matches = re.findall(wt_pattern, data_line)
@@ -337,13 +548,8 @@ class WeighbridgeManager:
             if wt_matches:
                 # Found weights in "NumberWt:" format
                 weights = [int(match) for match in wt_matches]
-                #self.logger.print_debug(f"Found weights in Wt: format: {weights}")
                 
                 # Use the first weight value (you can modify this logic as needed)
-                # Alternative approaches:
-                # - Use the last weight: weight = weights[-1]
-                # - Use average: weight = sum(weights) / len(weights)
-                # - Use maximum: weight = max(weights)
                 weight = weights[0]
                 
                 self.logger.print_debug(f"Selected weight from Wt: format: {weight} kg")
@@ -354,14 +560,7 @@ class WeighbridgeManager:
                 r'(\d+\.?\d*)\s*kg',  # "1234.5 kg" or "1234 kg"
                 r'(\d+\.?\d*)\s*KG',  # "1234.5 KG"
                 r'(\d+\.?\d*)',       # Just the number
-                r'.*?(\d+\.?\d*)\s*$',
-                r'(\d{2,5})[^0-9]*Wt:$',
-                r'(\d{2,5})[^0-9]*.*Wt:$',
-                r'(\d{2,5})[^0-9]*.*Wt :$',
-                r'^(\d{2,5})[^0-9]+.*Wt: $',
-                r'^(\d{2,5}).*Wt:$',
-                r'^(\d{2,5}).*Wt :$',
-                r'^(\d{2,5}).*Wt: $'                                # Number at end of string
+                r'.*?(\d+\.?\d*)\s*$' # Number at end of string
             ]
             
             for pattern in patterns:
@@ -369,7 +568,7 @@ class WeighbridgeManager:
                 if match:
                     weight_str = match.group(1)
                     weight = float(weight_str)
-                    #self.logger.print_debug(f"Parsed weight: {weight} kg from pattern: {pattern}")
+                    self.logger.print_debug(f"Parsed weight: {weight} kg from fallback pattern")
                     return weight
             
             self.logger.print_warning(f"No weight pattern matched for data: '{data_line}'")
@@ -432,6 +631,7 @@ class WeighbridgeManager:
                 'last_weight': self.last_weight,
                 'stable_count': self.stable_count,
                 'connection_attempts': self.connection_attempts,
+                'consecutive_errors': self.consecutive_errors,
                 'last_successful_read': self.last_successful_read.isoformat() if self.last_successful_read else None
             }
             
@@ -447,13 +647,30 @@ class WeighbridgeManager:
             }
     
     def __del__(self):
-        """Cleanup when object is destroyed"""
+        """Cleanup when object is destroyed - kept for backward compatibility but close() is preferred"""
         try:
             if hasattr(self, 'logger'):
-                self.logger.print_info("WeighbridgeManager cleanup started")
-            self.disconnect()
-            if hasattr(self, 'logger'):
-                self.logger.print_success("WeighbridgeManager cleanup completed")
+                self.logger.print_warning("Destructor called - prefer using close() method")
+            self.close()
         except Exception as e:
             if hasattr(self, 'logger'):
-                self.logger.print_error(f"Error during cleanup: {e}")
+                self.logger.print_error(f"Error during destructor cleanup: {e}")
+
+
+# Context manager for safe weighbridge operations
+@contextmanager
+def open_weighbridge(*args, **kwargs):
+    """Context manager for safe weighbridge operations
+    
+    Usage:
+        with open_weighbridge('COM1', 9600) as bridge:
+            weight = bridge.get_current_weight()
+    """
+    mgr = WeighbridgeManager()
+    try:
+        if mgr.connect(*args, **kwargs):
+            yield mgr
+        else:
+            raise RuntimeError("Failed to connect to weighbridge")
+    finally:
+        mgr.close()

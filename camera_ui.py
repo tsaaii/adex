@@ -24,18 +24,6 @@ def create_cameras_panel(self, parent):
         # No USB cameras detected - show warning
         warning_frame = ttk.Frame(camera_frame)
         warning_frame.pack(fill=tk.X, padx=5, pady=10)
-        
-        warning_label = ttk.Label(warning_frame, 
-                                 text="⚠️ No USB cameras detected! Please connect cameras or check RTSP/HTTP settings.",
-                                 font=("Segoe UI", 10, "bold"),
-                                 foreground="red")
-        warning_label.pack()
-        
-        instruction_label = ttk.Label(warning_frame,
-                                    text="• Connect USB cameras and restart application\n• Or configure RTSP/HTTP cameras in Settings",
-                                    font=("Segoe UI", 9),
-                                    foreground="orange")
-        instruction_label.pack(pady=5)
     
     # Container for both cameras side by side
     cameras_container = ttk.Frame(camera_frame, style="TFrame")
@@ -176,20 +164,6 @@ def create_cameras_panel(self, parent):
                                   foreground="blue",
                                   font=("Segoe UI", 9, "bold"))
     total_image_status.grid(row=2, column=1, sticky="w", padx=10)
-    
-    # Instructions with tips for robust feed
-    instruction_frame = ttk.Frame(controls_frame)
-    instruction_frame.pack(fill=tk.X, padx=5, pady=3)
-    
-    instruction_text = ("💡 Camera Tips: Auto-detects available USB cameras on startup • "
-                       "Click 'Detect Cameras' after connecting new cameras • "
-                       "RTSP/HTTP cameras configure via Settings • "
-                       "Robust reconnection handles connection issues automatically")
-    instruction_label = ttk.Label(instruction_frame, text=instruction_text, 
-                                 font=("Segoe UI", 8), 
-                                 foreground="green",
-                                 wraplength=600)
-    instruction_label.pack(side=tk.LEFT, padx=5)
     
     # Action buttons section (enhanced)
     action_buttons_frame = ttk.LabelFrame(camera_frame, text="🔧 Record Management")

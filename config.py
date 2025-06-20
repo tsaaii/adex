@@ -24,8 +24,10 @@ HARDCODED_SITE = "Yemmigannur"
 HARDCODED_USER = "admin"
 HARDCODED_PASSWORD = "admin" 
 HARDCODED_SITEMANAGER = "Avijit Mondal" 
-
-
+WEIGHT_TOLERANCE = 1.0  # kg - adjust for your needs
+STABLE_READINGS_REQUIRED = 3  # readings - adjust for stability vs responsiveness
+MIN_WEIGHT_CHANGE = 50.0  # minimum kg change between weighments
+WEIGHT_CAPTURE_TIMEOUT = 5.0  # seconds to wait for stable weight
 # Hardcoded Lists for Form Dropdowns
 HARDCODED_SITES = [HARDCODED_SITE]
 HARDCODED_AGENCIES = [HARDCODED_AGENCY]
