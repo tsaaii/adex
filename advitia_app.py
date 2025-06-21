@@ -2,7 +2,7 @@
 # pyinstaller ^
 #   --onedir ^
 #   --windowed ^
-#   --name="SAC_monitor_Yemmigannur" ^
+#   --name="SAC_monitor_Yemmiganur" ^
 #   --icon=right.ico ^
 #   --add-data "data;data" ^
 #   --hidden-import=serial ^
@@ -106,7 +106,7 @@ class TharuniApp:
         self.root.title("Swaccha Andhra Corporation powered by Advitia Labs")
         self.root.geometry("900x580")
         self.root.minsize(900, 580)
-        
+
         # FIXED: Setup unified logging with better error handling
         try:
             unified_logger = setup_unified_logging("combined", "logs")  # FIXED: typo "coimbined" -> "combined"
@@ -196,6 +196,9 @@ class TharuniApp:
             messagebox.showerror("Initialization Error", 
                                f"Failed to initialize application:\n{str(e)}\n\nCheck logs for details.")
             self.root.quit()
+
+
+
 
 
     def authenticate_user(self):

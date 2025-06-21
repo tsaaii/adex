@@ -582,6 +582,9 @@ class ReportGenerator:
                               f"Total Weight: {total_net_weight:.2f} kg\n"
                               f"Location: {self.reports_folder}")
             
+            # ENHANCEMENT 1: Close the report window after successful export
+            self.report_window.destroy()
+            
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export to Excel:\n{str(e)}")
     
@@ -624,6 +627,9 @@ class ReportGenerator:
                                 f"File: {filename}\n"
                                 f"Records: {len(selected_data)}\n"
                                 f"Location: {self.reports_folder}")
+            
+            # ENHANCEMENT 1: Close the report window after successful export
+            self.report_window.destroy()
             
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export to PDF:\n{str(e)}")
@@ -742,7 +748,7 @@ class ReportGenerator:
             return f"Filtered_Report_{len(selected_data)}records_{timestamp}.{extension}"
 
     def create_summary_pdf_report(self, records_data, save_path):
-        """Create a summary PDF report for filtered records (always used for multiple records)"""
+        """Create an enhanced summary PDF report for filtered records with improved formatting"""
         if not REPORTLAB_AVAILABLE:
             return False
             
@@ -757,7 +763,7 @@ class ReportGenerator:
             styles = getSampleStyleSheet()
             elements = []
 
-            # Create styles
+            # Create enhanced styles
             header_style = ParagraphStyle(
                 name='HeaderStyle',
                 fontSize=16,
@@ -775,6 +781,17 @@ class ReportGenerator:
                 fontName='Helvetica',
                 textColor=colors.black,
                 spaceAfter=6
+            )
+            
+            # New style for filters section
+            filter_style = ParagraphStyle(
+                name='FilterStyle',
+                fontSize=11,
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold',
+                textColor=colors.darkblue,
+                spaceAfter=8,
+                spaceBefore=8
             )
             
             summary_header_style = ParagraphStyle(
@@ -819,6 +836,9 @@ class ReportGenerator:
                 except (ValueError, TypeError):
                     pass
 
+            # Convert total weight to metric tonnes
+            total_weight_tonnes = total_net_weight / 1000.0
+
             # Get agency and site information
             first_record = records_data[0] if records_data else {}
             agency_name = first_record.get('agency_name', 'Unknown Agency')
@@ -826,13 +846,17 @@ class ReportGenerator:
             
             agency_info = self.address_config.get('agencies', {}).get(agency_name, {})
             site_info = self.address_config.get('sites', {}).get(site_name, {})
-            # Add title with agency info
-            elements.append(Paragraph(agency_info.get('name', agency_name), header_style))
             
-            # Add agency address if available
+            # ENHANCEMENT 2: Create a nice table for agency/site information with black outline only
+            agency_info_data = []
+            
+            # Agency name row
+            agency_info_data.append([agency_info.get('name', agency_name)])
+            
+            # Agency address if available
             if agency_info.get('address'):
-                agency_address = agency_info.get('address', '').replace('\n', '<br/>')
-                elements.append(Paragraph(agency_address, subheader_style))
+                agency_address = agency_info.get('address', '').replace('\n', '\n')  # Keep line breaks
+                agency_info_data.append([agency_address])
             
             # Contact information
             contact_info = []
@@ -844,22 +868,107 @@ class ReportGenerator:
                 contact_info.append(f"Site Phone: {site_info.get('contact')}")
             
             if contact_info:
-                elements.append(Paragraph(" | ".join(contact_info), subheader_style))
+                agency_info_data.append([" | ".join(contact_info)])
             
-            # Header info
+            # Create the agency info table
+            if agency_info_data:
+                agency_table = Table(agency_info_data, colWidths=[500])
+                agency_table.setStyle(TableStyle([
+                    # ENHANCEMENT 2: Only black outline, no background color fill
+                    ('BOX', (0, 0), (-1, -1), 2, colors.black),
+                    # Text alignment and formatting
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    # Font styling - first row (agency name) bold and larger
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 16),
+                    # Remaining rows normal font
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -1), 10),
+                    # Padding
+                    ('TOPPADDING', (0, 0), (-1, -1), 8),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 12),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+                ]))
+                
+                elements.append(agency_table)
+            
+            # Header info with export date
             elements.append(Spacer(1, 8))
             elements.append(Paragraph(f"Export Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", subheader_style))
-            elements.append(Paragraph(f"Applied Filters: {applied_filters}", subheader_style))
             
-            # SUMMARY section
-            elements.append(Paragraph("FILTERED RECORDS SUMMARY", summary_header_style))
-            elements.append(Paragraph(f"Total Number of Trips: {total_trips}", summary_style))
-            elements.append(Paragraph(f"Total Net Weight: {total_net_weight:.2f} kg", summary_style))
-            elements.append(Paragraph(f"Date Range: {date_range}", summary_style))
+            # ENHANCED: Applied Filters section with date range prominently displayed
+            elements.append(Spacer(1, 12))
+            
+            # Get detailed filter information including date range
+            filter_details = self.get_detailed_filter_info()
+            
+            # Show applied filters in bold
+            elements.append(Paragraph(f"<b>APPLIED FILTERS:</b>", filter_style))
+            
+            # Add date range prominently
+            if filter_details.get('date_range'):
+                start_date = filter_details['date_range'].get('start_date', 'Not specified')
+                start_time = filter_details['date_range'].get('start_time', 'Not specified')
+                end_date = filter_details['date_range'].get('end_date', 'Not specified') 
+                end_time = filter_details['date_range'].get('end_time', 'Not specified')
+                
+                elements.append(Paragraph(f"<b>Start Date:</b> {start_date} | <b>Start Time:</b> {start_time}", subheader_style))
+                elements.append(Paragraph(f"<b>End Date:</b> {end_date} | <b>End Time:</b> {end_time}", subheader_style))
+            else:
+                elements.append(Paragraph("<b>Date Range:</b> All records", subheader_style))
+            
+            # Add other filters if any
+            other_filters = []
+            if filter_details.get('vehicle_filter'):
+                other_filters.append(f"Vehicle: {filter_details['vehicle_filter']}")
+            if filter_details.get('material_filter'):
+                other_filters.append(f"Material: {filter_details['material_filter']}")
+            if filter_details.get('status_filter') and filter_details['status_filter'] != 'All':
+                other_filters.append(f"Status: {filter_details['status_filter']}")
+            if filter_details.get('transfer_party_filter'):
+                other_filters.append(f"Transfer Party: {filter_details['transfer_party_filter']}")
+            
+            if other_filters:
+                elements.append(Paragraph(f"<b>Additional Filters:</b> {' | '.join(other_filters)}", subheader_style))
+            
+            elements.append(Spacer(1, 12))
+            
+            # ENHANCED: Summary Statistics Table (nice formatted table)
+            elements.append(Paragraph("SUMMARY STATISTICS", summary_header_style))
+            
+            # Create summary statistics table
+            summary_table_data = [
+                ['Name', 'Description'],
+                ['Number of Trips', f"{total_trips:,}"],
+                ['Total Net Weight', f"{total_weight_tonnes:.3f} MT"]  # Changed to Metric Tonnes
+            ]
+            
+            summary_table = Table(summary_table_data, colWidths=[200, 200])
+            summary_table.setStyle(TableStyle([
+                # Header row styling
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
+                # Data rows styling
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -1), 10),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+                # Borders and padding
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ]))
+            
+            elements.append(summary_table)
             
             # Attribution line
             timestamp = datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')
-            attribution_text = f"Report generated by Advitia Labs at {timestamp}"
+            attribution_text = f"Report generated by Swaccha Andhra Monitor by Advitia Labs at {timestamp}"
             elements.append(Paragraph("─" * 40, attribution_style))
             elements.append(Paragraph(attribution_text, attribution_style))
             
@@ -868,27 +977,27 @@ class ReportGenerator:
             # Detailed records section
             elements.append(Paragraph("DETAILED RECORDS", summary_header_style))
             
-            # Create table data for all records
-            table_data = [['S.No', 'Date', 'Ticket', 'Vehicle', 'Agency', 'Material', 'Net Wt (kg)']]
+            # ENHANCED: Create table data with wider columns for better visibility (removed Agency column)
+            table_data = [['S.No', 'Date', 'Ticket', 'Vehicle', 'Material', 'Net Wt (kg)']]
             
             for i, record in enumerate(records_data, 1):
-                # Use shorter agency name if too long
-                agency_display = record.get('agency_name', 'N/A')
-                if len(agency_display) > 15:
-                    agency_display = agency_display[:12] + "..."
-                    
+                # Fix material field - check multiple possible field names
+                material = record.get('material', '') or record.get('material_type', '') or record.get('transfer_party', '') or 'N/A'
+                
                 table_data.append([
                     str(i),
                     record.get('date', 'N/A'),
                     record.get('ticket_no', 'N/A'),
                     record.get('vehicle_no', 'N/A'),
-                    agency_display,
-                    record.get('material_type', record.get('material', 'N/A')),
+                    material,
                     f"{float(record.get('net_weight', 0) or 0):.1f}"
                 ])
             
-            # Create table
-            table = Table(table_data, repeatRows=1)
+            # ENHANCED: Create table with better column widths (adjusted for removed Agency column)
+            # Calculate appropriate column widths for A4 page (about 500 points available)
+            col_widths = [40, 80, 80, 90, 120, 80]  # Redistributed widths after removing agency column
+            
+            table = Table(table_data, repeatRows=1, colWidths=col_widths)
             table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
@@ -902,6 +1011,8 @@ class ReportGenerator:
                 ('BOTTOMPADDING', (0, 1), (-1, -1), 3),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                # Alternating row colors for better readability
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.beige]),
             ]))
             
             elements.append(table)
@@ -909,16 +1020,66 @@ class ReportGenerator:
             # Build PDF
             doc.build(elements)
             
-            print(f"📄 PDF EXPORT: Successfully created summary PDF with {total_trips} records")
-            print(f"   - Total Net Weight: {total_net_weight:.2f} kg")
+            print(f"📄 ENHANCED PDF EXPORT: Successfully created summary PDF with {total_trips} records")
+            print(f"   - Total Net Weight: {total_weight_tonnes:.3f} MT ({total_net_weight:.2f} kg)")
             print(f"   - Applied Filters: {applied_filters}")
-            print(f"   - Date Range: {date_range}")
+            print(f"   - Enhanced formatting with date/time details")
             
             return True
             
         except Exception as e:
-            print(f"Error creating summary PDF report: {e}")
+            print(f"Error creating enhanced summary PDF report: {e}")
             return False
+
+    def get_detailed_filter_info(self):
+        """Get detailed filter information including date ranges with times"""
+        try:
+            filter_info = {}
+            
+            # Date range information with times
+            if CALENDAR_AVAILABLE and hasattr(self, 'from_date') and hasattr(self, 'to_date'):
+                try:
+                    from_date = self.from_date.get_date()
+                    to_date = self.to_date.get_date()
+                    
+                    filter_info['date_range'] = {
+                        'start_date': from_date.strftime("%d-%m-%Y"),
+                        'start_time': "00:00:00",  # Default start time
+                        'end_date': to_date.strftime("%d-%m-%Y"),
+                        'end_time': "23:59:59"   # Default end time
+                    }
+                except:
+                    filter_info['date_range'] = None
+            
+            # Vehicle filter
+            if hasattr(self, 'vehicle_var'):
+                vehicle_filter = self.vehicle_var.get().strip()
+                if vehicle_filter:
+                    filter_info['vehicle_filter'] = vehicle_filter
+            
+            # Material filter
+            if hasattr(self, 'material_var'):
+                material_filter = self.material_var.get().strip()
+                if material_filter:
+                    filter_info['material_filter'] = material_filter
+            
+            # Status filter
+            if hasattr(self, 'status_var'):
+                status_filter = self.status_var.get()
+                if status_filter:
+                    filter_info['status_filter'] = status_filter
+            
+            # Transfer party filter
+            if hasattr(self, 'transfer_party_var'):
+                transfer_party_filter = self.transfer_party_var.get().strip()
+                if transfer_party_filter:
+                    filter_info['transfer_party_filter'] = transfer_party_filter
+            
+            return filter_info
+            
+        except Exception as e:
+            print(f"Error getting detailed filter info: {e}")
+            return {}
 
     def get_date_range_info(self, records_data):
         """Get human-readable date range from records"""
@@ -1322,9 +1483,6 @@ class ReportGenerator:
         except Exception as e:
             print(f"Error preparing image for PDF: {e}")
             return None
-    
-    # [All the other methods remain the same - show_address_config, create_agencies_config, etc.]
-    # ... (keeping the rest of the methods unchanged for brevity)
     
     def show_address_config(self):
         """Show address configuration dialog"""

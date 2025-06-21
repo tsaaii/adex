@@ -16,11 +16,11 @@ AUTO_CLOUD_SAVE = False   # Set to True to attempt cloud save on every record sa
 
 # Auto-cleanup settings
 AUTO_CLEANUP_ENABLED = True  # Enable automatic cleanup of old local files
-DAYS_TO_KEEP_LOCAL_FILES = 10  # Number of days to keep local files before cleanup
+DAYS_TO_KEEP_LOCAL_FILES = 5  # Number of days to keep local files before cleanup
 CLEANUP_INTERVAL_DAYS = 1  # Days between automatic cleanup checks
 HARDCODED_MODE = True  # Set to True to use hardcoded values
 HARDCODED_AGENCY = "Saurashtra Enviro Projects Pvt. Ltd."
-HARDCODED_SITE = "Yemmigannur"
+HARDCODED_SITE = "Yemmiganur"
 HARDCODED_USER = "admin"
 HARDCODED_PASSWORD = "admin" 
 HARDCODED_SITEMANAGER = "Avijit Mondal" 
