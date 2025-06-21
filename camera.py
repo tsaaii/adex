@@ -720,23 +720,127 @@ class OptimizedCameraView:
             self._update_status(f"Save error: {str(e)}")
             return False
     
+    def _update_feed_button(self, text, color):
+        """Update feed button with error handling"""
+        try:
+            # Check if the button still exists and is valid
+            if (hasattr(self, 'feed_button') and 
+                self.feed_button and 
+                self.feed_button.winfo_exists()):
+                self.feed_button.config(text=text, bg=color)
+        except tk.TclError as e:
+            # Widget has been destroyed - this is normal during shutdown
+            if "invalid command name" in str(e):
+                self.logger.print_debug("Feed button widget destroyed during update - normal during shutdown")
+            else:
+                self.logger.print_error(f"Feed button update error: {e}")
+        except Exception as e:
+            self.logger.print_error(f"Feed button update error: {e}")
+
+    def _update_status_safe(self, status):
+        """Thread-safe status update with error handling"""
+        try:
+            def update_status():
+                try:
+                    if (hasattr(self, 'status_var') and 
+                        self.status_var and 
+                        hasattr(self, 'parent') and 
+                        self.parent.winfo_exists()):
+                        self.status_var.set(status)
+                except tk.TclError as e:
+                    if "invalid command name" not in str(e):
+                        self.logger.print_error(f"Status update error: {e}")
+                except Exception as e:
+                    self.logger.print_error(f"Status update error: {e}")
+            
+            if hasattr(self, 'parent') and self.parent:
+                self.parent.after_idle(update_status)
+        except Exception as e:
+            self.logger.print_error(f"Safe status update error: {e}")
+
+    def _update_perf_safe(self, perf_text):
+        """Thread-safe performance update with error handling"""
+        try:
+            def update_perf():
+                try:
+                    if (hasattr(self, 'perf_var') and 
+                        self.perf_var and 
+                        hasattr(self, 'parent') and 
+                        self.parent.winfo_exists()):
+                        self.perf_var.set(perf_text)
+                except tk.TclError as e:
+                    if "invalid command name" not in str(e):
+                        self.logger.print_error(f"Performance update error: {e}")
+                except Exception as e:
+                    self.logger.print_error(f"Performance update error: {e}")
+            
+            if hasattr(self, 'parent') and self.parent:
+                self.parent.after_idle(update_perf)
+        except Exception as e:
+            self.logger.print_error(f"Performance update error: {e}")
+
+    def shutdown_camera(self):
+        """Enhanced shutdown with proper cleanup"""
+        try:
+            self.logger.print_info("Starting camera shutdown...")
+            
+            # Stop the should_be_running flag first
+            self.should_be_running = False
+            self.auto_reconnect = False
+            
+            # Stop the continuous feed
+            self.stop_continuous_feed()
+            
+            # Wait for threads to finish
+            if hasattr(self, 'video_thread') and self.video_thread and self.video_thread.is_alive():
+                self.video_thread.join(timeout=2)
+            
+            # Clear any pending UI updates
+            if hasattr(self, 'parent') and self.parent:
+                try:
+                    # Cancel any pending after() calls
+                    self.parent.after_cancel("all")
+                except:
+                    pass
+            
+            self.logger.print_success("Camera shutdown completed")
+            
+        except Exception as e:
+            self.logger.print_error(f"Error during camera shutdown: {e}")
+
+    # Also add this method to handle widget existence checking
+    def _widget_exists(self, widget):
+        """Check if a widget still exists and is valid"""
+        try:
+            return widget and hasattr(widget, 'winfo_exists') and widget.winfo_exists()
+        except:
+            return False
+
+    # Update the stop_continuous_feed method
     def stop_continuous_feed(self):
-        """Stop camera feed"""
+        """Stop camera feed with enhanced cleanup"""
         try:
             self.logger.print_info("Stopping camera feed")
             self.is_running = False
             self.stop_event.set()  # Signal all threads to stop
             
+            # Wait for video thread to finish
             if self.video_thread and self.video_thread.is_alive():
                 self.video_thread.join(timeout=3)
             
+            # Close camera resources
             self._close_camera()
+            
+            # Update UI only if widgets still exist
             self._update_status("Camera stopped")
-            self._update_feed_button("▶️ Start Feed", config.COLORS["primary"])
+            
+            # Update feed button safely
+            if self._widget_exists(self.feed_button):
+                self._update_feed_button("▶️ Start Feed", config.COLORS["primary"])
             
         except Exception as e:
             self.logger.print_error(f"Error stopping camera: {e}")
-    
+        
     def toggle_continuous_feed(self):
         """Toggle camera feed"""
         try:
@@ -760,14 +864,7 @@ class OptimizedCameraView:
         except Exception as e:
             self.logger.print_error(f"Error restarting feed: {e}")
     
-    def shutdown_camera(self):
-        """Shutdown camera completely"""
-        try:
-            self.should_be_running = False
-            self.auto_reconnect = False
-            self.stop_continuous_feed()
-        except Exception as e:
-            self.logger.print_error(f"Error during camera shutdown: {e}")
+
     
     # Thread-safe UI update methods
     def _update_status(self, status):
@@ -777,26 +874,7 @@ class OptimizedCameraView:
         except Exception as e:
             self.logger.print_error(f"Status update error: {e}")
     
-    def _update_status_safe(self, status):
-        """Thread-safe status update"""
-        try:
-            self.parent.after_idle(lambda: self._update_status(status))
-        except Exception as e:
-            self.logger.print_error(f"Safe status update error: {e}")
-    
-    def _update_perf_safe(self, perf_text):
-        """Thread-safe performance update"""
-        try:
-            self.parent.after_idle(lambda: self.perf_var.set(perf_text))
-        except Exception as e:
-            self.logger.print_error(f"Performance update error: {e}")
-    
-    def _update_feed_button(self, text, color):
-        """Update feed button"""
-        try:
-            self.feed_button.config(text=text, bg=color)
-        except Exception as e:
-            self.logger.print_error(f"Feed button update error: {e}")
+
     
     # Mouse event handlers (optimized)
     def on_mouse_wheel(self, event):
