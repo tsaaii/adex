@@ -104,12 +104,13 @@ class WeighbridgeManager:
             # Single comprehensive pattern for all weight formats
             self.weight_pattern = re.compile(
                 r'(?:'
-                r'(\d{2,5})[^0-9]+.*?Wt:\s*$|'  # "1600Wt:" format
-                r'(\d+\.?\d*)\s*(?:kg|KG)|'      # "1234.5 kg" format
-                r'(\d+\.?\d*)\s*$|'              # Just the number at end
-                r'.*?(\d+\.?\d*)\s*$'            # Number at end of string
+                r'^.:\s*(\d+)|'                      # NEW: Your 3-line format pattern INSIDE the group
+                r'(\d{2,5})[^0-9]+.*?Wt:\s*$|'      # Existing patterns
+                r'(\d+\.?\d*)\s*(?:kg|KG)|'
+                r'(\d+\.?\d*)\s*$|'
+                r'.*?(\d+\.?\d*)\s*$'
                 r')',
-                re.IGNORECASE
+                re.IGNORECASE | re.MULTILINE
             )
             self.logger.print_debug("Weight parsing patterns compiled successfully")
         except Exception as e:

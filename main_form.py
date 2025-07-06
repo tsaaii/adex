@@ -1865,6 +1865,95 @@ class MainForm:
                 
         return data
 
+    def validate_vehicle_before_any_operation(self):
+        """STRICT: Validate vehicle is not pending before ANY operation"""
+        try:
+            vehicle_no = self.vehicle_var.get().strip()
+            
+            if not vehicle_no:
+                return True  # Empty vehicle will be caught by other validation
+            
+            # Use form validator to check
+            if hasattr(self, 'form_validator'):
+                return self.form_validator.validate_vehicle_not_in_pending()
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error in vehicle validation: {e}")
+            messagebox.showerror("System Error", f"Cannot validate vehicle: {str(e)}")
+            return False
+
+    def setup_vehicle_validation(self):
+        """Setup real-time vehicle validation"""
+        # Bind validation to vehicle field changes
+        self.vehicle_var.trace("w", self.on_vehicle_change)
+
+    def on_vehicle_change(self, *args):
+        """Called when vehicle number changes - validate immediately"""
+        try:
+            vehicle_no = self.vehicle_var.get().strip()
+            
+            if len(vehicle_no) >= 3:  # Only check when reasonable length
+                # Small delay to avoid checking on every keystroke
+                if hasattr(self, '_vehicle_check_after_id'):
+                    self.after_cancel(self._vehicle_check_after_id)
+                
+                self._vehicle_check_after_id = self.after(500, self.delayed_vehicle_check)
+                
+        except Exception as e:
+            print(f"Error in vehicle change handler: {e}")
+
+    def delayed_vehicle_check(self):
+        """Delayed vehicle check to avoid too many calls"""
+        try:
+            vehicle_no = self.vehicle_var.get().strip().upper()
+            
+            if not vehicle_no:
+                return
+            
+            # Check if vehicle is pending and show immediate feedback
+            app = self.find_main_app()
+            if not app or not hasattr(app, 'data_manager'):
+                return
+            
+            records = app.data_manager.get_all_records()
+            
+            for record in records:
+                record_vehicle = record.get('vehicle_no', '').strip().upper()
+                
+                if record_vehicle == vehicle_no:
+                    first_weight = record.get('first_weight', '').strip()
+                    first_timestamp = record.get('first_timestamp', '').strip()
+                    has_first = first_weight != '' and first_timestamp != ''
+                    
+                    second_weight = record.get('second_weight', '').strip()
+                    second_timestamp = record.get('second_timestamp', '').strip()
+                    missing_second = (second_weight == '' or second_timestamp == '')
+                    
+                    if has_first and missing_second:
+                        # Show immediate warning
+                        pending_ticket = record.get('ticket_no', 'Unknown')
+                        
+                        # Update vehicle field to show warning
+                        self.vehicle_entry.config(style="Warning.TEntry")
+                        
+                        # Show tooltip or status
+                        if hasattr(self, 'vehicle_status_label'):
+                            self.vehicle_status_label.config(
+                                text=f"⚠️ PENDING: Ticket {pending_ticket}",
+                                foreground="red"
+                            )
+                        return
+            
+            # Vehicle not pending - clear warnings
+            self.vehicle_entry.config(style="TEntry")
+            if hasattr(self, 'vehicle_status_label'):
+                self.vehicle_status_label.config(text="✅ Available", foreground="green")
+                
+        except Exception as e:
+            print(f"Error in delayed vehicle check: {e}")
+
     def load_record_data(self, record):
         """Load record data into the form including all 4 images"""
         # Set basic fields
@@ -1895,8 +1984,23 @@ class MainForm:
         return bool(first_weight and first_timestamp and second_weight and second_timestamp)
 
     def validate_form(self):
-        """Validate form fields using form validator"""
-        return self.form_validator.validate_form()
+        """FIXED: Delegate form validation to FormValidator instance"""
+        try:
+            self.logger.info("Starting form validation - delegating to FormValidator")
+            
+            # Use the form_validator instance to validate
+            if hasattr(self, 'form_validator') and self.form_validator:
+                return self.form_validator.validate_form()
+            else:
+                self.logger.error("No form_validator available")
+                messagebox.showerror("System Error", "Form validator not available. Please restart the application.")
+                return False
+            
+        except Exception as e:
+            self.logger.error(f"Error in form validation delegation: {e}")
+            messagebox.showerror("Validation Error", f"Form validation failed: {str(e)}")
+            return False
+
 
     def set_agency(self, agency_name):
         """Set the agency name"""

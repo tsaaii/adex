@@ -176,7 +176,7 @@ class PendingVehiclesPanel:
             self.on_vehicle_select(ticket_no)
             
     def refresh_pending_list(self):
-        """FIXED: Refresh the list of pending vehicles with enhanced logging and validation"""
+        """ENHANCED: Refresh pending list and prevent duplicates"""
         try:
             print(f"🚛 PENDING DEBUG: Refreshing pending vehicles list...")
             self.logger.info("Refreshing pending vehicles list")
@@ -201,44 +201,47 @@ class PendingVehiclesPanel:
             print(f"🚛 PENDING DEBUG: Retrieved {len(records)} total records")
             self.logger.info(f"Retrieved {len(records)} total records")
             
-            # Filter for records with first weighment but no second weighment
+            # Filter for pending vehicles - only one record per vehicle
             pending_records = []
+            seen_vehicle_numbers = set()  # Track vehicle numbers already added
+            duplicate_count = 0
+            
             for record in records:
                 ticket_no = record.get('ticket_no', 'Unknown')
+                vehicle_no = record.get('vehicle_no', '').strip().upper()  # Normalize
                 
-                # Check if record has first weighment
+                # Check if record has first weighment but missing second
                 first_weight = record.get('first_weight', '').strip()
                 first_timestamp = record.get('first_timestamp', '').strip()
                 has_first = first_weight != '' and first_timestamp != ''
                 
-                # Check if record is missing second weighment
                 second_weight = record.get('second_weight', '').strip()
                 second_timestamp = record.get('second_timestamp', '').strip()
                 missing_second = (second_weight == '' or second_timestamp == '')
                 
                 # Debug print for each record
                 print(f"🚛 PENDING DEBUG: Checking ticket {ticket_no}:")
-                print(f"   - first_weight: '{first_weight}' (has: {bool(first_weight)})")
-                print(f"   - first_timestamp: '{first_timestamp}' (has: {bool(first_timestamp)})")
-                print(f"   - second_weight: '{second_weight}' (has: {bool(second_weight)})")
-                print(f"   - second_timestamp: '{second_timestamp}' (has: {bool(second_timestamp)})")
+                print(f"   - vehicle_no: '{vehicle_no}'")
                 print(f"   - has_first: {has_first}, missing_second: {missing_second}")
                 
-                # Log record status for debugging
-                self.logger.debug(f"Record {ticket_no}: first_weight='{first_weight}', first_timestamp='{first_timestamp}', "
-                                f"second_weight='{second_weight}', second_timestamp='{second_timestamp}', "
-                                f"has_first={has_first}, missing_second={missing_second}")
-                
-                # Add to pending if it has first weighment but missing second
                 if has_first and missing_second:
+                    if vehicle_no in seen_vehicle_numbers:
+                        duplicate_count += 1
+                        print(f"🚛 PENDING DEBUG: ⚠️  DUPLICATE VEHICLE: {vehicle_no} already in pending - skipping {ticket_no}")
+                        self.logger.warning(f"Duplicate vehicle {vehicle_no} - skipping ticket {ticket_no}")
+                        continue
+                    
+                    # Add to pending and mark vehicle as seen
                     pending_records.append(record)
-                    print(f"🚛 PENDING DEBUG: ✅ Added to pending: {ticket_no}")
-                    self.logger.info(f"Added to pending: {ticket_no}")
+                    seen_vehicle_numbers.add(vehicle_no)
+                    print(f"🚛 PENDING DEBUG: ✅ Added to pending: {ticket_no} (vehicle: {vehicle_no})")
+                    self.logger.info(f"Added to pending: {ticket_no} (vehicle: {vehicle_no})")
                 else:
                     print(f"🚛 PENDING DEBUG: ⏭️  Skipped ticket {ticket_no} - not pending")
             
-            print(f"🚛 PENDING DEBUG: Found {len(pending_records)} pending records")
-            self.logger.info(f"Found {len(pending_records)} pending records")
+            print(f"🚛 PENDING DEBUG: Found {len(pending_records)} unique pending vehicles")
+            print(f"🚛 PENDING DEBUG: Prevented {duplicate_count} duplicate vehicles from showing")
+            self.logger.info(f"Found {len(pending_records)} unique pending vehicles, prevented {duplicate_count} duplicates")
             
             # Add to treeview, most recent first
             for record in reversed(pending_records):
@@ -256,8 +259,8 @@ class PendingVehiclesPanel:
             # Apply alternating row colors
             self._apply_row_colors()
             
-            print(f"🚛 PENDING DEBUG: ✅ Successfully refreshed pending list with {len(pending_records)} items")
-            self.logger.info(f"Successfully refreshed pending list with {len(pending_records)} items")
+            print(f"🚛 PENDING DEBUG: ✅ Successfully refreshed pending list with {len(pending_records)} unique vehicles")
+            self.logger.info(f"Successfully refreshed pending list with {len(pending_records)} unique vehicles")
             
         except Exception as e:
             print(f"🚛 PENDING DEBUG: ❌ Error refreshing pending vehicles list: {e}")

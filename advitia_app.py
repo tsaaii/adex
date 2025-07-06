@@ -2,9 +2,10 @@
 # pyinstaller ^
 #   --onedir ^
 #   --windowed ^
-#   --name="SAC_monitor_Yemmiganur" ^
+#   --name="SAC_monitor_Eluru" ^
 #   --icon=right.ico ^
 #   --add-data "data;data" ^
+#   --add-data "assets/logo.png;assets" ^
 #   --hidden-import=serial ^
 #   --hidden-import=serial.tools.list_ports ^
 #   --hidden-import=google.cloud.storage ^
@@ -28,7 +29,7 @@
 #   --exclude-module=cv2.face ^
 #   --exclude-module=cv2.tracking ^
 #   --optimize=2 ^
-#   --strip ^
+#   --str
 #   advitia_app.py
 
 import tkinter as tk
@@ -251,6 +252,15 @@ class TharuniApp:
             self.root.quit()
 
 
+    def resource_path(relative_path):
+        """ Get absolute path to resource, works for dev and for PyInstaller """
+        try:
+            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+        
+        return os.path.join(base_path, relative_path)
 
     def show_enhanced_login_dialog(self):
         """Show enhanced login dialog with logo and site information"""
@@ -262,7 +272,7 @@ class TharuniApp:
             
             # Create modal dialog
             dialog = tk.Toplevel(self.root)
-            dialog.title("Weight Management System - Login")
+            dialog.title("Swaccha Andhra Monitor - Login")
             dialog.transient(self.root)
             dialog.grab_set()
             

@@ -1,4 +1,4 @@
-# Fixed image_handler.py - Enhanced for better weighment flow
+# Fixed image_handler.py - Corrected pending vehicle validation
 
 import tkinter as tk
 from tkinter import messagebox
@@ -9,7 +9,7 @@ import config
 from camera import add_watermark
 
 class ImageHandler:
-    """Enhanced image handler with improved weighment flow logic"""
+    """Enhanced image handler with corrected weighment flow logic"""
     
     def __init__(self, main_form):
         """Initialize image handler
@@ -21,17 +21,7 @@ class ImageHandler:
         print("ImageHandler initialized")
     
     def determine_current_image_weighment(self):
-        """FIXED: Determine which weighment images should be saved for based on actual weighment completion
-        
-        Logic:
-        - If no weights captured yet -> first weighment images
-        - If first weight captured but no second weight -> first weighment images  
-        - If both weights captured -> second weighment images
-        - If only second weight captured (edge case) -> second weighment images
-        
-        Returns:
-            str: "first" or "second"
-        """
+        """Determine which weighment images should be saved for based on actual weighment completion"""
         try:
             # Check what weighments are actually completed
             first_weight = self.main_form.first_weight_var.get().strip()
@@ -72,6 +62,49 @@ class ImageHandler:
             print(f"Error determining image weighment: {e}")
             return "first"  # Safe fallback
     
+    def check_vehicle_for_image_save(self):
+        """FIXED: Check vehicle status for image save - corrected logic"""
+        try:
+            print("CHECKING: Verifying vehicle status for image save")
+            
+            # Must have vehicle number first
+            vehicle_no = self.main_form.vehicle_var.get().strip()
+            if not vehicle_no:
+                messagebox.showerror("Missing Vehicle Number", 
+                                "Please enter a vehicle number before saving images.")
+                return False
+            
+            # Determine which weighment this image is for
+            image_weighment = self.determine_current_image_weighment()
+            
+            # Get the current form weighment state
+            current_weighment = getattr(self.main_form, 'current_weighment', 'first')
+            
+            print(f"Image weighment: {image_weighment}, Current form state: {current_weighment}")
+            
+            # CORRECTED LOGIC: Only check pending for NEW first weighments
+            if current_weighment == "first" and image_weighment == "first":
+                print("This is a NEW FIRST weighment image - checking pending status")
+                if hasattr(self.main_form, 'form_validator'):
+                    is_allowed = self.main_form.form_validator.validate_vehicle_not_in_pending_for_new_weighment("image")
+                    if not is_allowed:
+                        print("❌ IMAGE SAVE BLOCKED - Vehicle is pending for NEW first weighment")
+                        return False
+                    print("✅ Image save allowed - vehicle not pending for new first weighment")
+                    return True
+                else:
+                    print("❌ No form validator - blocking for safety")
+                    messagebox.showerror("System Error", "Cannot validate vehicle status.")
+                    return False
+            else:
+                print("This is a SECOND weighment image OR continuing first weighment - allowing")
+                return True  # Allow second weighment images or continuing first weighment
+                
+        except Exception as e:
+            print(f"Error checking vehicle status for image: {e}")
+            messagebox.showerror("System Error", f"Cannot verify vehicle status: {str(e)}")
+            return False  # STRICT BLOCK on errors
+
     def load_images_from_record(self, record):
         """Load images from a record into the form"""
         print(f"Loading images from record for ticket: {record.get('ticket_no', 'unknown')}")
@@ -157,8 +190,8 @@ class ImageHandler:
             print(f"Error updating image status: {e}")
     
     def save_front_image(self, captured_image=None):
-        """FIXED: Save front view camera image based on ACTUAL weighment completion status"""
-        print("=== SAVE FRONT IMAGE CALLED ===")
+        """FIXED: Save front view camera image with corrected pending vehicle check"""
+        print("=== CORRECTED FRONT IMAGE SAVE ===")
         print(f"Captured image provided: {captured_image is not None}")
         
         # Validate vehicle number first
@@ -166,10 +199,17 @@ class ImageHandler:
             print("Vehicle number validation failed")
             return False
         
-        # FIXED: Determine which weighment these images are for based on actual completion
+        # CORRECTED: Check vehicle status with proper logic
+        if not self.check_vehicle_for_image_save():
+            print("❌ FRONT IMAGE SAVE BLOCKED - Vehicle check failed")
+            return False
+
+        print("✅ Vehicle check passed - proceeding with front image save")
+        
+        # Rest of the existing save_front_image code...
         image_weighment = self.determine_current_image_weighment()
         weighment_label = "1st" if image_weighment == "first" else "2nd"
-        print(f"FIXED: Saving {weighment_label} weighment front image (based on actual weighment status)")
+        print(f"Saving {weighment_label} weighment front image")
         
         # Use captured image if provided, otherwise try to get from camera
         image = captured_image
@@ -231,7 +271,7 @@ class ImageHandler:
             file_size = os.path.getsize(filepath)
             print(f"File created successfully, size: {file_size} bytes")
             
-            # FIXED: Update the appropriate image path based on ACTUAL weighment determination
+            # Update the appropriate image path based on weighment determination
             if image_weighment == "first":
                 self.main_form.first_front_image_path = filepath
                 print(f"Set first_front_image_path: {filepath}")
@@ -258,8 +298,8 @@ class ImageHandler:
             return False
     
     def save_back_image(self, captured_image=None):
-        """FIXED: Save back view camera image based on ACTUAL weighment completion status"""
-        print("=== SAVE BACK IMAGE CALLED ===")
+        """FIXED: Save back view camera image with corrected pending vehicle check"""
+        print("=== CORRECTED BACK IMAGE SAVE ===")
         print(f"Captured image provided: {captured_image is not None}")
         
         # Validate vehicle number first
@@ -267,10 +307,17 @@ class ImageHandler:
             print("Vehicle number validation failed")
             return False
         
-        # FIXED: Determine which weighment these images are for based on actual completion
+        # CORRECTED: Check vehicle status with proper logic
+        if not self.check_vehicle_for_image_save():
+            print("❌ BACK IMAGE SAVE BLOCKED - Vehicle check failed")
+            return False
+
+        print("✅ Vehicle check passed - proceeding with back image save")
+        
+        # Rest of the existing save_back_image code...
         image_weighment = self.determine_current_image_weighment()
         weighment_label = "1st" if image_weighment == "first" else "2nd"
-        print(f"FIXED: Saving {weighment_label} weighment back image (based on actual weighment status)")
+        print(f"Saving {weighment_label} weighment back image")
         
         # Use captured image if provided, otherwise try to get from camera
         image = captured_image
@@ -332,7 +379,7 @@ class ImageHandler:
             file_size = os.path.getsize(filepath)
             print(f"File created successfully, size: {file_size} bytes")
             
-            # FIXED: Update the appropriate image path based on ACTUAL weighment determination
+            # Update the appropriate image path based on weighment determination
             if image_weighment == "first":
                 self.main_form.first_back_image_path = filepath
                 print(f"Set first_back_image_path: {filepath}")

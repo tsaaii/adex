@@ -1,3 +1,5 @@
+# Fixed data_management.py - Resolves today_json_folder attribute error
+
 import os
 import csv
 import pandas as pd
@@ -47,10 +49,10 @@ def setup_logging():
     return logging.getLogger('DataManager')
 
 class DataManager:
-    """FIXED: Class for managing data operations with JSON local storage and proper net weight calculation"""
+    """FIXED: Class for managing data operations with proper folder initialization"""
     
     def __init__(self):
-        """Initialize data manager with logging and JSON storage"""
+        """Initialize data manager with logging and proper folder setup"""
         # Set up logging first
         self.logger = setup_logging()
         self.logger.info("DataManager initialized with OFFLINE-FIRST approach + JSON local storage")
@@ -60,18 +62,25 @@ class DataManager:
         self.pdf_reports_folder = config.REPORTS_FOLDER
         self.json_backup_folder = config.JSON_BACKUPS_FOLDER
         self.today_reports_folder = config.DATA_FOLDER
+        
+        # CRITICAL FIX: Initialize these attributes with safe defaults FIRST
+        self.today_json_folder = None
+        self.today_pdf_folder = None
+        self.today_folder_name = None
+        
+        # Initialize CSV structure
         self.initialize_new_csv_structure()
 
+        # Setup folder structure with error handling
         try:
-            self.setup_daily_pdf_folders()
-        except Exception as e:
-            self.logger.error(f"Error setting up PDF folders: {e}")
-            # Set fallback attributes to prevent AttributeError
-            self.today_pdf_folder = config.DATA_FOLDER
-            self.today_folder_name = datetime.datetime.now().strftime("%Y-%m-%d")  
-            self.pdf_reports_folder = config.REPORTS_FOLDER
-            # FIXED: Setup unified folder structure
             self.setup_unified_folder_structure()
+        except Exception as e:
+            self.logger.error(f"Error setting up unified folder structure: {e}")
+            # Fallback to safe defaults
+            self._setup_fallback_folders()
+        
+        # Ensure we have all required folder attributes after setup
+        self._ensure_folder_attributes()
         
         # Load address config for PDF generation
         self.address_config = self.load_address_config()
@@ -82,11 +91,221 @@ class DataManager:
         self.logger.info(f"Data file: {self.data_file}")
         self.logger.info(f"Reports folder: {self.reports_folder}")
         self.logger.info(f"JSON backup folder: {self.json_backup_folder}")
-        self.logger.info(f"PDF folder: {getattr(self, 'today_pdf_folder', 'Not set')}")
+        self.logger.info(f"Today's JSON folder: {self.today_json_folder}")
+        self.logger.info(f"Today's PDF folder: {self.today_pdf_folder}")
         self.logger.info("Cloud storage will only be initialized when backup is requested")
     
+    def _setup_fallback_folders(self):
+        """Setup fallback folders when main setup fails"""
+        try:
+            # Create basic folder structure
+            today = datetime.datetime.now()
+            self.today_folder_name = today.strftime("%Y-%m-%d")
+            
+            # Create base folders
+            self.reports_folder = os.path.join(config.DATA_FOLDER, 'reports')
+            self.json_backup_folder = os.path.join(config.DATA_FOLDER, 'json_backups')
+            
+            os.makedirs(self.reports_folder, exist_ok=True)
+            os.makedirs(self.json_backup_folder, exist_ok=True)
+            
+            # Create today's folders
+            self.today_reports_folder = os.path.join(self.reports_folder, self.today_folder_name)
+            self.today_json_folder = os.path.join(self.json_backup_folder, self.today_folder_name)
+            self.today_pdf_folder = self.today_reports_folder  # Same as reports folder
+            
+            os.makedirs(self.today_reports_folder, exist_ok=True)
+            os.makedirs(self.today_json_folder, exist_ok=True)
+            
+            self.logger.info("Fallback folder structure created successfully")
+            
+        except Exception as e:
+            self.logger.error(f"Error in fallback folder setup: {e}")
+            # Ultimate fallback - use data folder
+            self.today_reports_folder = config.DATA_FOLDER
+            self.today_json_folder = config.DATA_FOLDER
+            self.today_pdf_folder = config.DATA_FOLDER
+            self.today_folder_name = datetime.datetime.now().strftime("%Y-%m-%d")
+    
+    def _ensure_folder_attributes(self):
+        """Ensure all required folder attributes are set"""
+        try:
+            today = datetime.datetime.now()
+            today_str = today.strftime("%Y-%m-%d")
+            
+            # Ensure today_folder_name is set
+            if not hasattr(self, 'today_folder_name') or not self.today_folder_name:
+                self.today_folder_name = today_str
+            
+            # Ensure today_json_folder is set
+            if not hasattr(self, 'today_json_folder') or not self.today_json_folder:
+                if hasattr(self, 'json_backup_folder') and self.json_backup_folder:
+                    self.today_json_folder = os.path.join(self.json_backup_folder, today_str)
+                else:
+                    self.today_json_folder = os.path.join(config.DATA_FOLDER, 'json_backups', today_str)
+                os.makedirs(self.today_json_folder, exist_ok=True)
+            
+            # Ensure today_pdf_folder is set
+            if not hasattr(self, 'today_pdf_folder') or not self.today_pdf_folder:
+                if hasattr(self, 'reports_folder') and self.reports_folder:
+                    self.today_pdf_folder = os.path.join(self.reports_folder, today_str)
+                else:
+                    self.today_pdf_folder = os.path.join(config.DATA_FOLDER, 'reports', today_str)
+                os.makedirs(self.today_pdf_folder, exist_ok=True)
+            
+            # Ensure today_reports_folder is set
+            if not hasattr(self, 'today_reports_folder') or not self.today_reports_folder:
+                self.today_reports_folder = self.today_pdf_folder
+            
+            self.logger.info("All folder attributes ensured and validated")
+            
+        except Exception as e:
+            self.logger.error(f"Error ensuring folder attributes: {e}")
+            # Final fallback
+            self.today_json_folder = config.DATA_FOLDER
+            self.today_pdf_folder = config.DATA_FOLDER
+            self.today_reports_folder = config.DATA_FOLDER
+            self.today_folder_name = datetime.datetime.now().strftime("%Y-%m-%d")
+    
+    def get_or_create_json_folder(self):
+        """FIXED: Get or create today's JSON folder with comprehensive error handling"""
+        try:
+            # Check if we need to update folder (date changed)
+            today = datetime.datetime.now()
+            today_str = today.strftime("%Y-%m-%d")
+            
+            if not hasattr(self, 'today_folder_name') or self.today_folder_name != today_str:
+                self.today_folder_name = today_str
+                # Update folder path
+                if hasattr(self, 'json_backup_folder') and self.json_backup_folder:
+                    self.today_json_folder = os.path.join(self.json_backup_folder, today_str)
+                else:
+                    # Fallback path
+                    self.json_backup_folder = os.path.join(config.DATA_FOLDER, 'json_backups')
+                    self.today_json_folder = os.path.join(self.json_backup_folder, today_str)
+                
+                # Ensure folders exist
+                os.makedirs(self.today_json_folder, exist_ok=True)
+                self.logger.info(f"Updated JSON folder for {today_str}: {self.today_json_folder}")
+            
+            # Final validation
+            if not hasattr(self, 'today_json_folder') or not self.today_json_folder:
+                # Emergency fallback
+                self.today_json_folder = config.DATA_FOLDER
+                self.logger.warning("Using emergency fallback for JSON folder")
+            
+            return self.today_json_folder
+            
+        except Exception as e:
+            self.logger.error(f"Error getting JSON folder: {e}")
+            # Emergency fallback
+            fallback_folder = config.DATA_FOLDER
+            os.makedirs(fallback_folder, exist_ok=True)
+            return fallback_folder
+    
+    def save_json_backup_locally(self, data):
+        """FIXED: Save complete record as JSON backup locally with proper folder handling"""
+        try:
+            # Get today's JSON folder with error handling
+            json_folder = self.get_or_create_json_folder()
+            
+            # Generate JSON filename: TicketNo_AgencyName_SiteName_Timestamp.json
+            ticket_no = data.get('ticket_no', 'Unknown').replace('/', '_')
+            agency_name = data.get('agency_name', 'Unknown').replace(' ', '_').replace('/', '_')
+            site_name = data.get('site_name', 'Unknown').replace(' ', '_').replace('/', '_')
+            timestamp = datetime.datetime.now().strftime("%H%M%S")
+            
+            json_filename = f"{ticket_no}_{agency_name}_{site_name}_{timestamp}.json"
+            json_path = os.path.join(json_folder, json_filename)
+            
+            # Add metadata to JSON
+            json_data = data.copy()
+            json_data['json_backup_timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            json_data['record_status'] = 'complete'
+            json_data['backup_type'] = 'local'
+            
+            # FIXED: Ensure net weight is properly included
+            if not json_data.get('net_weight'):
+                json_data = self.calculate_and_set_net_weight(json_data)
+            
+            # CHECK FOR DUPLICATE CONTENT - Calculate content hash
+            import hashlib
+            content_str = json.dumps({k: v for k, v in json_data.items() 
+                                    if k not in ['json_backup_timestamp', 'backup_type']}, 
+                                sort_keys=True, ensure_ascii=False)
+            content_hash = hashlib.md5(content_str.encode()).hexdigest()
+            
+            # Check if this content already exists in the folder
+            if os.path.exists(json_folder):
+                for existing_file in os.listdir(json_folder):
+                    if existing_file.endswith('.json') and existing_file.startswith(f"{ticket_no}_"):
+                        existing_path = os.path.join(json_folder, existing_file)
+                        try:
+                            with open(existing_path, 'r', encoding='utf-8') as f:
+                                existing_data = json.load(f)
+                            
+                            # Calculate hash of existing content (excluding timestamps)
+                            existing_content_str = json.dumps({k: v for k, v in existing_data.items() 
+                                                            if k not in ['json_backup_timestamp', 'backup_type']}, 
+                                                            sort_keys=True, ensure_ascii=False)
+                            existing_hash = hashlib.md5(existing_content_str.encode()).hexdigest()
+                            
+                            if existing_hash == content_hash:
+                                self.logger.info(f"⏭️  Skipping duplicate JSON backup for {ticket_no} (content unchanged)")
+                                return True
+                                
+                        except Exception as e:
+                            self.logger.warning(f"Error checking existing JSON file {existing_file}: {e}")
+                            continue
+            
+            # Content is new or changed - save JSON file
+            with open(json_path, 'w', encoding='utf-8') as f:
+                json.dump(json_data, f, indent=4, ensure_ascii=False)
+            
+            self.logger.info(f"✅ JSON backup saved: {json_path}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error saving JSON backup: {e}")
+            return False
+    
+    def setup_unified_folder_structure(self):
+        """FIXED: Set up unified folder structure with comprehensive error handling"""
+        try:
+            # Create base folders
+            self.reports_folder = os.path.join(config.DATA_FOLDER, 'reports')
+            self.json_backup_folder = os.path.join(config.DATA_FOLDER, 'json_backups')
+            
+            os.makedirs(self.reports_folder, exist_ok=True)
+            os.makedirs(self.json_backup_folder, exist_ok=True)
+            
+            # FIXED: Use consistent date format YYYY-MM-DD for all folders
+            today = datetime.datetime.now()
+            self.today_folder_name = today.strftime("%Y-%m-%d")  # Format: 2024-05-29
+            
+            # Create today's subfolders
+            self.today_reports_folder = os.path.join(self.reports_folder, self.today_folder_name)
+            self.today_json_folder = os.path.join(self.json_backup_folder, self.today_folder_name)
+            self.today_pdf_folder = self.today_reports_folder  # Use same as reports folder
+            
+            os.makedirs(self.today_reports_folder, exist_ok=True)
+            os.makedirs(self.today_json_folder, exist_ok=True)
+            
+            self.logger.info(f"Unified folder structure ready:")
+            self.logger.info(f"  Reports: {self.today_reports_folder}")
+            self.logger.info(f"  JSON Backups: {self.today_json_folder}")
+            self.logger.info(f"  PDF Folder: {self.today_pdf_folder}")
+            
+            # Create README files
+            self.create_folder_readme_files()
+            
+        except Exception as e:
+            self.logger.error(f"Error setting up folder structure: {e}")
+            # Call fallback setup
+            self._setup_fallback_folders()
+
     def save_record(self, data):
-        """FIXED: Save record - DataManager only handles data persistence, app handles ticket flow"""
+        """FIXED: Save record with proper folder handling"""
         try:
             self.logger.info("="*50)
             self.logger.info("STARTING OFFLINE-FIRST RECORD SAVE")
@@ -256,6 +475,40 @@ class DataManager:
             os.makedirs(fallback_folder, exist_ok=True)
             return fallback_folder
 
+    # Continue with rest of the methods...
+    def calculate_and_set_net_weight(self, data):
+        """FIXED: Properly calculate and set net weight in the data"""
+        try:
+            first_weight_str = data.get('first_weight', '').strip()
+            second_weight_str = data.get('second_weight', '').strip()
+            
+            # Only calculate if both weights are present
+            if first_weight_str and second_weight_str:
+                try:
+                    first_weight = float(first_weight_str)
+                    second_weight = float(second_weight_str)
+                    net_weight = abs(first_weight - second_weight)
+                    
+                    # CRITICAL FIX: Set the calculated net weight in the data
+                    data['net_weight'] = f"{net_weight:.2f}"
+                    
+                    self.logger.info(f"Net weight calculated: {first_weight} - {second_weight} = {net_weight:.2f}")
+                    
+                except (ValueError, TypeError) as e:
+                    self.logger.error(f"Error calculating net weight: {e}")
+                    data['net_weight'] = ""
+            else:
+                # If either weight is missing, clear net weight
+                data['net_weight'] = ""
+                self.logger.info("Net weight cleared - incomplete weighments")
+            
+            return data
+            
+        except Exception as e:
+            self.logger.error(f"Error in calculate_and_set_net_weight: {e}")
+            return data
+
+
     def auto_generate_pdf_for_complete_record(self, record_data):
         """Automatically generate PDF for a complete record - Save to today's reports folder
         
@@ -416,40 +669,6 @@ class DataManager:
             fallback_folder = os.path.join(config.DATA_FOLDER, 'reports')
             os.makedirs(fallback_folder, exist_ok=True)
             return fallback_folder
-
-    def setup_unified_folder_structure(self):
-        """FIXED: Set up unified folder structure - no duplicates"""
-        try:
-            # Create base folders
-            self.reports_folder = os.path.join(config.DATA_FOLDER, 'reports')
-            self.json_backup_folder = os.path.join(config.DATA_FOLDER, 'json_backups')
-            
-            os.makedirs(self.reports_folder, exist_ok=True)
-            os.makedirs(self.json_backup_folder, exist_ok=True)
-            
-            # FIXED: Use consistent date format YYYY-MM-DD for all folders
-            today = datetime.datetime.now()
-            self.today_folder_name = today.strftime("%Y-%m-%d")  # Format: 2024-05-29
-            
-            # Create today's subfolders
-            self.today_reports_folder = os.path.join(self.reports_folder, self.today_folder_name)
-            self.today_json_folder = os.path.join(self.json_backup_folder, self.today_folder_name)
-            
-            os.makedirs(self.today_reports_folder, exist_ok=True)
-            os.makedirs(self.today_json_folder, exist_ok=True)
-            
-            self.logger.info(f"Unified folder structure ready:")
-            self.logger.info(f"  Reports: {self.today_reports_folder}")
-            self.logger.info(f"  JSON Backups: {self.today_json_folder}")
-            
-            # Create README files
-            self.create_folder_readme_files()
-            
-        except Exception as e:
-            self.logger.error(f"Error setting up folder structure: {e}")
-            # Fallback
-            self.today_reports_folder = config.DATA_FOLDER
-            self.today_json_folder = config.DATA_FOLDER
 
     def create_folder_readme_files(self):
         """Create README files explaining folder structure"""
@@ -748,105 +967,6 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
         self.logger.info(f"Data context set to: Agency='{agency_name}', Site='{site_name}'")
         self.logger.info(f"Data file: {self.data_file}")
 
-
-
-    def calculate_and_set_net_weight(self, data):
-        """FIXED: Properly calculate and set net weight in the data"""
-        try:
-            first_weight_str = data.get('first_weight', '').strip()
-            second_weight_str = data.get('second_weight', '').strip()
-            
-            # Only calculate if both weights are present
-            if first_weight_str and second_weight_str:
-                try:
-                    first_weight = float(first_weight_str)
-                    second_weight = float(second_weight_str)
-                    net_weight = abs(first_weight - second_weight)
-                    
-                    # CRITICAL FIX: Set the calculated net weight in the data
-                    data['net_weight'] = f"{net_weight:.2f}"
-                    
-                    self.logger.info(f"Net weight calculated: {first_weight} - {second_weight} = {net_weight:.2f}")
-                    
-                except (ValueError, TypeError) as e:
-                    self.logger.error(f"Error calculating net weight: {e}")
-                    data['net_weight'] = ""
-            else:
-                # If either weight is missing, clear net weight
-                data['net_weight'] = ""
-                self.logger.info("Net weight cleared - incomplete weighments")
-            
-            return data
-            
-        except Exception as e:
-            self.logger.error(f"Error in calculate_and_set_net_weight: {e}")
-            return data
-
-    def save_json_backup_locally(self, data):
-        """FIXED: Save complete record as JSON backup locally with hash checking"""
-        try:
-            # Get today's JSON folder
-            json_folder = self.get_daily_folder("json")
-            
-            # Generate JSON filename: TicketNo_AgencyName_SiteName_Timestamp.json
-            ticket_no = data.get('ticket_no', 'Unknown').replace('/', '_')
-            agency_name = data.get('agency_name', 'Unknown').replace(' ', '_').replace('/', '_')
-            site_name = data.get('site_name', 'Unknown').replace(' ', '_').replace('/', '_')
-            timestamp = datetime.datetime.now().strftime("%H%M%S")
-            
-            json_filename = f"{ticket_no}_{agency_name}_{site_name}_{timestamp}.json"
-            json_path = os.path.join(json_folder, json_filename)
-            
-            # Add metadata to JSON
-            json_data = data.copy()
-            json_data['json_backup_timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            json_data['record_status'] = 'complete'
-            json_data['backup_type'] = 'local'
-            
-            # FIXED: Ensure net weight is properly included
-            if not json_data.get('net_weight'):
-                json_data = self.calculate_and_set_net_weight(json_data)
-            
-            # CHECK FOR DUPLICATE CONTENT - Calculate content hash
-            import hashlib
-            content_str = json.dumps({k: v for k, v in json_data.items() 
-                                    if k not in ['json_backup_timestamp', 'backup_type']}, 
-                                sort_keys=True, ensure_ascii=False)
-            content_hash = hashlib.md5(content_str.encode()).hexdigest()
-            
-            # Check if this content already exists in the folder
-            if os.path.exists(json_folder):
-                for existing_file in os.listdir(json_folder):
-                    if existing_file.endswith('.json') and existing_file.startswith(f"{ticket_no}_"):
-                        existing_path = os.path.join(json_folder, existing_file)
-                        try:
-                            with open(existing_path, 'r', encoding='utf-8') as f:
-                                existing_data = json.load(f)
-                            
-                            # Calculate hash of existing content (excluding timestamps)
-                            existing_content_str = json.dumps({k: v for k, v in existing_data.items() 
-                                                            if k not in ['json_backup_timestamp', 'backup_type']}, 
-                                                            sort_keys=True, ensure_ascii=False)
-                            existing_hash = hashlib.md5(existing_content_str.encode()).hexdigest()
-                            
-                            if existing_hash == content_hash:
-                                self.logger.info(f"⏭️  Skipping duplicate JSON backup for {ticket_no} (content unchanged)")
-                                return True
-                                
-                        except Exception as e:
-                            self.logger.warning(f"Error checking existing JSON file {existing_file}: {e}")
-                            continue
-            
-            # Content is new or changed - save JSON file
-            with open(json_path, 'w', encoding='utf-8') as f:
-                json.dump(json_data, f, indent=4, ensure_ascii=False)
-            
-            self.logger.info(f"✅ JSON backup saved: {json_path}")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Error saving JSON backup: {e}")
-            return False
 
 
     def get_all_json_backups(self):

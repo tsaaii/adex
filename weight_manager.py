@@ -1,3 +1,5 @@
+# Fixed weight_manager.py - Corrected pending vehicle validation
+
 import tkinter as tk
 from tkinter import messagebox
 import datetime
@@ -13,9 +15,16 @@ class WeightManager:
         self.min_weight_change = 0.0  # minimum kg change to consider valid weighment
         
     def capture_weight(self):
-        """Capture weight - Enhanced with better error handling and validation"""
+        """FIXED: Capture weight with corrected pending vehicle check"""
         try:
-            print("Capture weight called")
+            print("=== CORRECTED WEIGHT CAPTURE ===")
+            
+            # CORRECTED: Check vehicle status with proper logic for weighments
+            if not self.check_vehicle_for_weight_capture():
+                print("❌ WEIGHT CAPTURE BLOCKED - Vehicle check failed")
+                return False
+            
+            print("✅ Vehicle check passed - proceeding with weight capture")
             
             # Check test mode first using improved method
             if self.is_test_mode_enabled():
@@ -42,6 +51,59 @@ class WeightManager:
             traceback.print_exc()
             messagebox.showerror("Error", f"Failed to capture weight: {str(e)}")
             return False
+    
+    def check_vehicle_for_weight_capture(self):
+        """FIXED: Check vehicle status for weight capture with corrected logic"""
+        try:
+            print("CHECKING: Verifying vehicle status for weight capture")
+            
+            # Must have vehicle number first
+            vehicle_no = self.main_form.vehicle_var.get().strip()
+            if not vehicle_no:
+                messagebox.showerror("Missing Vehicle Number", 
+                                "Please enter a vehicle number before capturing weight.")
+                return False
+            
+            # Get the current form weighment state
+            current_weighment = getattr(self.main_form, 'current_weighment', 'first')
+            
+            print(f"Current weighment state: {current_weighment}")
+            
+            # CORRECTED LOGIC: Only check pending for NEW first weighments
+            if current_weighment == "first":
+                print("This is a FIRST weighment - checking if it's a NEW first weighment")
+                
+                # Check if this vehicle already has any weighment data loaded
+                # (which would indicate we're continuing an existing record, not creating new)
+                first_weight = self.main_form.first_weight_var.get().strip()
+                first_timestamp = self.main_form.first_timestamp_var.get().strip()
+                has_existing_first = bool(first_weight and first_timestamp)
+                
+                if has_existing_first:
+                    print("Vehicle already has first weighment data - this is NOT a new first weighment")
+                    return True  # Allow continuing existing first weighment
+                else:
+                    print("No existing first weighment data - this IS a new first weighment")
+                    # Use form validator to check pending status for NEW first weighments
+                    if hasattr(self.main_form, 'form_validator'):
+                        is_allowed = self.main_form.form_validator.validate_vehicle_not_in_pending_for_new_weighment("weight")
+                        if not is_allowed:
+                            print("❌ WEIGHT CAPTURE BLOCKED - Vehicle is pending for NEW first weighment")
+                            return False
+                        print("✅ Weight capture allowed - vehicle not pending for new first weighment")
+                        return True
+                    else:
+                        print("❌ No form validator - blocking for safety")
+                        messagebox.showerror("System Error", "Cannot validate vehicle status.")
+                        return False
+            else:
+                print("This is a SECOND weighment - always allow")
+                return True  # Always allow second weighments
+                
+        except Exception as e:
+            print(f"Error checking vehicle status for weight capture: {e}")
+            messagebox.showerror("System Error", f"Cannot verify vehicle status: {str(e)}")
+            return False  # STRICT BLOCK on errors
     
     def is_test_mode_enabled(self):
         """Enhanced: Check if test mode is enabled with better error handling"""
@@ -247,9 +309,9 @@ class WeightManager:
             current_weighment = getattr(self.main_form, 'current_weighment', 'first')
             
             # Basic range check
-            if weight < 0 or weight > 8000000:  # 0.1 to 80 tons
+            if weight < 0 or weight > 80000:  # 0 to 80 tons
                 messagebox.showerror("Invalid Weight", 
-                                   f"Weight {weight:.2f} kg is outside valid range (0-8000000 kg)")
+                                   f"Weight {weight:.2f} kg is outside valid range (0-80000 kg)")
                 return False
             
             # Enhanced: Check against previous weighment for logical consistency
