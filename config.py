@@ -120,7 +120,85 @@ def get_current_agency_site():
     return CURRENT_AGENCY, CURRENT_SITE
 
 
+def setup():
+    """Initialize the application data structures with unified folder system"""
+    initialize_folders()
+    initialize_csv()
+    
+    # Ensure today's folders exist
+    ensure_todays_folder("reports")
+    ensure_todays_folder("json_backups")
+    
+    # CREATE ARCHIVE TRACKING FILE - FIXED LOGIC
+    import datetime
+    import json
+    archive_tracking_file = os.path.join(DATA_FOLDER, 'last_archive.json')
+    if not os.path.exists(archive_tracking_file):
+        print("📁 Creating archive tracking file...")
+        # FIXED: Set to more than 5 days ago to ensure first archive runs when there are complete records
+        initial_date = datetime.datetime.now() - datetime.timedelta(days=10)  # 10 days ago
+        archive_data = {
+            'last_archive_date': initial_date.isoformat(),
+            'archive_filename': 'none',
+            'complete_records': 0,
+            'incomplete_records': 0,
+            'note': 'Initial setup - archive will run when complete records exist and 5+ days have passed'
+        }
+        with open(archive_tracking_file, 'w') as f:
+            json.dump(archive_data, f, indent=2)
+        print(f"   ✅ Archive tracking created - archive will check for complete records after 5+ days")
+    else:
+        # File exists, validate it
+        try:
+            with open(archive_tracking_file, 'r') as f:
+                archive_data = json.load(f)
+            last_archive = datetime.datetime.fromisoformat(archive_data['last_archive_date'])
+            days_since = (datetime.datetime.now() - last_archive).days
+            print(f"   📁 Archive tracking exists - last archive was {days_since} days ago")
+        except Exception as e:
+            print(f"   ⚠️ Archive tracking file corrupted: {e}")
+            # Recreate with safe defaults
+            initial_date = datetime.datetime.now() - datetime.timedelta(days=10)
+            archive_data = {
+                'last_archive_date': initial_date.isoformat(),
+                'archive_filename': 'corrupted_file_recreated',
+                'complete_records': 0,
+                'incomplete_records': 0
+            }
+            with open(archive_tracking_file, 'w') as f:
+                json.dump(archive_data, f, indent=2)
+            print(f"   ✅ Archive tracking recreated")
+    
+    # Perform auto cleanup if enabled
+    if AUTO_CLEANUP_ENABLED:
+        cleanup_results = auto_cleanup_old_files()
+        if cleanup_results:
+            print(f"🧹 Auto cleanup completed: {cleanup_results['files_deleted']} files deleted")
+    
+    # Print offline-first mode status
+    if OFFLINE_FIRST_MODE:
+        print("🔒 OFFLINE-FIRST MODE ENABLED")
+        print("   • Records and PDFs saved locally first")
+        print("   • JSON backups created for complete records")
+        print("   • Cloud backup available via Settings > Backup")
+        print("   • No internet connection delays during regular saves")
+        print(f"   • Today's reports folder: {get_todays_folder('reports')}")
+        print(f"   • Today's JSON backups folder: {get_todays_folder('json_backups')}")
+        
+        if AUTO_CLEANUP_ENABLED:
+            print(f"   • Auto cleanup: Keep {DAYS_TO_KEEP_LOCAL_FILES} days, check every {CLEANUP_INTERVAL_DAYS} day(s)")
+        else:
+            print("   • Auto cleanup: Disabled")
+            
+        # Add archive info to startup message
+        print("   • CSV Archive: Every 5 days, preserves incomplete records")
+        print("   • Archive check: Triggered on complete record saves")
 
+# FIXED CSV_HEADER - ensure it matches your data structure
+CSV_HEADER = ['Date', 'Time', 'Site Name', 'Agency Name', 'Material', 'Ticket No', 'Vehicle No', 
+              'Transfer Party Name', 'First Weight', 'First Timestamp', 'Second Weight', 'Second Timestamp',
+              'Net Weight', 'Material Type', 'First Front Image', 'First Back Image', 
+              'Second Front Image', 'Second Back Image', 'Site Incharge', 'User Name']
 
 
 def get_next_ticket_number():
@@ -392,38 +470,6 @@ def auto_cleanup_old_files():
     except Exception as e:
         print(f"Error in auto cleanup: {e}")
         return None
-
-def setup():
-    """Initialize the application data structures with unified folder system"""
-    initialize_folders()
-    initialize_csv()
-    
-    # Ensure today's folders exist
-    ensure_todays_folder("reports")
-    ensure_todays_folder("json_backups")
-    
-    # Perform auto cleanup if enabled
-    if AUTO_CLEANUP_ENABLED:
-        cleanup_results = auto_cleanup_old_files()
-        if cleanup_results:
-            print(f"🧹 Auto cleanup completed: {cleanup_results['files_deleted']} files deleted")
-    
-    # Print offline-first mode status
-    if OFFLINE_FIRST_MODE:
-        print("🔒 OFFLINE-FIRST MODE ENABLED")
-        print("   • Records and PDFs saved locally first")
-        print("   • JSON backups created for complete records")
-        print("   • Cloud backup available via Settings > Backup")
-        print("   • No internet connection delays during regular saves")
-        print(f"   • Today's reports folder: {get_todays_folder('reports')}")
-        print(f"   • Today's JSON backups folder: {get_todays_folder('json_backups')}")
-        
-        if AUTO_CLEANUP_ENABLED:
-            print(f"   • Auto cleanup: Keep {DAYS_TO_KEEP_LOCAL_FILES} days, check every {CLEANUP_INTERVAL_DAYS} day(s)")
-        else:
-            print("   • Auto cleanup: Disabled")
-    else:
-        print("🌐 Online mode - cloud attempts during saves")
 
 def set_global_weighbridge(manager, weight_var, status_var):
     """Set global references to weighbridge components"""

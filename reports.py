@@ -8,7 +8,6 @@ import json
 import config
 import tkcalendar
 
-
 # Try to import optional dependencies
 try:
     from tkcalendar import DateEntry
@@ -18,7 +17,7 @@ except ImportError:
     print("tkcalendar not available - using basic date entry")
 
 try:
-    from reportlab.lib.pagesizes import letter, A4
+    from reportlab.lib.pagesizes import letter, A4, landscape  # Added landscape import
     from reportlab.lib import colors
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image as RLImage, PageBreak
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -30,9 +29,8 @@ try:
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
+    landscape = None  # Define fallback if import fails
     print("ReportLab not available - PDF generation will be limited")
-
-
 
 class ReportGenerator:
     """Enhanced report generator with selection and filtering capabilities"""
@@ -41,7 +39,7 @@ class ReportGenerator:
         """Initialize the report generator
         
         Args:
-            parent: Parent widget
+            parent: Parent widget (can be None for legacy functions)
             data_manager: Data manager instance
         """
         self.parent = parent
@@ -49,6 +47,7 @@ class ReportGenerator:
         self.selected_records = []
         self.address_config = self.load_address_config()
         self.all_records = []
+        self.report_window = None  # Initialize as None
         
         # Ensure reports folder exists
         self.reports_folder = config.REPORTS_FOLDER
@@ -582,8 +581,9 @@ class ReportGenerator:
                               f"Total Weight: {total_net_weight:.2f} kg\n"
                               f"Location: {self.reports_folder}")
             
-            # ENHANCEMENT 1: Close the report window after successful export
-            self.report_window.destroy()
+            # FIXED: Only close window if it exists
+            if hasattr(self, 'report_window') and self.report_window:
+                self.report_window.destroy()
             
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export to Excel:\n{str(e)}")
@@ -628,19 +628,23 @@ class ReportGenerator:
                                 f"Records: {len(selected_data)}\n"
                                 f"Location: {self.reports_folder}")
             
-            # ENHANCEMENT 1: Close the report window after successful export
-            self.report_window.destroy()
+            # FIXED: Only close window if it exists
+            if hasattr(self, 'report_window') and self.report_window:
+                self.report_window.destroy()
             
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export to PDF:\n{str(e)}")
 
     def get_applied_filters_info(self):
-        """Get information about currently applied filters"""
+        """Get information about currently applied filters - FIXED for legacy usage"""
         try:
             filters = []
             
+            # FIXED: Check if filter widgets exist before using them
             # Date range
-            if CALENDAR_AVAILABLE:
+            if (CALENDAR_AVAILABLE and 
+                hasattr(self, 'from_date') and hasattr(self, 'to_date') and 
+                self.from_date and self.to_date):
                 try:
                     from_date_str = self.from_date.get_date().strftime("%d-%m-%Y")
                     to_date_str = self.to_date.get_date().strftime("%d-%m-%Y")
@@ -653,102 +657,107 @@ class ReportGenerator:
                     pass
             
             # Vehicle filter
-            vehicle_filter = self.vehicle_var.get().strip()
-            if vehicle_filter:
-                filters.append(f"Vehicle: {vehicle_filter}")
+            if hasattr(self, 'vehicle_var') and self.vehicle_var:
+                vehicle_filter = self.vehicle_var.get().strip()
+                if vehicle_filter:
+                    filters.append(f"Vehicle: {vehicle_filter}")
             
             # Transfer party filter
-            transfer_party_filter = self.transfer_party_var.get().strip()
-            if transfer_party_filter:
-                filters.append(f"Transfer Party: {transfer_party_filter}")
+            if hasattr(self, 'transfer_party_var') and self.transfer_party_var:
+                transfer_party_filter = self.transfer_party_var.get().strip()
+                if transfer_party_filter:
+                    filters.append(f"Transfer Party: {transfer_party_filter}")
             
             # Material filter
-            material_filter = self.material_var.get().strip()
-            if material_filter:
-                filters.append(f"Material: {material_filter}")
+            if hasattr(self, 'material_var') and self.material_var:
+                material_filter = self.material_var.get().strip()
+                if material_filter:
+                    filters.append(f"Material: {material_filter}")
             
             # Status filter
-            status_filter = self.status_var.get()
-            if status_filter and status_filter != "All":
-                filters.append(f"Status: {status_filter}")
+            if hasattr(self, 'status_var') and self.status_var:
+                status_filter = self.status_var.get()
+                if status_filter and status_filter != "All":
+                    filters.append(f"Status: {status_filter}")
             
-            return " | ".join(filters) if filters else "No specific filters applied"
+            return " | ".join(filters) if filters else "All records (no filters applied)"
             
         except Exception as e:
             print(f"Error getting applied filters info: {e}")
-            return "Filter information unavailable"
+            return "All records (filter information unavailable)"
 
-    def generate_filtered_filename(self, selected_data, extension):
-        """Generate filename based on applied filters and selected data"""
+    def generate_filtered_filename(self, selected_data, extension="pdf"):
+        """Generate intelligent filename based on applied filters and data - FIXED for legacy usage"""
         try:
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             
-            # Get common site/agency if all records are from same site/agency
-            sites = set(r.get('site_name', '').replace(' ', '_').replace('/', '_') for r in selected_data)
-            agencies = set(r.get('agency_name', '').replace(' ', '_').replace('/', '_') for r in selected_data)
+            # Ensure selected_data is a list of dictionaries
+            if not selected_data or not isinstance(selected_data, list):
+                return f"Enhanced_Report_{timestamp}.{extension}"
             
-            site_part = list(sites)[0] if len(sites) == 1 else "Multiple_Sites"
-            agency_part = list(agencies)[0] if len(agencies) == 1 else "Multiple_Agencies"
-            
-            # Clean up the parts
-            site_part = site_part.replace('/', '_').replace(' ', '_')[:15]  # Limit length
-            agency_part = agency_part.replace('/', '_').replace(' ', '_')[:15]  # Limit length
-            
-            # Check what filters are applied
-            filter_parts = []
-            
-            # Date range
-            if CALENDAR_AVAILABLE:
-                try:
-                    from_date_str = self.from_date.get_date().strftime("%d-%m-%Y")
-                    to_date_str = self.to_date.get_date().strftime("%d-%m-%Y")
-                    if from_date_str and to_date_str:
-                        if from_date_str == to_date_str:
-                            filter_parts.append(f"Date_{from_date_str.replace('-', '')}")
-                        else:
-                            filter_parts.append(f"DateRange_{from_date_str.replace('-', '')}_to_{to_date_str.replace('-', '')}")
-                except:
-                    pass
-            
-            # Vehicle filter
-            vehicle_filter = self.vehicle_var.get().strip()
-            if vehicle_filter:
-                clean_vehicle = vehicle_filter.replace(' ', '_').replace('/', '_')[:10]
-                filter_parts.append(f"Vehicle_{clean_vehicle}")
-            
-            # Transfer party filter
-            transfer_party_filter = self.transfer_party_var.get().strip()
-            if transfer_party_filter:
-                clean_party = transfer_party_filter.replace(' ', '_').replace('/', '_')[:10]
-                filter_parts.append(f"Party_{clean_party}")
-            
-            # Material filter
-            material_filter = self.material_var.get().strip()
-            if material_filter:
-                clean_material = material_filter.replace(' ', '_').replace('/', '_')[:10]
-                filter_parts.append(f"Material_{clean_material}")
-            
-            # Status filter
-            status_filter = self.status_var.get()
-            if status_filter and status_filter != "All":
-                filter_parts.append(f"Status_{status_filter}")
-            
-            # Build filename
-            if filter_parts:
-                filter_string = "_".join(filter_parts[:2])  # Limit to first 2 filters to keep filename reasonable
-                if len(filter_parts) > 2:
-                    filter_string += "_Plus"
-                return f"{agency_part}_{site_part}_Filtered_{filter_string}_{len(selected_data)}records.{extension}"
+            # For single record, create specific filename
+            if len(selected_data) == 1:
+                record = selected_data[0]
+                if isinstance(record, dict):
+                    agency_name = record.get('agency_name', 'Unknown').replace(' ', '_').replace('/', '_')
+                    site_name = record.get('site_name', 'Unknown').replace(' ', '_').replace('/', '_')
+                    ticket_no = record.get('ticket_no', 'Unknown').replace(' ', '_').replace('/', '_')
+                    vehicle_no = record.get('vehicle_no', 'Unknown').replace(' ', '_').replace('/', '_')
+                    return f"{agency_name}_{site_name}_{ticket_no}_{vehicle_no}_{timestamp}.{extension}"
+                else:
+                    return f"Single_Record_{timestamp}.{extension}"
             else:
-                return f"{agency_part}_{site_part}_Summary_{len(selected_data)}records_{timestamp}.{extension}"
+                # For multiple records, use agency/site info if available
+                filename_parts = []
+                
+                # Add agency info if consistent across records
+                agencies = set()
+                sites = set()
+                for record in selected_data:
+                    if isinstance(record, dict):
+                        agencies.add(record.get('agency_name', 'Unknown'))
+                        sites.add(record.get('site_name', 'Unknown'))
+                
+                if len(agencies) == 1:
+                    agency_part = list(agencies)[0].replace(' ', '_').replace('/', '_')
+                    filename_parts.append(agency_part)
+                
+                if len(sites) == 1:
+                    site_part = list(sites)[0].replace(' ', '_').replace('/', '_')
+                    filename_parts.append(site_part)
+                
+                # Get date range from data
+                dates = []
+                for record in selected_data:
+                    if isinstance(record, dict):
+                        date_str = record.get('date', '')
+                        if date_str:
+                            dates.append(date_str)
+                
+                if dates:
+                    unique_dates = sorted(set(dates))
+                    if len(unique_dates) == 1:
+                        filename_parts.append(unique_dates[0].replace('-', ''))
+                    elif len(unique_dates) > 1:
+                        start_date = unique_dates[0].replace('-', '')
+                        end_date = unique_dates[-1].replace('-', '')
+                        filename_parts.append(f"{start_date}_to_{end_date}")
+                
+                # Construct final filename
+                if filename_parts:
+                    base_filename = "_".join(filename_parts)
+                    date_stamp = datetime.datetime.now().strftime("%d-%m-%Y")
+                    return f"{date_stamp}_Summary_{base_filename}.{extension}"
+                else:
+                    return f"Summary_Report_{len(selected_data)}records_{timestamp}.{extension}"
                 
         except Exception as e:
             print(f"Error generating filtered filename: {e}")
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            return f"Filtered_Report_{len(selected_data)}records_{timestamp}.{extension}"
+            return f"Enhanced_Report_{len(selected_data) if selected_data else 0}records_{timestamp}.{extension}"
 
     def create_summary_pdf_report(self, records_data, save_path):
-        """Create an enhanced summary PDF report for filtered records with improved formatting"""
+        """Create an enhanced summary PDF report for filtered records with Material Type grouping"""
         if not REPORTLAB_AVAILABLE:
             return False
             
@@ -756,9 +765,13 @@ class ReportGenerator:
             # Ensure output directory exists
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
             
-            # Create document with optimized margins
-            doc = SimpleDocTemplate(save_path, pagesize=A4,
-                                    rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+            # Use landscape orientation for all tables in summary
+            if landscape:
+                doc = SimpleDocTemplate(save_path, pagesize=landscape(A4),
+                                        rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+            else:
+                doc = SimpleDocTemplate(save_path, pagesize=A4,
+                                        rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
             
             styles = getSampleStyleSheet()
             elements = []
@@ -783,17 +796,6 @@ class ReportGenerator:
                 spaceAfter=6
             )
             
-            # New style for filters section
-            filter_style = ParagraphStyle(
-                name='FilterStyle',
-                fontSize=11,
-                alignment=TA_CENTER,
-                fontName='Helvetica-Bold',
-                textColor=colors.darkblue,
-                spaceAfter=8,
-                spaceBefore=8
-            )
-            
             summary_header_style = ParagraphStyle(
                 name='SummaryHeaderStyle',
                 fontSize=12,
@@ -804,13 +806,14 @@ class ReportGenerator:
                 spaceBefore=12
             )
             
-            summary_style = ParagraphStyle(
-                name='SummaryStyle',
-                fontSize=10,
+            material_header_style = ParagraphStyle(
+                name='MaterialHeaderStyle',
+                fontSize=11,
                 alignment=TA_CENTER,
-                fontName='Helvetica',
-                textColor=colors.black,
-                spaceAfter=4
+                fontName='Helvetica-Bold',
+                textColor=colors.darkgreen,
+                spaceAfter=6,
+                spaceBefore=10
             )
             
             attribution_style = ParagraphStyle(
@@ -818,104 +821,30 @@ class ReportGenerator:
                 fontSize=8,
                 alignment=TA_CENTER,
                 fontName='Helvetica',
-                textColor=colors.grey,
-                spaceAfter=8,
-                spaceBefore=8
+                textColor=colors.darkgrey,
+                spaceAfter=4
             )
 
-            # Calculate summary data
+            # Header section
+            elements.append(Paragraph("WEIGHBRIDGE SUMMARY REPORT", header_style))
+            elements.append(Paragraph("Swaccha Andhra Monitor - Advitia Labs", subheader_style))
+            
+            # ENHANCED: Group records by material type and calculate statistics
+            material_stats = self.calculate_material_statistics(records_data)
             total_trips = len(records_data)
-            total_net_weight = 0
-            date_range = self.get_date_range_info(records_data)
-            applied_filters = self.get_applied_filters_info()
+            total_net_weight = sum(stats['total_weight'] for stats in material_stats.values())
+            total_weight_tonnes = total_net_weight / 1000
             
-            for record in records_data:
-                try:
-                    net_weight = float(record.get('net_weight', 0) or 0)
-                    total_net_weight += net_weight
-                except (ValueError, TypeError):
-                    pass
-
-            # Convert total weight to metric tonnes
-            total_weight_tonnes = total_net_weight / 1000.0
-
-            # Get agency and site information
-            first_record = records_data[0] if records_data else {}
-            agency_name = first_record.get('agency_name', 'Unknown Agency')
-            site_name = first_record.get('site_name', 'Unknown Site')
-            
-            agency_info = self.address_config.get('agencies', {}).get(agency_name, {})
-            site_info = self.address_config.get('sites', {}).get(site_name, {})
-            
-            # ENHANCEMENT 2: Create a nice table for agency/site information with black outline only
-            agency_info_data = []
-            
-            # Agency name row
-            agency_info_data.append([agency_info.get('name', agency_name)])
-            
-            # Agency address if available
-            if agency_info.get('address'):
-                agency_address = agency_info.get('address', '').replace('\n', '\n')  # Keep line breaks
-                agency_info_data.append([agency_address])
-            
-            # Contact information
-            contact_info = []
-            if agency_info.get('contact'):
-                contact_info.append(f"Phone: {agency_info.get('contact')}")
-            if agency_info.get('email'):
-                contact_info.append(f"Email: {agency_info.get('email')}")
-            if site_info.get('contact') and site_info.get('contact') != agency_info.get('contact'):
-                contact_info.append(f"Site Phone: {site_info.get('contact')}")
-            
-            if contact_info:
-                agency_info_data.append([" | ".join(contact_info)])
-            
-            # Create the agency info table
-            if agency_info_data:
-                agency_table = Table(agency_info_data, colWidths=[500])
-                agency_table.setStyle(TableStyle([
-                    # ENHANCEMENT 2: Only black outline, no background color fill
-                    ('BOX', (0, 0), (-1, -1), 2, colors.black),
-                    # Text alignment and formatting
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                    # Font styling - first row (agency name) bold and larger
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, 0), 16),
-                    # Remaining rows normal font
-                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                    ('FONTSIZE', (0, 1), (-1, -1), 10),
-                    # Padding
-                    ('TOPPADDING', (0, 0), (-1, -1), 8),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-                    ('LEFTPADDING', (0, 0), (-1, -1), 12),
-                    ('RIGHTPADDING', (0, 0), (-1, -1), 12),
-                ]))
-                
-                elements.append(agency_table)
-            
-            # Header info with export date
-            elements.append(Spacer(1, 8))
-            elements.append(Paragraph(f"Export Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", subheader_style))
-            
-            # ENHANCED: Applied Filters section with date range prominently displayed
-            elements.append(Spacer(1, 12))
-            
-            # Get detailed filter information including date range
+            # Filter information section
             filter_details = self.get_detailed_filter_info()
             
-            # Show applied filters in bold
-            elements.append(Paragraph(f"<b>APPLIED FILTERS:</b>", filter_style))
-            
-            # Add date range prominently
-            if filter_details.get('date_range'):
-                start_date = filter_details['date_range'].get('start_date', 'Not specified')
-                start_time = filter_details['date_range'].get('start_time', 'Not specified')
-                end_date = filter_details['date_range'].get('end_date', 'Not specified') 
-                end_time = filter_details['date_range'].get('end_time', 'Not specified')
-                
-                elements.append(Paragraph(f"<b>Start Date:</b> {start_date} | <b>Start Time:</b> {start_time}", subheader_style))
-                elements.append(Paragraph(f"<b>End Date:</b> {end_date} | <b>End Time:</b> {end_time}", subheader_style))
+            if filter_details and filter_details.get('date_range'):
+                date_range = filter_details['date_range']
+                start_date = date_range.get('start_date', 'N/A')
+                start_time = date_range.get('start_time', '00:00:00')
+                end_date = date_range.get('end_date', 'N/A')
+                end_time = date_range.get('end_time', '23:59:59')
+                elements.append(Paragraph(f"<b>Date Range:</b> {start_date} {start_time} to {end_date} {end_time}", subheader_style))
             else:
                 elements.append(Paragraph("<b>Date Range:</b> All records", subheader_style))
             
@@ -935,33 +864,50 @@ class ReportGenerator:
             
             elements.append(Spacer(1, 12))
             
-            # ENHANCED: Summary Statistics Table (nice formatted table)
+            # ENHANCED: Summary Statistics Table with Material Type breakdown
             elements.append(Paragraph("SUMMARY STATISTICS", summary_header_style))
             
-            # Create summary statistics table
+            # Overall summary
             summary_table_data = [
-                ['Name', 'Description'],
-                ['Number of Trips', f"{total_trips:,}"],
-                ['Total Net Weight', f"{total_weight_tonnes:.3f} MT"]  # Changed to Metric Tonnes
+                ['Summary Type', 'Count'],
+                ['Total Number of Trips', f"{total_trips:,}"]
             ]
             
-            summary_table = Table(summary_table_data, colWidths=[200, 200])
+            # Add material-wise breakdown
+            summary_table_data.append(['', ''])  # Empty row for spacing
+            summary_table_data.append(['BREAKDOWN BY MATERIAL TYPE', ''])
+            
+            for material, stats in sorted(material_stats.items()):
+                material_tonnes = stats['total_weight'] / 1000
+                percentage = (stats['total_weight'] / total_net_weight * 100) if total_net_weight > 0 else 0
+                
+                summary_table_data.append([
+                    f"{material} - Trips", 
+                    f"{stats['trip_count']:,} trips"
+                ])
+                summary_table_data.append([
+                    f"{material} - Weight", 
+                    f"{material_tonnes:.3f} MT ({percentage:.1f}%)"
+                ])
+            
+            summary_table = Table(summary_table_data, colWidths=[300, 200])
             summary_table.setStyle(TableStyle([
-                # Header row styling
                 ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 0), (-1, 0), 11),
-                # Data rows styling
                 ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
                 ('FONTSIZE', (0, 1), (-1, -1), 10),
-                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
-                # Borders and padding
                 ('GRID', (0, 0), (-1, -1), 1, colors.black),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ('TOPPADDING', (0, 0), (-1, -1), 6),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                # Highlight material type headers
+                ('BACKGROUND', (0, 4), (-1, 4), colors.lightgreen),
+                ('FONTNAME', (0, 4), (-1, 4), 'Helvetica-Bold'),
+                # Alternate colors for material rows
+                ('ROWBACKGROUNDS', (0, 5), (-1, -1), [colors.white, colors.beige]),
             ]))
             
             elements.append(summary_table)
@@ -974,103 +920,302 @@ class ReportGenerator:
             
             elements.append(Spacer(1, 12))
             
-            # Detailed records section
-            elements.append(Paragraph("DETAILED RECORDS", summary_header_style))
+            # ENHANCED: Create separate detailed tables for each material type
+            elements.append(Paragraph("DETAILED RECORDS BY MATERIAL TYPE", summary_header_style))
             
-            # ENHANCED: Create table data with wider columns for better visibility (removed Agency column)
-            table_data = [['S.No', 'Date', 'Ticket', 'Vehicle', 'Material', 'Net Wt (kg)']]
+            # Group records by material type
+            grouped_records = self.group_records_by_material(records_data)
             
-            for i, record in enumerate(records_data, 1):
-                # Fix material field - check multiple possible field names
-                material = record.get('material', '') or record.get('material_type', '') or record.get('transfer_party', '') or 'N/A'
+            for i, (material, material_records) in enumerate(sorted(grouped_records.items())):
+                if i > 0:
+                    elements.append(Spacer(1, 20))  # Space between material tables
                 
-                table_data.append([
-                    str(i),
-                    record.get('date', 'N/A'),
-                    record.get('ticket_no', 'N/A'),
-                    record.get('vehicle_no', 'N/A'),
-                    material,
-                    f"{float(record.get('net_weight', 0) or 0):.1f}"
-                ])
-            
-            # ENHANCED: Create table with better column widths (adjusted for removed Agency column)
-            # Calculate appropriate column widths for A4 page (about 500 points available)
-            col_widths = [40, 80, 80, 90, 120, 80]  # Redistributed widths after removing agency column
-            
-            table = Table(table_data, repeatRows=1, colWidths=col_widths)
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 8),
-                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                ('FONTSIZE', (0, 1), (-1, -1), 7),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
-                ('TOPPADDING', (0, 0), (-1, -1), 3),
-                ('BOTTOMPADDING', (0, 1), (-1, -1), 3),
-                ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                # Alternating row colors for better readability
-                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.beige]),
-            ]))
-            
-            elements.append(table)
+                # Material type header
+                material_count = len(material_records)
+                material_weight = sum(float(record.get('net_weight', 0) or 0) for record in material_records)
+                material_tonnes = material_weight / 1000
+                
+                material_header_text = f"MATERIAL TYPE: {material.upper()} ({material_count} trips, {material_tonnes:.3f} MT)"
+                elements.append(Paragraph(material_header_text, material_header_style))
+                
+                # Create table for this material type
+                table_data = [['S.No', 'Date', 'Ticket', 'Vehicle', 'Net Wt (kg)', 'Agency', 'Official']]
+                
+                for j, record in enumerate(material_records, 1):
+                    # Empty cells for Agency and official (to be filled manually after printing)
+                    Agency = ''  # Empty cell for manual entry
+                    official = ''  # Empty cell for manual entry
+                    
+                    table_data.append([
+                        str(j),
+                        record.get('date', 'N/A'),
+                        record.get('ticket_no', 'N/A'),
+                        record.get('vehicle_no', 'N/A'),
+                        f"{float(record.get('net_weight', 0) or 0):.1f}",
+                        Agency,  # Empty for manual entry
+                        official   # Empty for manual entry
+                    ])
+                
+                # Adjusted column widths for material-specific tables
+                col_widths = [40, 80, 80, 100, 80, 100, 100]  # 7 columns for material tables
+                
+                table = Table(table_data, repeatRows=1, colWidths=col_widths)
+                table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 8),
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -1), 7),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+                    ('TOPPADDING', (0, 0), (-1, -1), 3),
+                    ('BOTTOMPADDING', (0, 1), (-1, -1), 3),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    # Alternating row colors for better readability
+                    ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.beige]),
+                ]))
+                
+                elements.append(table)
+                
+                # Add material summary at the end of each table
+                material_summary = Table([
+                    [f"SUBTOTAL FOR {material.upper()}: {material_count} trips, {material_tonnes:.3f} MT"]
+                ], colWidths=[sum(col_widths)])
+                material_summary.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, -1), colors.lightgreen),
+                    ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, -1), 9),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                    ('TOPPADDING', (0, 0), (-1, -1), 4),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                ]))
+                elements.append(material_summary)
             
             # Build PDF
             doc.build(elements)
             
-            print(f"📄 ENHANCED PDF EXPORT: Successfully created summary PDF with {total_trips} records")
+            print(f"📄 ENHANCED PDF EXPORT: Successfully created MATERIAL-GROUPED summary PDF")
+            print(f"   - Total Records: {total_trips}")
             print(f"   - Total Net Weight: {total_weight_tonnes:.3f} MT ({total_net_weight:.2f} kg)")
-            print(f"   - Applied Filters: {applied_filters}")
-            print(f"   - Enhanced formatting with date/time details")
+            print(f"   - Material Types: {len(material_stats)}")
+            for material, stats in material_stats.items():
+                material_tonnes = stats['total_weight'] / 1000
+                print(f"     • {material}: {stats['trip_count']} trips, {material_tonnes:.3f} MT")
+            print(f"   - ORIENTATION: Landscape for better table visibility")
             
             return True
             
         except Exception as e:
             print(f"Error creating enhanced summary PDF report: {e}")
+            import traceback
+            print(f"Detailed error: {traceback.format_exc()}")
             return False
 
+    def calculate_material_statistics(self, records_data):
+        """Calculate statistics grouped by material type
+        
+        Args:
+            records_data: List of record dictionaries
+            
+        Returns:
+            dict: Statistics by material type
+        """
+        try:
+            material_stats = {}
+            
+            for record in records_data:
+                # Get material type - check multiple possible field names
+                material = (
+                    record.get('material', '') or 
+                    record.get('material', '') or 
+                    record.get('transfer_party', '') or 
+                    'Unknown Material'
+                ).strip()
+                
+                if not material:
+                    material = 'Unknown Material'
+                
+                # Initialize material stats if not exists
+                if material not in material_stats:
+                    material_stats[material] = {
+                        'trip_count': 0,
+                        'total_weight': 0.0,
+                        'records': []
+                    }
+                
+                # Add to statistics
+                material_stats[material]['trip_count'] += 1
+                material_stats[material]['records'].append(record)
+                
+                # Add weight if available
+                try:
+                    net_weight = float(record.get('net_weight', 0) or 0)
+                    material_stats[material]['total_weight'] += net_weight
+                except (ValueError, TypeError):
+                    pass
+            
+            print(f"📊 MATERIAL STATS: Calculated statistics for {len(material_stats)} material types")
+            for material, stats in material_stats.items():
+                print(f"   • {material}: {stats['trip_count']} trips, {stats['total_weight']:.2f} kg")
+            
+            return material_stats
+            
+        except Exception as e:
+            print(f"Error calculating material statistics: {e}")
+            return {}
+
+    def group_records_by_material(self, records_data):
+        """Group records by material type for table generation
+        
+        Args:
+            records_data: List of record dictionaries
+            
+        Returns:
+            dict: Records grouped by material type
+        """
+        try:
+            grouped_records = {}
+            
+            for record in records_data:
+                # Get material type - check multiple possible field names
+                material = (
+                    record.get('material', '') or 
+                    record.get('material', '') or 
+                    record.get('transfer_party', '') or 
+                    'Unknown Material'
+                ).strip()
+                
+                if not material:
+                    material = 'Unknown Material'
+                
+                # Group records
+                if material not in grouped_records:
+                    grouped_records[material] = []
+                
+                grouped_records[material].append(record)
+            
+            # Sort records within each material group by date and time
+            for material in grouped_records:
+                grouped_records[material].sort(key=lambda r: (
+                    r.get('date', ''), 
+                    r.get('time', ''),
+                    r.get('ticket_no', '')
+                ))
+            
+            print(f"📋 RECORD GROUPING: Grouped {len(records_data)} records into {len(grouped_records)} material types")
+            
+            return grouped_records
+            
+        except Exception as e:
+            print(f"Error grouping records by material: {e}")
+            return {'Unknown Material': records_data}  # Fallback
+
+    def export_selected_to_pdf(self):
+        """ENHANCED: Export to PDF with material type grouping"""
+        if not REPORTLAB_AVAILABLE:
+            messagebox.showerror("PDF Export Error", 
+                            "ReportLab library is not installed.\n"
+                            "Please install it using: pip install reportlab")
+            return
+        
+        selected_data = self.get_selected_record_data()
+        
+        if not selected_data:
+            messagebox.showwarning("No Selection", "Please select at least one record to export.")
+            return
+        
+        try:
+            if len(selected_data) == 1:
+                # Single record - use individual format
+                filename = self.generate_filename(selected_data, "pdf")
+                save_path = os.path.join(self.reports_folder, filename)
+                
+                self.create_pdf_report(selected_data, save_path)
+                messagebox.showinfo("Export Successful", 
+                                f"Individual PDF report saved successfully!\n\n"
+                                f"File: {filename}\n"
+                                f"Location: {self.reports_folder}")
+            else:
+                # Multiple records - ENHANCED with material grouping
+                filename = self.generate_filtered_filename(selected_data, "pdf")
+                save_path = os.path.join(self.reports_folder, filename)
+                
+                print(f"📄 EXPORT DEBUG: Creating MATERIAL-GROUPED summary PDF for {len(selected_data)} records")
+                
+                # Count material types for user info
+                materials = set()
+                for record in selected_data:
+                    material = (
+                        record.get('material', '') or 
+                        record.get('material', '') or 
+                        'Unknown'
+                    ).strip() or 'Unknown'
+                    materials.add(material)
+                
+                self.create_summary_pdf_report(selected_data, save_path)
+                
+                messagebox.showinfo("Export Successful", 
+                                f"ENHANCED Summary PDF Report saved successfully!\n\n"
+                                f"File: {filename}\n"
+                                f"Records: {len(selected_data)}\n"
+                                f"Material Types: {len(materials)} ({', '.join(sorted(materials))})\n"
+                                f"Features: Material grouping, weight breakdown, separate tables\n"
+                                f"Location: {self.reports_folder}")
+            
+            # Close window if it exists
+            if hasattr(self, 'report_window') and self.report_window:
+                self.report_window.destroy()
+            
+        except Exception as e:
+            messagebox.showerror("Export Error", f"Failed to export to PDF:\n{str(e)}")
+            import traceback
+            print(f"PDF export error: {traceback.format_exc()}")
+
     def get_detailed_filter_info(self):
-        """Get detailed filter information including date ranges with times"""
+        """Get detailed filter information including date ranges with times - FIXED for legacy usage"""
         try:
             filter_info = {}
             
             # Date range information with times
-            if CALENDAR_AVAILABLE and hasattr(self, 'from_date') and hasattr(self, 'to_date'):
+            if (CALENDAR_AVAILABLE and 
+                hasattr(self, 'from_date') and hasattr(self, 'to_date') and 
+                self.from_date and self.to_date):
                 try:
                     from_date = self.from_date.get_date()
                     to_date = self.to_date.get_date()
                     
                     filter_info['date_range'] = {
                         'start_date': from_date.strftime("%d-%m-%Y"),
-                        'start_time': "00:00:00",  # Default start time
+                        'start_time': "00:00:00",
                         'end_date': to_date.strftime("%d-%m-%Y"),
-                        'end_time': "23:59:59"   # Default end time
+                        'end_time': "23:59:59"
                     }
                 except:
                     filter_info['date_range'] = None
             
             # Vehicle filter
-            if hasattr(self, 'vehicle_var'):
+            if hasattr(self, 'vehicle_var') and self.vehicle_var:
                 vehicle_filter = self.vehicle_var.get().strip()
                 if vehicle_filter:
                     filter_info['vehicle_filter'] = vehicle_filter
             
             # Material filter
-            if hasattr(self, 'material_var'):
+            if hasattr(self, 'material_var') and self.material_var:
                 material_filter = self.material_var.get().strip()
                 if material_filter:
                     filter_info['material_filter'] = material_filter
             
             # Status filter
-            if hasattr(self, 'status_var'):
-                status_filter = self.status_var.get()
-                if status_filter:
+            if hasattr(self, 'status_var') and self.status_var:
+                status_filter = self.status_var.get().strip()
+                if status_filter and status_filter != 'All':
                     filter_info['status_filter'] = status_filter
             
             # Transfer party filter
-            if hasattr(self, 'transfer_party_var'):
+            if hasattr(self, 'transfer_party_var') and self.transfer_party_var:
                 transfer_party_filter = self.transfer_party_var.get().strip()
                 if transfer_party_filter:
                     filter_info['transfer_party_filter'] = transfer_party_filter
@@ -1081,6 +1226,7 @@ class ReportGenerator:
             print(f"Error getting detailed filter info: {e}")
             return {}
 
+        
     def get_date_range_info(self, records_data):
         """Get human-readable date range from records"""
         try:
@@ -1223,8 +1369,8 @@ class ReportGenerator:
             # Vehicle Information
             elements.append(Paragraph("VEHICLE INFORMATION", section_header_style))
             
-            # Get material from material_type field if material is empty
-            material_value = record.get('material', '') or record.get('material_type', '')
+            # Get material from material field if material is empty
+            material_value = record.get('material', '') or record.get('material', '')
             user_name_value = record.get('user_name', '') or "Not specified"
             site_incharge_value = record.get('site_incharge', '') or "Not specified"
             
@@ -1427,7 +1573,7 @@ class ReportGenerator:
             ]))
             elements.append(img_table)
             
-            # Add operator signature line at bottom right
+            # Add Agency signature line at bottom right
             elements.append(Spacer(1, 0.3*inch))
             
             signature_table = Table([["", "Operator's Signature"]], colWidths=[5*inch, 2.5*inch])
@@ -1798,34 +1944,58 @@ class ReportGenerator:
 # Legacy export functions for backward compatibility
 def export_to_excel(filename=None, data_manager=None):
     """Export records to Excel - now saves to reports folder with proper naming"""
-    if data_manager:
-        generator = ReportGenerator(None, data_manager)
+    if not data_manager:
+        messagebox.showerror("Error", "Data manager not available")
+        return False
+        
+    try:
+        generator = ReportGenerator(None, data_manager)  # None parent for legacy usage
         
         # Auto-select all records for quick export
         generator.all_records = data_manager.get_all_records()
-        generator.selected_records = [record.get('ticket_no', '') for record in generator.all_records]
+        if not generator.all_records:
+            messagebox.showwarning("No Records", "No records found to export.")
+            return False
+            
+        generator.selected_records = [record.get('ticket_no', '') for record in generator.all_records if record.get('ticket_no', '')]
         
         if generator.selected_records:
             generator.export_selected_to_excel()
             return True
         else:
-            messagebox.showwarning("No Records", "No records found to export.")
+            messagebox.showwarning("No Valid Records", "No valid records with ticket numbers found to export.")
             return False
-    return False
+            
+    except Exception as e:
+        messagebox.showerror("Export Error", f"Failed to export to Excel:\n{str(e)}")
+        print(f"Excel export error: {e}")
+        return False
 
 def export_to_pdf(filename=None, data_manager=None):
     """Export records to PDF - now saves to reports folder with proper naming"""
-    if data_manager:
-        generator = ReportGenerator(None, data_manager)
+    if not data_manager:
+        messagebox.showerror("Error", "Data manager not available")
+        return False
+        
+    try:
+        generator = ReportGenerator(None, data_manager)  # None parent for legacy usage
         
         # Auto-select all records for quick export
         generator.all_records = data_manager.get_all_records()
-        generator.selected_records = [record.get('ticket_no', '') for record in generator.all_records]
+        if not generator.all_records:
+            messagebox.showwarning("No Records", "No records found to export.")
+            return False
+            
+        generator.selected_records = [record.get('ticket_no', '') for record in generator.all_records if record.get('ticket_no', '')]
         
         if generator.selected_records:
             generator.export_selected_to_pdf()
             return True
         else:
-            messagebox.showwarning("No Records", "No records found to export.")
+            messagebox.showwarning("No Valid Records", "No valid records with ticket numbers found to export.")
             return False
-    return False
+            
+    except Exception as e:
+        messagebox.showerror("Export Error", f"Failed to export to PDF:\n{str(e)}")
+        print(f"PDF export error: {e}")
+        return False

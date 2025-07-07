@@ -48,9 +48,8 @@ def setup_logging():
     
     return logging.getLogger('DataManager')
 
+
 class DataManager:
-    """FIXED: Class for managing data operations with proper folder initialization"""
-    
     def __init__(self):
         """Initialize data manager with logging and proper folder setup"""
         # Set up logging first
@@ -71,7 +70,7 @@ class DataManager:
         # Initialize CSV structure
         self.initialize_new_csv_structure()
 
-        # Setup folder structure with error handling
+        # Setup folder structure with error handling FIRST
         try:
             self.setup_unified_folder_structure()
         except Exception as e:
@@ -88,12 +87,320 @@ class DataManager:
         # DO NOT initialize cloud storage here - only when explicitly requested
         self.cloud_storage = None
         
+        # NOW check archive after everything is set up
+        try:
+            self.check_and_archive()
+        except Exception as e:
+            self.logger.error(f"Error in initial archive check: {e}")
+        
         self.logger.info(f"Data file: {self.data_file}")
         self.logger.info(f"Reports folder: {self.reports_folder}")
         self.logger.info(f"JSON backup folder: {self.json_backup_folder}")
         self.logger.info(f"Today's JSON folder: {self.today_json_folder}")
         self.logger.info(f"Today's PDF folder: {self.today_pdf_folder}")
         self.logger.info("Cloud storage will only be initialized when backup is requested")
+
+    def save_record(self, data):
+        """FIXED: Save record with deterministic archive checking"""
+        try:
+            self.logger.info("="*50)
+            self.logger.info("STARTING OFFLINE-FIRST RECORD SAVE")
+            self.logger.info(f"Input data keys: {list(data.keys())}")
+            
+            # FIXED: Calculate and set net weight properly
+            data = self.calculate_and_set_net_weight(data)
+            
+            # Enhanced validation with detailed logging
+            validation_result = self.validate_record_data(data)
+            if not validation_result['valid']:
+                self.logger.error(f"Validation failed: {validation_result['errors']}")
+                if messagebox:
+                    messagebox.showerror("Validation Error", f"Record validation failed:\n" + "\n".join(validation_result['errors']))
+                return {'success': False, 'error': 'Validation failed'}
+            
+            # Use the current data file
+            current_file = self.get_current_data_file()
+            self.logger.info(f"Using data file: {current_file}")
+            
+            # Check if this is an update to an existing record
+            ticket_no = data.get('ticket_no', '')
+            is_update = False
+            
+            if ticket_no:
+                # Check if record with this ticket number exists
+                records = self.get_filtered_records(ticket_no)
+                for record in records:
+                    if record.get('ticket_no') == ticket_no:
+                        is_update = True
+                        self.logger.info(f"Updating existing record: {ticket_no}")
+                        break
+            
+            if not is_update:
+                self.logger.info(f"Adding new record: {ticket_no}")
+            
+            # PRIORITY 1: Save to CSV locally (this MUST work)
+            csv_success = False
+            try:
+                if is_update:
+                    csv_success = self.update_record(data)
+                else:
+                    csv_success = self.add_new_record(data)
+                
+                if csv_success:
+                    self.logger.info(f"✅ Record {ticket_no} saved to local CSV successfully")
+                else:
+                    self.logger.error(f"❌ Failed to save record {ticket_no} to local CSV")
+                    return {'success': False, 'error': 'Failed to save to CSV'}
+            except Exception as csv_error:
+                self.logger.error(f"❌ Critical error saving to CSV: {csv_error}")
+                return {'success': False, 'error': f'CSV error: {str(csv_error)}'}
+            
+            # Check if this is a complete record (both weighments)
+            is_complete_record = self.is_record_complete(data)
+            
+            # Analyze weighment state for logging
+            first_weight = data.get('first_weight', '').strip()
+            first_timestamp = data.get('first_timestamp', '').strip()
+            second_weight = data.get('second_weight', '').strip()
+            second_timestamp = data.get('second_timestamp', '').strip()
+            
+            has_first_weighment = bool(first_weight and first_timestamp)
+            has_second_weighment = bool(second_weight and second_timestamp)
+            is_first_weighment_save = has_first_weighment and not has_second_weighment
+            
+            self.logger.info(f"Weighment analysis:")
+            self.logger.info(f"  - Has first weighment: {has_first_weighment}")
+            self.logger.info(f"  - Has second weighment: {has_second_weighment}")
+            self.logger.info(f"  - Is first weighment save: {is_first_weighment_save}")
+            self.logger.info(f"  - Is complete record: {is_complete_record}")
+            self.logger.info(f"  - Is update: {is_update}")
+            
+            # PRIORITY 2: Save complete records as JSON locally
+            json_saved = False
+            if is_complete_record:
+                self.logger.info(f"Complete record detected - saving JSON backup locally...")
+                try:
+                    json_saved = self.save_json_backup_locally(data)
+                    if json_saved:
+                        self.logger.info(f"✅ JSON backup saved locally for {ticket_no}")
+                    else:
+                        self.logger.warning(f"⚠️ Failed to save JSON backup for {ticket_no}")
+                except Exception as json_error:
+                    self.logger.error(f"⚠️ JSON backup error (non-critical): {json_error}")
+            
+            # PRIORITY 3: Auto-generate PDF for complete records - Save to data/reports/today folder
+            pdf_generated = False
+            pdf_path = None
+            todays_reports_folder = None
+            
+            if is_complete_record:
+                self.logger.info(f"Complete record detected for ticket {ticket_no} - generating PDF locally...")
+                try:
+                    # Get today's reports folder path
+                    todays_reports_folder = self.get_todays_reports_folder()
+                    self.logger.info(f"Reports will be saved to: {todays_reports_folder}")
+                    
+                    pdf_generated, pdf_path = self.auto_generate_pdf_for_complete_record(data)
+                    if pdf_generated:
+                        self.logger.info(f"✅ PDF auto-generated locally: {pdf_path}")
+                    else:
+                        self.logger.warning("⚠️ PDF generation failed, but record and JSON were saved locally")
+                except Exception as pdf_error:
+                    self.logger.error(f"⚠️ PDF generation error (non-critical): {pdf_error}")
+            
+            # IMPORTANT: NO CLOUD STORAGE ATTEMPTS HERE
+            self.logger.info("✅ OFFLINE-FIRST SAVE COMPLETED - Local CSV, JSON backup, and PDF generated")
+            if todays_reports_folder:
+                self.logger.info(f"📂 PDF saved to today's reports folder: {todays_reports_folder}")
+            self.logger.info("💡 Cloud backup available via Settings > Cloud Storage > Backup")
+            self.logger.info("="*50)
+
+            # FIXED: Check archive on EVERY complete record save (not random)
+            if is_complete_record:
+                try:
+                    self.logger.info("🔍 Checking archive after complete record save...")
+                    archive_success, archive_message = self.check_and_archive()
+                    if archive_success:
+                        self.logger.info(f"📦 Archive completed: {archive_message}")
+                    else:
+                        self.logger.info(f"📦 Archive check: {archive_message}")
+                except Exception as archive_error:
+                    self.logger.error(f"Archive check error (non-critical): {archive_error}")
+            
+            # Return success and weighment info for the app to handle ticket flow
+            return {
+                'success': True,
+                'is_complete_record': is_complete_record,
+                'is_first_weighment_save': is_first_weighment_save,
+                'is_update': is_update,
+                'ticket_no': ticket_no,
+                'pdf_generated': pdf_generated,
+                'pdf_path': pdf_path,
+                'todays_reports_folder': todays_reports_folder
+            }
+                    
+        except Exception as e:
+            self.logger.error(f"❌ Critical error saving record: {e}")
+            try:
+                if messagebox:
+                    messagebox.showerror("Save Error", f"Failed to save record:\n{str(e)}")
+            except:
+                pass
+            return {'success': False, 'error': str(e)}
+
+    def should_archive_csv(self):
+        """Check if CSV should be archived (every 5 days) - ENHANCED with better error handling"""
+        try:
+            archive_tracking_file = os.path.join(config.DATA_FOLDER, 'last_archive.json')
+            current_file = self.get_current_data_file()
+            
+            # Check if CSV file exists
+            if not os.path.exists(current_file):
+                self.logger.info("No CSV file to archive")
+                return False
+            
+            # Validate CSV file can be read
+            try:
+                with open(current_file, 'r', newline='', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    header = next(reader, None)
+                    if not header:
+                        self.logger.warning("CSV file has no header - cannot archive")
+                        return False
+            except Exception as csv_read_error:
+                self.logger.error(f"Cannot read CSV file for archiving: {csv_read_error}")
+                return False
+                
+            # Count total records in CSV (excluding header)
+            total_records = 0
+            complete_records = 0
+            
+            try:
+                with open(current_file, 'r', newline='', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    header = next(reader, None)
+                    
+                    for row in reader:
+                        if len(row) >= 13:  # Valid record
+                            total_records += 1
+                            
+                            # Check if complete (both weights)
+                            first_weight = row[8].strip() if len(row) > 8 else ''
+                            second_weight = row[10].strip() if len(row) > 10 else ''
+                            
+                            if (first_weight and first_weight not in ['0', '0.0', ''] and 
+                                second_weight and second_weight not in ['0', '0.0', '']):
+                                complete_records += 1
+                                
+            except Exception as count_error:
+                self.logger.error(f"Error counting records: {count_error}")
+                return False
+            
+            self.logger.info(f"CSV analysis: {total_records} total records, {complete_records} complete records")
+            
+            if complete_records == 0:
+                self.logger.info("CSV file has no complete records to archive")
+                return False
+            
+            # Check last archive date
+            if os.path.exists(archive_tracking_file):
+                try:
+                    with open(archive_tracking_file, 'r') as f:
+                        data = json.load(f)
+                        last_archive = datetime.datetime.fromisoformat(data['last_archive_date'])
+                        days_since = (datetime.datetime.now() - last_archive).days
+                        
+                        self.logger.info(f"Last archive: {days_since} days ago ({last_archive.strftime('%Y-%m-%d')})")
+                        self.logger.info(f"Current complete records in CSV: {complete_records}")
+                        
+                        should_archive = days_since >= 5
+                        if should_archive:
+                            self.logger.info(f"✅ Archive DUE: {days_since} days >= 5 days")
+                        else:
+                            self.logger.info(f"⏳ Archive not due: {days_since} days < 5 days")
+                        return should_archive
+                        
+                except Exception as tracking_error:
+                    self.logger.error(f"Error reading archive tracking: {tracking_error}")
+                    # If tracking file is corrupted, archive if we have complete records
+                    self.logger.info("Archive tracking corrupted - will archive due to complete records")
+                    return complete_records > 0
+            else:
+                # No tracking file exists - this is the first run
+                self.logger.info(f"No archive tracking file found. CSV has {complete_records} complete records.")
+                if complete_records > 0:
+                    self.logger.info("✅ First-time archive due - CSV has complete records")
+                    return True
+                else:
+                    self.logger.info("❌ No complete records to archive yet")
+                    return False
+                    
+        except Exception as e:
+            self.logger.error(f"Error checking archive status: {e}")
+            return False
+
+    def get_all_records(self):
+        """FIXED: Get all records with better error handling for archive compatibility"""
+        records = []
+        current_file = self.get_current_data_file()
+        
+        if not os.path.exists(current_file):
+            self.logger.warning(f"CSV file does not exist: {current_file}")
+            return records
+            
+        try:
+            with open(current_file, 'r', newline='', encoding='utf-8') as csv_file:
+                reader = csv.reader(csv_file)
+                
+                # Skip header
+                header = next(reader, None)
+                if not header:
+                    self.logger.warning("CSV file has no header")
+                    return records
+                
+                self.logger.debug(f"CSV header: {header}")
+                self.logger.debug(f"Expected header length: {len(config.CSV_HEADER)}")
+                self.logger.debug(f"Actual header length: {len(header)}")
+                
+                for row_num, row in enumerate(reader, 1):
+                    try:
+                        if len(row) >= 13:  # Minimum fields required
+                            # Handle both old and new CSV formats
+                            record = {
+                                'date': row[0] if len(row) > 0 else '',
+                                'time': row[1] if len(row) > 1 else '',
+                                'site_name': row[2] if len(row) > 2 else '',
+                                'agency_name': row[3] if len(row) > 3 else '',
+                                'material': row[4] if len(row) > 4 else '',
+                                'ticket_no': row[5] if len(row) > 5 else '',
+                                'vehicle_no': row[6] if len(row) > 6 else '',
+                                'transfer_party_name': row[7] if len(row) > 7 else '',
+                                'first_weight': row[8] if len(row) > 8 else '',
+                                'first_timestamp': row[9] if len(row) > 9 else '',
+                                'second_weight': row[10] if len(row) > 10 else '',
+                                'second_timestamp': row[11] if len(row) > 11 else '',
+                                'net_weight': row[12] if len(row) > 12 else '',
+                                'material_type': row[13] if len(row) > 13 else '',
+                                # Handle variable number of image fields
+                                'first_front_image': row[14] if len(row) > 14 else '',
+                                'first_back_image': row[15] if len(row) > 15 else '',
+                                'second_front_image': row[16] if len(row) > 16 else '',
+                                'second_back_image': row[17] if len(row) > 17 else '',
+                                'site_incharge': row[18] if len(row) > 18 else '',
+                                'user_name': row[19] if len(row) > 19 else ''
+                            }
+                            records.append(record)
+                        else:
+                            self.logger.warning(f"Skipping row {row_num} - insufficient data: {len(row)} fields")
+                    except Exception as row_error:
+                        self.logger.error(f"Error processing row {row_num}: {row_error}")
+                        
+            self.logger.info(f"Successfully loaded {len(records)} records from {current_file}")
+            return records
+                
+        except Exception as e:
+            self.logger.error(f"Error reading records from {current_file}: {e}")
+            return []
     
     def _setup_fallback_folders(self):
         """Setup fallback folders when main setup fails"""
@@ -269,6 +576,131 @@ class DataManager:
             self.logger.error(f"Error saving JSON backup: {e}")
             return False
     
+
+    def archive_complete_records(self):
+        """Archive complete records, keep incomplete ones - IMPROVED"""
+        try:
+            current_file = self.get_current_data_file()
+            if not os.path.exists(current_file):
+                return False, "No CSV file to archive"
+            
+            self.logger.info("🔍 Starting archive process...")
+            
+            # Read all records and categorize them
+            complete_records = []
+            incomplete_records = []
+            
+            with open(current_file, 'r', newline='', encoding='utf-8') as f:
+                reader = csv.reader(f)
+                header = next(reader, None)
+                
+                for row_num, row in enumerate(reader, 1):
+                    if len(row) < 13:
+                        self.logger.warning(f"Row {row_num}: Insufficient data, skipping")
+                        continue
+                        
+                    # Check if record is complete (has both weights)
+                    first_weight = row[8].strip() if len(row) > 8 else ''
+                    second_weight = row[10].strip() if len(row) > 10 else ''
+                    ticket_no = row[5] if len(row) > 5 else 'Unknown'
+                    
+                    has_first = bool(first_weight and first_weight not in ['0', '0.0', ''])
+                    has_second = bool(second_weight and second_weight not in ['0', '0.0', ''])
+                    
+                    if has_first and has_second:
+                        complete_records.append(row)
+                        self.logger.info(f"Complete record: Ticket {ticket_no} (1st: {first_weight}, 2nd: {second_weight})")
+                    else:
+                        incomplete_records.append(row)
+                        self.logger.info(f"Incomplete record: Ticket {ticket_no} (1st: {first_weight}, 2nd: {second_weight})")
+            
+            self.logger.info(f"📊 Archive analysis:")
+            self.logger.info(f"   Complete records: {len(complete_records)}")
+            self.logger.info(f"   Incomplete records: {len(incomplete_records)}")
+            
+            if not complete_records:
+                return False, f"No complete records to archive. {len(incomplete_records)} incomplete records kept."
+            
+            # Create archive file
+            archives_folder = os.path.join(config.DATA_FOLDER, 'archives')
+            os.makedirs(archives_folder, exist_ok=True)
+            
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            archive_filename = f"archive_{timestamp}_{len(complete_records)}records.csv"
+            archive_path = os.path.join(archives_folder, archive_filename)
+            
+            # Write archive with complete records
+            with open(archive_path, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(config.CSV_HEADER)
+                for record in complete_records:
+                    writer.writerow(record)
+            
+            self.logger.info(f"📦 Created archive: {archive_filename}")
+            
+            # Create fresh CSV with incomplete records
+            with open(current_file, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(config.CSV_HEADER)
+                for record in incomplete_records:
+                    writer.writerow(record)
+            
+            self.logger.info(f"🆕 Fresh CSV created with {len(incomplete_records)} incomplete records")
+            
+            # Update tracking file
+            tracking_file = os.path.join(config.DATA_FOLDER, 'last_archive.json')
+            tracking_data = {
+                'last_archive_date': datetime.datetime.now().isoformat(),
+                'archive_filename': archive_filename,
+                'complete_records': len(complete_records),
+                'incomplete_records': len(incomplete_records),
+                'archive_path': archive_path
+            }
+            with open(tracking_file, 'w') as f:
+                json.dump(tracking_data, f, indent=2)
+            
+            self.logger.info(f"✅ Archive completed successfully!")
+            self.logger.info(f"   📁 Archive file: {archive_filename}")
+            self.logger.info(f"   ✅ Complete records archived: {len(complete_records)}")
+            self.logger.info(f"   ⏳ Incomplete records kept: {len(incomplete_records)}")
+            
+            return True, f"Archive created: {len(complete_records)} complete records archived, {len(incomplete_records)} incomplete records kept in fresh CSV."
+            
+        except Exception as e:
+            self.logger.error(f"❌ Archive error: {e}")
+            return False, f"Archive failed: {e}"
+
+    def check_and_archive(self):
+        """Check if archive is due and perform it - IMPROVED"""
+        try:
+            self.logger.info("🔍 Checking if archive is due...")
+            
+            if self.should_archive_csv():
+                self.logger.info("📦 Archive is due - starting archive process...")
+                success, message = self.archive_complete_records()
+                
+                if success:
+                    self.logger.info(f"✅ Archive completed: {message}")
+                    # Optional: Show notification
+                    try:
+                        from tkinter import messagebox
+                        messagebox.showinfo("Archive Created", message)
+                    except:
+                        pass  # Skip if no GUI
+                else:
+                    self.logger.warning(f"⚠️ Archive failed: {message}")
+                    
+                return success, message
+            else:
+                self.logger.info("⏳ Archive not due yet")
+                return False, "Archive not due yet"
+                
+        except Exception as e:
+            self.logger.error(f"❌ Error in archive check: {e}")
+            return False, f"Error: {e}"
+
+
+
     def setup_unified_folder_structure(self):
         """FIXED: Set up unified folder structure with comprehensive error handling"""
         try:
@@ -304,141 +736,6 @@ class DataManager:
             # Call fallback setup
             self._setup_fallback_folders()
 
-    def save_record(self, data):
-        """FIXED: Save record with proper folder handling"""
-        try:
-            self.logger.info("="*50)
-            self.logger.info("STARTING OFFLINE-FIRST RECORD SAVE")
-            self.logger.info(f"Input data keys: {list(data.keys())}")
-            
-            # FIXED: Calculate and set net weight properly
-            data = self.calculate_and_set_net_weight(data)
-            
-            # Enhanced validation with detailed logging
-            validation_result = self.validate_record_data(data)
-            if not validation_result['valid']:
-                self.logger.error(f"Validation failed: {validation_result['errors']}")
-                if messagebox:
-                    messagebox.showerror("Validation Error", f"Record validation failed:\n" + "\n".join(validation_result['errors']))
-                return {'success': False, 'error': 'Validation failed'}
-            
-            # Use the current data file
-            current_file = self.get_current_data_file()
-            self.logger.info(f"Using data file: {current_file}")
-            
-            # Check if this is an update to an existing record
-            ticket_no = data.get('ticket_no', '')
-            is_update = False
-            
-            if ticket_no:
-                # Check if record with this ticket number exists
-                records = self.get_filtered_records(ticket_no)
-                for record in records:
-                    if record.get('ticket_no') == ticket_no:
-                        is_update = True
-                        self.logger.info(f"Updating existing record: {ticket_no}")
-                        break
-            
-            if not is_update:
-                self.logger.info(f"Adding new record: {ticket_no}")
-            
-            # PRIORITY 1: Save to CSV locally (this MUST work)
-            csv_success = False
-            try:
-                if is_update:
-                    csv_success = self.update_record(data)
-                else:
-                    csv_success = self.add_new_record(data)
-                
-                if csv_success:
-                    self.logger.info(f"✅ Record {ticket_no} saved to local CSV successfully")
-                else:
-                    self.logger.error(f"❌ Failed to save record {ticket_no} to local CSV")
-                    return {'success': False, 'error': 'Failed to save to CSV'}
-            except Exception as csv_error:
-                self.logger.error(f"❌ Critical error saving to CSV: {csv_error}")
-                return {'success': False, 'error': f'CSV error: {str(csv_error)}'}
-            
-            # Check if this is a complete record (both weighments)
-            is_complete_record = self.is_record_complete(data)
-            
-            # Analyze weighment state for logging
-            first_weight = data.get('first_weight', '').strip()
-            first_timestamp = data.get('first_timestamp', '').strip()
-            second_weight = data.get('second_weight', '').strip()
-            second_timestamp = data.get('second_timestamp', '').strip()
-            
-            has_first_weighment = bool(first_weight and first_timestamp)
-            has_second_weighment = bool(second_weight and second_timestamp)
-            is_first_weighment_save = has_first_weighment and not has_second_weighment
-            
-            self.logger.info(f"Weighment analysis:")
-            self.logger.info(f"  - Has first weighment: {has_first_weighment}")
-            self.logger.info(f"  - Has second weighment: {has_second_weighment}")
-            self.logger.info(f"  - Is first weighment save: {is_first_weighment_save}")
-            self.logger.info(f"  - Is complete record: {is_complete_record}")
-            self.logger.info(f"  - Is update: {is_update}")
-            
-            # PRIORITY 2: Save complete records as JSON locally
-            json_saved = False
-            if is_complete_record:
-                self.logger.info(f"Complete record detected - saving JSON backup locally...")
-                try:
-                    json_saved = self.save_json_backup_locally(data)
-                    if json_saved:
-                        self.logger.info(f"✅ JSON backup saved locally for {ticket_no}")
-                    else:
-                        self.logger.warning(f"⚠️ Failed to save JSON backup for {ticket_no}")
-                except Exception as json_error:
-                    self.logger.error(f"⚠️ JSON backup error (non-critical): {json_error}")
-            
-            # PRIORITY 3: Auto-generate PDF for complete records - Save to data/reports/today folder
-            pdf_generated = False
-            pdf_path = None
-            todays_reports_folder = None
-            
-            if is_complete_record:
-                self.logger.info(f"Complete record detected for ticket {ticket_no} - generating PDF locally...")
-                try:
-                    # Get today's reports folder path
-                    todays_reports_folder = self.get_todays_reports_folder()
-                    self.logger.info(f"Reports will be saved to: {todays_reports_folder}")
-                    
-                    pdf_generated, pdf_path = self.auto_generate_pdf_for_complete_record(data)
-                    if pdf_generated:
-                        self.logger.info(f"✅ PDF auto-generated locally: {pdf_path}")
-                    else:
-                        self.logger.warning("⚠️ PDF generation failed, but record and JSON were saved locally")
-                except Exception as pdf_error:
-                    self.logger.error(f"⚠️ PDF generation error (non-critical): {pdf_error}")
-            
-            # IMPORTANT: NO CLOUD STORAGE ATTEMPTS HERE
-            self.logger.info("✅ OFFLINE-FIRST SAVE COMPLETED - Local CSV, JSON backup, and PDF generated")
-            if todays_reports_folder:
-                self.logger.info(f"📂 PDF saved to today's reports folder: {todays_reports_folder}")
-            self.logger.info("💡 Cloud backup available via Settings > Cloud Storage > Backup")
-            self.logger.info("="*50)
-            
-            # Return success and weighment info for the app to handle ticket flow
-            return {
-                'success': True,
-                'is_complete_record': is_complete_record,
-                'is_first_weighment_save': is_first_weighment_save,
-                'is_update': is_update,
-                'ticket_no': ticket_no,
-                'pdf_generated': pdf_generated,
-                'pdf_path': pdf_path,
-                'todays_reports_folder': todays_reports_folder
-            }
-                    
-        except Exception as e:
-            self.logger.error(f"❌ Critical error saving record: {e}")
-            try:
-                if messagebox:
-                    messagebox.showerror("Save Error", f"Failed to save record:\n{str(e)}")
-            except:
-                pass
-            return {'success': False, 'error': str(e)}
 
     def get_todays_reports_folder(self):
         """Get or create today's reports folder in data/reports/YYYY-MM-DD format
@@ -1272,62 +1569,7 @@ GENERATED BY: Swaccha Andhra Corporation Weighbridge System
             self.logger.error(f"❌ Error updating record: {e}")
             return False
 
-    def get_all_records(self):
-        """FIXED: Get all records from current CSV file with enhanced error handling"""
-        records = []
-        current_file = self.get_current_data_file()
-        
-        if not os.path.exists(current_file):
-            self.logger.warning(f"CSV file does not exist: {current_file}")
-            return records
-            
-        try:
-            with open(current_file, 'r', newline='', encoding='utf-8') as csv_file:
-                reader = csv.reader(csv_file)
-                
-                # Skip header
-                header = next(reader, None)
-                if not header:
-                    self.logger.warning("CSV file has no header")
-                    return records
-                
-                for row_num, row in enumerate(reader, 1):
-                    try:
-                        if len(row) >= 13:  # Minimum fields required
-                            record = {
-                                'date': row[0],
-                                'time': row[1],
-                                'site_name': row[2],
-                                'agency_name': row[3],
-                                'material': row[4],
-                                'ticket_no': row[5],
-                                'vehicle_no': row[6],
-                                'transfer_party_name': row[7],
-                                'first_weight': row[8] if len(row) > 8 else '',
-                                'first_timestamp': row[9] if len(row) > 9 else '',
-                                'second_weight': row[10] if len(row) > 10 else '',
-                                'second_timestamp': row[11] if len(row) > 11 else '',
-                                'net_weight': row[12] if len(row) > 12 else '',
-                                'material_type': row[13] if len(row) > 13 else '',
-                                'first_front_image': row[14] if len(row) > 14 else '',
-                                'first_back_image': row[15] if len(row) > 15 else '',
-                                'second_front_image': row[16] if len(row) > 16 else '',
-                                'second_back_image': row[17] if len(row) > 17 else '',
-                                'site_incharge': row[18] if len(row) > 18 else '',
-                                'user_name': row[19] if len(row) > 19 else ''
-                            }
-                            records.append(record)
-                        else:
-                            self.logger.warning(f"Skipping row {row_num} - insufficient data: {len(row)} fields")
-                    except Exception as row_error:
-                        self.logger.error(f"Error processing row {row_num}: {row_error}")
-                        
-            self.logger.info(f"Successfully loaded {len(records)} records from {current_file}")
-            return records
-                
-        except Exception as e:
-            self.logger.error(f"Error reading records from {current_file}: {e}")
-            return []
+
 
     def get_filtered_records(self, filter_text=""):
         """Get records filtered by text with logging"""

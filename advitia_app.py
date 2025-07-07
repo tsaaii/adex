@@ -2,7 +2,7 @@
 # pyinstaller ^
 #   --onedir ^
 #   --windowed ^
-#   --name="SAC_monitor_Eluru" ^
+#   --name="SAC_monitor_Bethamcherla" ^
 #   --icon=right.ico ^
 #   --add-data "data;data" ^
 #   --add-data "assets/logo.png;assets" ^

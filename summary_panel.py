@@ -146,8 +146,8 @@ class SummaryPanel:
         filter_text = self.filter_var.get()
         records = self.data_manager.get_filtered_records(filter_text)
         
-        # Show most recent first (limited to 100 for performance)
-        for i, record in enumerate(reversed(records[-100:])):
+        # Show most recent first (limited to 300 for performance)
+        for i, record in enumerate(reversed(records[-300:])):
             # Check for images
             image_info = "None"
             front_img = record.get('front_image', '')
