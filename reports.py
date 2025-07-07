@@ -757,7 +757,7 @@ class ReportGenerator:
             return f"Enhanced_Report_{len(selected_data) if selected_data else 0}records_{timestamp}.{extension}"
 
     def create_summary_pdf_report(self, records_data, save_path):
-        """Create an enhanced summary PDF report for filtered records with Material Type grouping"""
+        """Create an enhanced summary PDF report with expanded columns and proper naming"""
         if not REPORTLAB_AVAILABLE:
             return False
             
@@ -768,15 +768,15 @@ class ReportGenerator:
             # Use landscape orientation for all tables in summary
             if landscape:
                 doc = SimpleDocTemplate(save_path, pagesize=landscape(A4),
-                                        rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+                                        rightMargin=20, leftMargin=20, topMargin=30, bottomMargin=30)
             else:
                 doc = SimpleDocTemplate(save_path, pagesize=A4,
-                                        rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+                                        rightMargin=20, leftMargin=20, topMargin=30, bottomMargin=30)
             
             styles = getSampleStyleSheet()
             elements = []
 
-            # Create enhanced styles
+            # Create enhanced styles (same as before)
             header_style = ParagraphStyle(
                 name='HeaderStyle',
                 fontSize=16,
@@ -826,10 +826,10 @@ class ReportGenerator:
             )
 
             # Header section
-            elements.append(Paragraph("WEIGHBRIDGE SUMMARY REPORT", header_style))
+            elements.append(Paragraph("Bethamcherla dumping yard", header_style))
             elements.append(Paragraph("Swaccha Andhra Monitor - Advitia Labs", subheader_style))
             
-            # ENHANCED: Group records by material type and calculate statistics
+            # Group records by material type and calculate statistics
             material_stats = self.calculate_material_statistics(records_data)
             total_trips = len(records_data)
             total_net_weight = sum(stats['total_weight'] for stats in material_stats.values())
@@ -864,7 +864,7 @@ class ReportGenerator:
             
             elements.append(Spacer(1, 12))
             
-            # ENHANCED: Summary Statistics Table with Material Type breakdown
+            # Summary Statistics Table with Material Type breakdown (same as before)
             elements.append(Paragraph("SUMMARY STATISTICS", summary_header_style))
             
             # Overall summary
@@ -904,8 +904,8 @@ class ReportGenerator:
                 ('TOPPADDING', (0, 0), (-1, -1), 6),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
                 # Highlight material type headers
-                ('BACKGROUND', (0, 4), (-1, 4), colors.lightgreen),
-                ('FONTNAME', (0, 4), (-1, 4), 'Helvetica-Bold'),
+                ('BACKGROUND', (0, 3), (-1, 3), colors.lightgreen),
+                ('FONTNAME', (0, 3), (-1, 3), 'Helvetica-Bold'),
                 # Alternate colors for material rows
                 ('ROWBACKGROUNDS', (0, 5), (-1, -1), [colors.white, colors.beige]),
             ]))
@@ -920,7 +920,7 @@ class ReportGenerator:
             
             elements.append(Spacer(1, 12))
             
-            # ENHANCED: Create separate detailed tables for each material type
+            # ENHANCED: Create separate detailed tables for each material type with NEW COLUMNS
             elements.append(Paragraph("DETAILED RECORDS BY MATERIAL TYPE", summary_header_style))
             
             # Group records by material type
@@ -938,26 +938,64 @@ class ReportGenerator:
                 material_header_text = f"MATERIAL TYPE: {material.upper()} ({material_count} trips, {material_tonnes:.3f} MT)"
                 elements.append(Paragraph(material_header_text, material_header_style))
                 
-                # Create table for this material type
-                table_data = [['S.No', 'Date', 'Ticket', 'Vehicle', 'Net Wt (kg)', 'Agency', 'Official']]
+                # ENHANCED: Create table with NEW COLUMN STRUCTURE and PROPER NAMING
+                # Final headers: S.NO, DATE, SLIP NO, VEHICLE NO, GROSS, IN_TIME, TARE, OUT_TIME, NET WT, AGENCY, OFFICIAL
+                table_data = [['S.NO', 'DATE', 'SLIP NO', 'VEHICLE NO', 'GROSS', 'IN_TIME', 'TARE', 'OUT_TIME', 'NET WT', 'AGENCY', 'OFFICIAL']]
                 
                 for j, record in enumerate(material_records, 1):
-                    # Empty cells for Agency and official (to be filled manually after printing)
-                    Agency = ''  # Empty cell for manual entry
+                    # Extract data with proper formatting
+                    date = record.get('date', 'N/A')
+                    slip_no = record.get('ticket_no', 'N/A')  # Renamed from Ticket
+                    vehicle_no = record.get('vehicle_no', 'N/A')
+                    
+                    # NEW COLUMNS: Extract Gross (First Weight) and Tare (Second Weight) with simple validation
+                    gross_weight = record.get('first_weight', '').strip()
+                    try:
+                        gross_display = f"{float(gross_weight):.1f}" if gross_weight else "0.0"
+                    except:
+                        gross_display = "0.0"
+                    
+                    tare_weight = record.get('second_weight', '').strip()
+                    try:
+                        tare_display = f"{float(tare_weight):.1f}" if tare_weight else "0.0"
+                    except:
+                        tare_display = "0.0"
+                    
+                    # NEW COLUMNS: Extract time from datetime timestamp (21-06-2025 10:04:58 → 10:04:58)
+                    in_time = record.get('first_timestamp', '').strip()
+                    in_time_display = in_time.split(' ')[1] if ' ' in in_time else "N/A"
+                    
+                    out_time = record.get('second_timestamp', '').strip()
+                    out_time_display = out_time.split(' ')[1] if ' ' in out_time else "N/A"
+                    
+                    # Net weight with simple validation
+                    net_weight = record.get('net_weight', '').strip()
+                    try:
+                        net_weight_display = f"{float(net_weight):.1f}" if net_weight else "0.0"
+                    except:
+                        net_weight_display = "0.0"
+                    
+                    # Empty cells for manual entry
+                    agency = ''  # Empty cell for manual entry
                     official = ''  # Empty cell for manual entry
                     
                     table_data.append([
-                        str(j),
-                        record.get('date', 'N/A'),
-                        record.get('ticket_no', 'N/A'),
-                        record.get('vehicle_no', 'N/A'),
-                        f"{float(record.get('net_weight', 0) or 0):.1f}",
-                        Agency,  # Empty for manual entry
-                        official   # Empty for manual entry
+                        str(j),                    # S.NO
+                        date,                      # DATE
+                        slip_no,                   # SLIP NO (renamed from Ticket)
+                        vehicle_no,                # VEHICLE NO
+                        gross_display,             # GROSS (First Weight)
+                        in_time_display,           # IN_TIME (First Timestamp)
+                        tare_display,              # TARE (Second Weight)
+                        out_time_display,          # OUT_TIME (Second Timestamp)
+                        net_weight_display,        # NET WT
+                        agency,                    # AGENCY (Empty for manual entry)
+                        official                   # OFFICIAL (Empty for manual entry)
                     ])
                 
-                # Adjusted column widths for material-specific tables
-                col_widths = [40, 80, 80, 100, 80, 100, 100]  # 7 columns for material tables
+                # ENHANCED: Adjusted column widths for expanded table (11 columns total)
+                # Landscape A4 provides ~800 points width, distribute across 11 columns
+                col_widths = [35, 65, 60, 75, 50, 55, 50, 55, 50, 75, 75]  # Total ~645 points
                 
                 table = Table(table_data, repeatRows=1, colWidths=col_widths)
                 table.setStyle(TableStyle([
@@ -965,12 +1003,12 @@ class ReportGenerator:
                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, 0), 8),
+                    ('FONTSIZE', (0, 0), (-1, 0), 7),  # Smaller font for more columns
                     ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                    ('FONTSIZE', (0, 1), (-1, -1), 7),
-                    ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
-                    ('TOPPADDING', (0, 0), (-1, -1), 3),
-                    ('BOTTOMPADDING', (0, 1), (-1, -1), 3),
+                    ('FONTSIZE', (0, 1), (-1, -1), 6),  # Smaller font for data rows
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 4),
+                    ('TOPPADDING', (0, 0), (-1, -1), 2),
+                    ('BOTTOMPADDING', (0, 1), (-1, -1), 2),
                     ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                     # Alternating row colors for better readability
@@ -986,25 +1024,27 @@ class ReportGenerator:
                 material_summary.setStyle(TableStyle([
                     ('BACKGROUND', (0, 0), (-1, -1), colors.lightgreen),
                     ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, -1), 9),
+                    ('FONTSIZE', (0, 0), (-1, -1), 8),
                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                     ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                    ('TOPPADDING', (0, 0), (-1, -1), 4),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                    ('TOPPADDING', (0, 0), (-1, -1), 3),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
                 ]))
                 elements.append(material_summary)
             
             # Build PDF
             doc.build(elements)
             
-            print(f"📄 ENHANCED PDF EXPORT: Successfully created MATERIAL-GROUPED summary PDF")
+            print(f"📄 ENHANCED PDF EXPORT: Successfully created EXPANDED COLUMNS summary PDF")
             print(f"   - Total Records: {total_trips}")
             print(f"   - Total Net Weight: {total_weight_tonnes:.3f} MT ({total_net_weight:.2f} kg)")
             print(f"   - Material Types: {len(material_stats)}")
+            print(f"   - NEW COLUMNS: Added Gross, In_Time, Tare, Out_Time")
+            print(f"   - RENAMED COLUMNS: Ticket → Slip No, etc.")
             for material, stats in material_stats.items():
                 material_tonnes = stats['total_weight'] / 1000
                 print(f"     • {material}: {stats['trip_count']} trips, {material_tonnes:.3f} MT")
-            print(f"   - ORIENTATION: Landscape for better table visibility")
+            print(f"   - ORIENTATION: Landscape for 11-column table visibility")
             
             return True
             
