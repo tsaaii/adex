@@ -32,6 +32,60 @@ except ImportError:
     landscape = None  # Define fallback if import fails
     print("ReportLab not available - PDF generation will be limited")
 
+class SimpleTimePicker(tk.Frame):
+    """A simple time picker with dropdown selectors"""
+    
+    def __init__(self, parent, initial_time="00:00:00", **kwargs):
+        super().__init__(parent, **kwargs)
+        
+        # Parse initial time
+        try:
+            time_parts = initial_time.split(':')
+            hour = int(time_parts[0])
+            minute = int(time_parts[1])
+        except:
+            hour, minute = 0, 0
+        
+        # Hour dropdown (00-23)
+        self.hour_var = tk.StringVar(value=f"{hour:02d}")
+        self.hour_combo = ttk.Combobox(self, textvariable=self.hour_var, width=3, state="readonly")
+        self.hour_combo['values'] = [f"{i:02d}" for i in range(24)]
+        self.hour_combo.pack(side=tk.LEFT)
+        
+        # Separator
+        ttk.Label(self, text=":").pack(side=tk.LEFT)
+        
+        # Minute dropdown (00-59)
+        self.minute_var = tk.StringVar(value=f"{minute:02d}")
+        self.minute_combo = ttk.Combobox(self, textvariable=self.minute_var, width=3, state="readonly")
+        self.minute_combo['values'] = [f"{i:02d}" for i in range(0, 60, 5)]  # 5-minute intervals
+        self.minute_combo.pack(side=tk.LEFT)
+        
+        # Separator
+        ttk.Label(self, text=":00").pack(side=tk.LEFT)  # Fixed seconds to 00
+    
+    def get_time(self):
+        """Get the selected time as HH:MM:SS string"""
+        hour = self.hour_var.get()
+        minute = self.minute_var.get()
+        return f"{hour}:{minute}:00"
+    
+    def set_time(self, time_string):
+        """Set the time (HH:MM:SS format)"""
+        try:
+            time_parts = time_string.split(':')
+            hour = int(time_parts[0])
+            minute = int(time_parts[1])
+            
+            self.hour_var.set(f"{hour:02d}")
+            # Round minute to nearest 5
+            minute = (minute // 5) * 5
+            self.minute_var.set(f"{minute:02d}")
+        except:
+            self.hour_var.set("00")
+            self.minute_var.set("00")
+
+
 class ReportGenerator:
     """Enhanced report generator with selection and filtering capabilities"""
     
@@ -122,27 +176,26 @@ class ReportGenerator:
         self.refresh_records()
     
     def create_filter_frame(self):
-        """Create the filter controls frame"""
-        filter_frame = ttk.LabelFrame(self.report_window, text="Filters & Search", padding=10)
+        """Create the filter frame with simple time picker dropdowns"""
+        filter_frame = ttk.LabelFrame(self.report_window, text="Filter Records", padding=5)
         filter_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=5)
         filter_frame.columnconfigure(1, weight=1)
         filter_frame.columnconfigure(3, weight=1)
         
-        # Date range filter
-        ttk.Label(filter_frame, text="From Date:").grid(row=0, column=0, sticky="w", padx=5)
+        # Row 0: Date Range
+        ttk.Label(filter_frame, text="From Date:").grid(row=0, column=0, sticky="w", padx=5, pady=5)
         
         if CALENDAR_AVAILABLE:
             self.from_date = DateEntry(filter_frame, width=12, background='darkblue',
-                                      foreground='white', borderwidth=2,
-                                      date_pattern='dd-mm-yyyy')
+                                    foreground='white', borderwidth=2,
+                                    date_pattern='dd-mm-yyyy')
         else:
             self.from_date = ttk.Entry(filter_frame, width=15)
-            # Set placeholder
             self.from_date.insert(0, "DD-MM-YYYY")
         
-        self.from_date.grid(row=0, column=1, sticky="w", padx=5)
+        self.from_date.grid(row=0, column=1, sticky="w", padx=5, pady=5)
         
-        ttk.Label(filter_frame, text="To Date:").grid(row=0, column=2, sticky="w", padx=5)
+        ttk.Label(filter_frame, text="To Date:").grid(row=0, column=2, sticky="w", padx=5, pady=5)
         
         if CALENDAR_AVAILABLE:
             self.to_date = DateEntry(filter_frame, width=12, background='darkblue',
@@ -157,36 +210,49 @@ class ReportGenerator:
             self.to_date = ttk.Entry(filter_frame, width=15)
             self.to_date.insert(0, "DD-MM-YYYY")
         
-        self.to_date.grid(row=0, column=3, sticky="w", padx=5)
+        self.to_date.grid(row=0, column=3, sticky="w", padx=5, pady=5)
         
-        # Vehicle Number filter
-        ttk.Label(filter_frame, text="Vehicle No:").grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        # Row 1: Time Range with Simple Time Pickers
+        ttk.Label(filter_frame, text="From Time:").grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        
+        # Simple time picker for from time
+        self.from_time_picker = SimpleTimePicker(filter_frame, initial_time="00:00:00")
+        self.from_time_picker.grid(row=1, column=1, sticky="w", padx=5, pady=5)
+        
+        ttk.Label(filter_frame, text="To Time:").grid(row=1, column=2, sticky="w", padx=5, pady=5)
+        
+        # Simple time picker for to time
+        self.to_time_picker = SimpleTimePicker(filter_frame, initial_time="23:55:00")
+        self.to_time_picker.grid(row=1, column=3, sticky="w", padx=5, pady=5)
+        
+        # Row 2: Vehicle Number filter
+        ttk.Label(filter_frame, text="Vehicle No:").grid(row=2, column=0, sticky="w", padx=5, pady=5)
         self.vehicle_var = tk.StringVar()
         vehicle_entry = ttk.Entry(filter_frame, textvariable=self.vehicle_var)
-        vehicle_entry.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
+        vehicle_entry.grid(row=2, column=1, sticky="ew", padx=5, pady=5)
         
         # Transfer Party filter
-        ttk.Label(filter_frame, text="Transfer Party:").grid(row=1, column=2, sticky="w", padx=5, pady=5)
+        ttk.Label(filter_frame, text="Transfer Party:").grid(row=2, column=2, sticky="w", padx=5, pady=5)
         self.transfer_party_var = tk.StringVar()
         self.transfer_party_combo = ttk.Combobox(filter_frame, textvariable=self.transfer_party_var)
-        self.transfer_party_combo.grid(row=1, column=3, sticky="ew", padx=5, pady=5)
+        self.transfer_party_combo.grid(row=2, column=3, sticky="ew", padx=5, pady=5)
         
-        # Material filter
-        ttk.Label(filter_frame, text="Material:").grid(row=2, column=0, sticky="w", padx=5, pady=5)
+        # Row 3: Material filter
+        ttk.Label(filter_frame, text="Material:").grid(row=3, column=0, sticky="w", padx=5, pady=5)
         self.material_var = tk.StringVar()
         self.material_combo = ttk.Combobox(filter_frame, textvariable=self.material_var)
-        self.material_combo.grid(row=2, column=1, sticky="ew", padx=5, pady=5)
+        self.material_combo.grid(row=3, column=1, sticky="ew", padx=5, pady=5)
         
         # Record status filter
-        ttk.Label(filter_frame, text="Status:").grid(row=2, column=2, sticky="w", padx=5, pady=5)
+        ttk.Label(filter_frame, text="Status:").grid(row=3, column=2, sticky="w", padx=5, pady=5)
         self.status_var = tk.StringVar(value="All")
         status_combo = ttk.Combobox(filter_frame, textvariable=self.status_var, 
-                                   values=["All", "Complete", "Incomplete"], state="readonly")
-        status_combo.grid(row=2, column=3, sticky="ew", padx=5, pady=5)
+                                values=["All", "Complete", "Incomplete"], state="readonly")
+        status_combo.grid(row=3, column=3, sticky="ew", padx=5, pady=5)
         
         # Buttons frame
         button_frame = ttk.Frame(filter_frame)
-        button_frame.grid(row=3, column=0, columnspan=4, pady=10)
+        button_frame.grid(row=4, column=0, columnspan=4, pady=15)
         
         # Apply filter button
         filter_btn = ttk.Button(button_frame, text="Apply Filters", command=self.apply_filters)
@@ -199,11 +265,147 @@ class ReportGenerator:
         # Refresh button
         refresh_btn = ttk.Button(button_frame, text="Refresh Data", command=self.refresh_records)
         refresh_btn.pack(side=tk.LEFT, padx=5)
-    
 
-    
+
+    # Enhanced apply_filters method with time filtering
+    def apply_filters(self):
+        """Apply filters using simple time picker dropdowns"""
+        filtered_records = []
+        
+        # Get filter values
+        from_date_str = ""
+        to_date_str = ""
+        
+        if CALENDAR_AVAILABLE:
+            try:
+                from_date_str = self.from_date.get_date().strftime("%d-%m-%Y")
+                to_date_str = self.to_date.get_date().strftime("%d-%m-%Y")
+            except:
+                pass
+        else:
+            from_date_str = self.from_date.get().strip()
+            to_date_str = self.to_date.get().strip()
+        
+        # Get time values from simple time pickers
+        from_time_str = self.from_time_picker.get_time()
+        to_time_str = self.to_time_picker.get_time()
+        
+        vehicle_filter = self.vehicle_var.get().strip().lower()
+        transfer_party_filter = self.transfer_party_var.get().strip().lower()
+        material_filter = self.material_var.get().strip().lower()
+        status_filter = self.status_var.get()
+        
+        for record in self.all_records:
+            # Date and Time filter
+            if from_date_str and to_date_str:
+                try:
+                    record_date = datetime.datetime.strptime(record.get('date', ''), "%d-%m-%Y")
+                    from_date = datetime.datetime.strptime(from_date_str, "%d-%m-%Y")
+                    to_date = datetime.datetime.strptime(to_date_str, "%d-%m-%Y")
+                    
+                    # Check date range first
+                    if not (from_date.date() <= record_date.date() <= to_date.date()):
+                        continue
+                    
+                    # Time filtering logic
+                    record_time_str = record.get('time', '00:00:00').strip()
+                    if record_time_str:
+                        try:
+                            # Combine date and time for accurate comparison
+                            record_datetime_str = f"{record.get('date', '')} {record_time_str}"
+                            record_datetime = datetime.datetime.strptime(record_datetime_str, "%d-%m-%Y %H:%M:%S")
+                            
+                            # Create from and to datetime objects
+                            from_datetime_str = f"{from_date_str} {from_time_str}"
+                            to_datetime_str = f"{to_date_str} {to_time_str}"
+                            
+                            from_datetime = datetime.datetime.strptime(from_datetime_str, "%d-%m-%Y %H:%M:%S")
+                            to_datetime = datetime.datetime.strptime(to_datetime_str, "%d-%m-%Y %H:%M:%S")
+                            
+                            # Check if record falls within the datetime range
+                            if not (from_datetime <= record_datetime <= to_datetime):
+                                continue
+                                
+                        except ValueError:
+                            # If time parsing fails, fall back to date-only comparison
+                            pass
+                            
+                except ValueError:
+                    # If date parsing fails, skip this record
+                    pass
+            
+            # Apply other filters
+            if vehicle_filter:
+                vehicle_no = record.get('vehicle_no', '').lower()
+                if vehicle_filter not in vehicle_no:
+                    continue
+            
+            if transfer_party_filter:
+                transfer_party = record.get('transfer_party_name', '').lower()
+                if transfer_party_filter not in transfer_party:
+                    continue
+            
+            if material_filter:
+                material = record.get('material', '').lower()
+                if material_filter not in material:
+                    continue
+            
+            if status_filter != "All":
+                first_weight = record.get('first_weight', '').strip()
+                second_weight = record.get('second_weight', '').strip()
+                is_complete = bool(first_weight and second_weight)
+                
+                if status_filter == "Complete" and not is_complete:
+                    continue
+                elif status_filter == "Incomplete" and is_complete:
+                    continue
+            
+            filtered_records.append(record)
+        
+        # Update the treeview
+        self.update_records_display(filtered_records)
+
+    # Helper method to validate time format
+    def validate_time_format(self, time_str):
+        """Validate time format HH:MM:SS"""
+        try:
+            datetime.datetime.strptime(time_str, "%H:%M:%S")
+            return True
+        except ValueError:
+            return False
+
+
+    # Enhanced clear_filters method
+    def clear_filters(self):
+        """Clear all filters including simple time pickers"""
+        if CALENDAR_AVAILABLE:
+            # Reset date range
+            end_date = datetime.datetime.now()
+            start_date = end_date - datetime.timedelta(days=30)
+            self.from_date.set_date(start_date.date())
+            self.to_date.set_date(end_date.date())
+        else:
+            self.from_date.delete(0, tk.END)
+            self.to_date.delete(0, tk.END)
+            self.from_date.insert(0, "DD-MM-YYYY")
+            self.to_date.insert(0, "DD-MM-YYYY")
+        
+        # Reset simple time pickers
+        self.from_time_picker.set_time("00:00:00")
+        self.to_time_picker.set_time("23:55:00")
+        
+        self.vehicle_var.set("")
+        self.transfer_party_var.set("")
+        self.material_var.set("")
+        self.status_var.set("All")
+        
+        # Refresh display
+        self.apply_filters()
+
+
+    # Enhanced record selection methods
     def create_selection_frame(self):
-        """Create the record selection frame with checkboxes"""
+        """Create the record selection frame with enhanced functionality"""
         selection_frame = ttk.LabelFrame(self.report_window, text="Select Records for Export", padding=5)
         selection_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
         selection_frame.columnconfigure(0, weight=1)
@@ -220,6 +422,11 @@ class ReportGenerator:
         select_none_btn = ttk.Button(control_frame, text="Select None", command=self.select_no_records)
         select_none_btn.pack(side=tk.LEFT, padx=5)
         
+        # NEW: Toggle selection mode info
+        info_label = ttk.Label(control_frame, text="Double-click any record to toggle selection", 
+                            font=("Arial", 9, "italic"))
+        info_label.pack(side=tk.LEFT, padx=20)
+        
         # Records count label
         self.records_count_var = tk.StringVar(value="Records: 0 | Selected: 0")
         count_label = ttk.Label(control_frame, textvariable=self.records_count_var)
@@ -231,14 +438,15 @@ class ReportGenerator:
         tree_frame.columnconfigure(0, weight=1)
         tree_frame.rowconfigure(0, weight=1)
         
-        # Define columns
-        columns = ("select", "ticket", "date", "vehicle", "agency", "material", "first_weight", "second_weight", "status")
+        # Define columns including time
+        columns = ("select", "ticket", "date", "time", "vehicle", "agency", "material", "first_weight", "second_weight", "status")
         self.records_tree = ttk.Treeview(tree_frame, columns=columns, show="headings", height=15)
         
         # Define headings
         self.records_tree.heading("select", text="☐")
         self.records_tree.heading("ticket", text="Ticket No")
         self.records_tree.heading("date", text="Date")
+        self.records_tree.heading("time", text="Time")  # NEW COLUMN
         self.records_tree.heading("vehicle", text="Vehicle No")
         self.records_tree.heading("agency", text="Agency")
         self.records_tree.heading("material", text="Material")
@@ -250,6 +458,7 @@ class ReportGenerator:
         self.records_tree.column("select", width=30, minwidth=30)
         self.records_tree.column("ticket", width=80, minwidth=80)
         self.records_tree.column("date", width=80, minwidth=80)
+        self.records_tree.column("time", width=70, minwidth=70)  # NEW COLUMN
         self.records_tree.column("vehicle", width=100, minwidth=100)
         self.records_tree.column("agency", width=120, minwidth=120)
         self.records_tree.column("material", width=80, minwidth=80)
@@ -267,10 +476,162 @@ class ReportGenerator:
         v_scrollbar.grid(row=0, column=1, sticky="ns")
         h_scrollbar.grid(row=1, column=0, sticky="ew")
         
-        # Bind double-click to toggle selection
+        # ENHANCED: Multiple event bindings for better record selection
         self.records_tree.bind("<Double-1>", self.toggle_record_selection)
-        self.records_tree.bind("<Button-1>", self.on_tree_click)
-    
+        self.records_tree.bind("<Button-1>", self.on_tree_click)  # Single click support
+        self.records_tree.bind("<Return>", self.toggle_record_selection)  # Enter key support
+        self.records_tree.bind("<space>", self.toggle_record_selection)  # Spacebar support
+
+
+    # Enhanced update_records_display method
+    def update_records_display(self, records):
+        """Update the treeview with filtered records including time column"""
+        # Clear existing items
+        for item in self.records_tree.get_children():
+            self.records_tree.delete(item)
+        
+        # Add records
+        for record in records:
+            ticket_no = record.get('ticket_no', '')
+            date = record.get('date', '')
+            time = record.get('time', '')  # NEW: Include time field
+            vehicle_no = record.get('vehicle_no', '')
+            agency = record.get('agency_name', '')
+            material = record.get('material', '')
+            first_weight = record.get('first_weight', '')
+            second_weight = record.get('second_weight', '')
+            
+            # Determine status
+            status = "Complete" if (first_weight and second_weight) else "Incomplete"
+            
+            # Check if record is already selected
+            select_symbol = "☑" if ticket_no in self.selected_records else "☐"
+            
+            self.records_tree.insert("", "end", values=(
+                select_symbol, ticket_no, date, time, vehicle_no, agency, material, 
+                first_weight, second_weight, status
+            ), tags=(ticket_no,))
+        
+        # Update count
+        self.update_selection_count()
+
+
+    # Enhanced toggle_record_selection method
+    def toggle_record_selection(self, event):
+        """Enhanced toggle selection of a record with better error handling"""
+        # Get the item that was clicked/selected
+        if event.type == '4':  # Button-1 (single click)
+            item = self.records_tree.identify('item', event.x, event.y)
+            column = self.records_tree.identify('column', event.x, event.y)
+            # Only toggle if clicking on the select column or if double-clicking anywhere
+            if column != '#1':  # Not clicking on select column
+                return
+        else:  # Double-click, Enter, or Space
+            selection = self.records_tree.selection()
+            item = selection[0] if selection else None
+        
+        if not item:
+            return
+        
+        try:
+            values = list(self.records_tree.item(item, 'values'))
+            if len(values) < 2:  # Ensure we have enough columns
+                return
+                
+            ticket_no = values[1]  # Ticket number is at index 1
+            
+            if values[0] == "☐":  # Not selected
+                values[0] = "☑"
+                if ticket_no not in self.selected_records:
+                    self.selected_records.append(ticket_no)
+            else:  # Selected
+                values[0] = "☐"
+                if ticket_no in self.selected_records:
+                    self.selected_records.remove(ticket_no)
+            
+            self.records_tree.item(item, values=values)
+            self.update_selection_count()
+            
+            # Optional: Provide visual feedback
+            self.records_tree.selection_set(item)  # Keep item selected for visual feedback
+            
+        except Exception as e:
+            print(f"Error toggling record selection: {e}")
+
+
+    # Enhanced on_tree_click method
+    def on_tree_click(self, event):
+        """Handle tree click events with improved detection"""
+        item = self.records_tree.identify('item', event.x, event.y)
+        column = self.records_tree.identify('column', event.x, event.y)
+        
+        if item and column == '#1':  # Click on select column
+            # Select the item first
+            self.records_tree.selection_set(item)
+            # Then toggle selection
+            self.toggle_record_selection(event)
+
+
+    # Enhanced get_detailed_filter_info method
+    def get_detailed_filter_info(self):
+        """Get detailed filter information including date ranges with times - FIXED for legacy usage"""
+        try:
+            filter_info = {}
+            
+            # Date range information with times
+            if (CALENDAR_AVAILABLE and 
+                hasattr(self, 'from_date') and hasattr(self, 'to_date') and 
+                self.from_date and self.to_date):
+                try:
+                    from_date = self.from_date.get_date()
+                    to_date = self.to_date.get_date()
+                    
+                    # EASY FIX: Add these 4 lines to get actual time picker values
+                    start_time = "00:00:00"
+                    end_time = "23:59:59"
+                    if hasattr(self, 'from_time_picker'): start_time = self.from_time_picker.get_time()
+                    if hasattr(self, 'to_time_picker'): end_time = self.to_time_picker.get_time()
+                    
+                    filter_info['date_range'] = {
+                        'start_date': from_date.strftime("%d-%m-%Y"),
+                        'start_time': start_time,  # This will now use actual time
+                        'end_date': to_date.strftime("%d-%m-%Y"),
+                        'end_time': end_time       # This will now use actual time
+                    }
+                except:
+                    filter_info['date_range'] = None
+            
+            # Rest of your existing code stays exactly the same...
+            # Vehicle filter
+            if hasattr(self, 'vehicle_var') and self.vehicle_var:
+                vehicle_filter = self.vehicle_var.get().strip()
+                if vehicle_filter:
+                    filter_info['vehicle_filter'] = vehicle_filter
+            
+            # Material filter
+            if hasattr(self, 'material_var') and self.material_var:
+                material_filter = self.material_var.get().strip()
+                if material_filter:
+                    filter_info['material_filter'] = material_filter
+            
+            # Status filter
+            if hasattr(self, 'status_var') and self.status_var:
+                status_filter = self.status_var.get().strip()
+                if status_filter and status_filter != 'All':
+                    filter_info['status_filter'] = status_filter
+            
+            # Transfer party filter
+            if hasattr(self, 'transfer_party_var') and self.transfer_party_var:
+                transfer_party_filter = self.transfer_party_var.get().strip()
+                if transfer_party_filter:
+                    filter_info['transfer_party_filter'] = transfer_party_filter
+            
+            return filter_info
+            
+        except Exception as e:
+            print(f"Error getting detailed filter info: {e}")
+            return {}
+
     def create_action_frame(self):
         """Create the action buttons frame"""
         action_frame = ttk.LabelFrame(self.report_window, text="Export Options", padding=10)
@@ -330,155 +691,6 @@ class ReportGenerator:
         self.transfer_party_combo['values'] = [''] + sorted(list(transfer_parties))
         self.material_combo['values'] = [''] + sorted(list(materials))
     
-    def apply_filters(self):
-        """Apply the current filters to display records"""
-        if not self.all_records:
-            return
-        
-        filtered_records = []
-        
-        # Get filter values
-        from_date_str = ""
-        to_date_str = ""
-        
-        if CALENDAR_AVAILABLE:
-            try:
-                from_date_str = self.from_date.get_date().strftime("%d-%m-%Y")
-                to_date_str = self.to_date.get_date().strftime("%d-%m-%Y")
-            except:
-                pass
-        else:
-            from_date_str = self.from_date.get().strip()
-            to_date_str = self.to_date.get().strip()
-        
-        vehicle_filter = self.vehicle_var.get().strip().lower()
-        transfer_party_filter = self.transfer_party_var.get().strip().lower()
-        material_filter = self.material_var.get().strip().lower()
-        status_filter = self.status_var.get()
-        
-        for record in self.all_records:
-            # Date filter
-            if from_date_str and to_date_str:
-                try:
-                    record_date = datetime.datetime.strptime(record.get('date', ''), "%d-%m-%Y")
-                    from_date = datetime.datetime.strptime(from_date_str, "%d-%m-%Y")
-                    to_date = datetime.datetime.strptime(to_date_str, "%d-%m-%Y")
-                    
-                    if not (from_date <= record_date <= to_date):
-                        continue
-                except:
-                    pass
-            
-            # Vehicle filter
-            if vehicle_filter:
-                vehicle_no = record.get('vehicle_no', '').lower()
-                if vehicle_filter not in vehicle_no:
-                    continue
-            
-            # Transfer party filter
-            if transfer_party_filter:
-                transfer_party = record.get('transfer_party_name', '').lower()
-                if transfer_party_filter not in transfer_party:
-                    continue
-            
-            # Material filter
-            if material_filter:
-                material = record.get('material', '').lower()
-                if material_filter not in material:
-                    continue
-            
-            # Status filter
-            if status_filter != "All":
-                first_weight = record.get('first_weight', '').strip()
-                second_weight = record.get('second_weight', '').strip()
-                is_complete = bool(first_weight and second_weight)
-                
-                if status_filter == "Complete" and not is_complete:
-                    continue
-                elif status_filter == "Incomplete" and is_complete:
-                    continue
-            
-            filtered_records.append(record)
-        
-        # Update the treeview
-        self.update_records_display(filtered_records)
-    
-    def update_records_display(self, records):
-        """Update the treeview with filtered records"""
-        # Clear existing items
-        for item in self.records_tree.get_children():
-            self.records_tree.delete(item)
-        
-        # Add records
-        for record in records:
-            ticket_no = record.get('ticket_no', '')
-            date = record.get('date', '')
-            vehicle_no = record.get('vehicle_no', '')
-            agency = record.get('agency_name', '')
-            material = record.get('material', '')
-            first_weight = record.get('first_weight', '')
-            second_weight = record.get('second_weight', '')
-            
-            # Determine status
-            status = "Complete" if (first_weight and second_weight) else "Incomplete"
-            
-            self.records_tree.insert("", "end", values=(
-                "☐", ticket_no, date, vehicle_no, agency, material, 
-                first_weight, second_weight, status
-            ), tags=(ticket_no,))
-        
-        # Update count
-        self.update_selection_count()
-    
-    def clear_filters(self):
-        """Clear all filters"""
-        if CALENDAR_AVAILABLE:
-            # Reset date range
-            end_date = datetime.datetime.now()
-            start_date = end_date - datetime.timedelta(days=30)
-            self.from_date.set_date(start_date.date())
-            self.to_date.set_date(end_date.date())
-        else:
-            self.from_date.delete(0, tk.END)
-            self.to_date.delete(0, tk.END)
-            self.from_date.insert(0, "DD-MM-YYYY")
-            self.to_date.insert(0, "DD-MM-YYYY")
-        
-        self.vehicle_var.set("")
-        self.transfer_party_var.set("")
-        self.material_var.set("")
-        self.status_var.set("All")
-        
-        # Refresh display
-        self.apply_filters()
-    
-    def on_tree_click(self, event):
-        """Handle tree click events"""
-        item = self.records_tree.identify('item', event.x, event.y)
-        column = self.records_tree.identify('column', event.x, event.y)
-        
-        if item and column == '#1':  # Click on select column
-            self.toggle_record_selection(event)
-    
-    def toggle_record_selection(self, event):
-        """Toggle selection of a record"""
-        item = self.records_tree.selection()[0] if self.records_tree.selection() else None
-        if not item:
-            return
-        
-        values = list(self.records_tree.item(item, 'values'))
-        ticket_no = values[1]  # Ticket number is at index 1
-        
-        if values[0] == "☐":  # Not selected
-            values[0] = "☑"
-            self.selected_records.append(ticket_no)
-        else:  # Selected
-            values[0] = "☐"
-            if ticket_no in self.selected_records:
-                self.selected_records.remove(ticket_no)
-        
-        self.records_tree.item(item, values=values)
-        self.update_selection_count()
     
     def select_all_records(self):
         """Select all visible records"""
@@ -635,56 +847,7 @@ class ReportGenerator:
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export to PDF:\n{str(e)}")
 
-    def get_applied_filters_info(self):
-        """Get information about currently applied filters - FIXED for legacy usage"""
-        try:
-            filters = []
-            
-            # FIXED: Check if filter widgets exist before using them
-            # Date range
-            if (CALENDAR_AVAILABLE and 
-                hasattr(self, 'from_date') and hasattr(self, 'to_date') and 
-                self.from_date and self.to_date):
-                try:
-                    from_date_str = self.from_date.get_date().strftime("%d-%m-%Y")
-                    to_date_str = self.to_date.get_date().strftime("%d-%m-%Y")
-                    if from_date_str and to_date_str:
-                        if from_date_str == to_date_str:
-                            filters.append(f"Date: {from_date_str}")
-                        else:
-                            filters.append(f"Date Range: {from_date_str} to {to_date_str}")
-                except:
-                    pass
-            
-            # Vehicle filter
-            if hasattr(self, 'vehicle_var') and self.vehicle_var:
-                vehicle_filter = self.vehicle_var.get().strip()
-                if vehicle_filter:
-                    filters.append(f"Vehicle: {vehicle_filter}")
-            
-            # Transfer party filter
-            if hasattr(self, 'transfer_party_var') and self.transfer_party_var:
-                transfer_party_filter = self.transfer_party_var.get().strip()
-                if transfer_party_filter:
-                    filters.append(f"Transfer Party: {transfer_party_filter}")
-            
-            # Material filter
-            if hasattr(self, 'material_var') and self.material_var:
-                material_filter = self.material_var.get().strip()
-                if material_filter:
-                    filters.append(f"Material: {material_filter}")
-            
-            # Status filter
-            if hasattr(self, 'status_var') and self.status_var:
-                status_filter = self.status_var.get()
-                if status_filter and status_filter != "All":
-                    filters.append(f"Status: {status_filter}")
-            
-            return " | ".join(filters) if filters else "All records (no filters applied)"
-            
-        except Exception as e:
-            print(f"Error getting applied filters info: {e}")
-            return "All records (filter information unavailable)"
+
 
     def generate_filtered_filename(self, selected_data, extension="pdf"):
         """Generate intelligent filename based on applied filters and data - FIXED for legacy usage"""
@@ -1273,57 +1436,6 @@ class ReportGenerator:
             import traceback
             print(f"PDF export error: {traceback.format_exc()}")
 
-    def get_detailed_filter_info(self):
-        """Get detailed filter information including date ranges with times - FIXED for legacy usage"""
-        try:
-            filter_info = {}
-            
-            # Date range information with times
-            if (CALENDAR_AVAILABLE and 
-                hasattr(self, 'from_date') and hasattr(self, 'to_date') and 
-                self.from_date and self.to_date):
-                try:
-                    from_date = self.from_date.get_date()
-                    to_date = self.to_date.get_date()
-                    
-                    filter_info['date_range'] = {
-                        'start_date': from_date.strftime("%d-%m-%Y"),
-                        'start_time': "00:00:00",
-                        'end_date': to_date.strftime("%d-%m-%Y"),
-                        'end_time': "23:59:59"
-                    }
-                except:
-                    filter_info['date_range'] = None
-            
-            # Vehicle filter
-            if hasattr(self, 'vehicle_var') and self.vehicle_var:
-                vehicle_filter = self.vehicle_var.get().strip()
-                if vehicle_filter:
-                    filter_info['vehicle_filter'] = vehicle_filter
-            
-            # Material filter
-            if hasattr(self, 'material_var') and self.material_var:
-                material_filter = self.material_var.get().strip()
-                if material_filter:
-                    filter_info['material_filter'] = material_filter
-            
-            # Status filter
-            if hasattr(self, 'status_var') and self.status_var:
-                status_filter = self.status_var.get().strip()
-                if status_filter and status_filter != 'All':
-                    filter_info['status_filter'] = status_filter
-            
-            # Transfer party filter
-            if hasattr(self, 'transfer_party_var') and self.transfer_party_var:
-                transfer_party_filter = self.transfer_party_var.get().strip()
-                if transfer_party_filter:
-                    filter_info['transfer_party_filter'] = transfer_party_filter
-            
-            return filter_info
-            
-        except Exception as e:
-            print(f"Error getting detailed filter info: {e}")
-            return {}
 
         
     def get_date_range_info(self, records_data):
