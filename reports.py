@@ -818,16 +818,73 @@ class ReportGenerator:
             
             attribution_style = ParagraphStyle(
                 name='AttributionStyle',
-                fontSize=8,
+                fontSize=10,
                 alignment=TA_CENTER,
                 fontName='Helvetica',
                 textColor=colors.darkgrey,
                 spaceAfter=4
             )
 
-            # Header section
-            elements.append(Paragraph("Bethamcherla dumping yard", header_style))
-            elements.append(Paragraph("Swaccha Andhra Monitor - Advitia Labs", subheader_style))
+            # ENHANCED: Header section using agency information from address.json
+            # Get agency and site information from first record
+            first_record = records_data[0] if records_data else {}
+            agency_name = first_record.get('agency_name', 'Default Agency')
+            site_name = first_record.get('site_name', 'Unknown Site')
+            
+            # Get agency info from address config
+            agency_info = self.address_config.get('agencies', {}).get(agency_name, {})
+            site_info = self.address_config.get('sites', {}).get(site_name, {})
+            
+            # ENHANCED: Create agency header table with proper information
+            agency_info_data = []
+            
+            # Agency name row (main header)
+            agency_info_data.append([agency_info.get('name', agency_name)])
+            
+            # Agency address if available
+            if agency_info.get('address'):
+                agency_address = agency_info.get('address', '').replace('\n', '<br/>')
+                agency_info_data.append([agency_address])
+            
+            # Contact information row
+            contact_info = []
+            if agency_info.get('contact'):
+                contact_info.append(f"Phone: {agency_info.get('contact')}")
+            if agency_info.get('email'):
+                contact_info.append(f"Email: {agency_info.get('email')}")
+            if site_info.get('contact') and site_info.get('contact') != agency_info.get('contact'):
+                contact_info.append(f"Site Phone: {site_info.get('contact')}")
+            
+            if contact_info:
+                agency_info_data.append([" | ".join(contact_info)])
+            
+            # Create the agency header table
+            if agency_info_data:
+                agency_table = Table(agency_info_data, colWidths=[500])
+                agency_table.setStyle(TableStyle([
+                    # Black outline only, no background fills
+                    ('BOX', (0, 0), (-1, -1), 2, colors.black),
+                    # Text alignment and formatting
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    # Font styling - first row (agency name) bold and larger
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 16),
+                    # Remaining rows normal font
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -1), 14),
+                    # Padding
+                    ('TOPPADDING', (0, 0), (-1, -1), 8),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 12),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+                ]))
+                
+                elements.append(agency_table)
+            else:
+                # Fallback to default headers if no agency info
+                elements.append(Paragraph("Default Agency", header_style))
+                elements.append(Paragraph("Swaccha Andhra Monitor - Advitia Labs", subheader_style))
             
             # Group records by material type and calculate statistics
             material_stats = self.calculate_material_statistics(records_data)
@@ -939,8 +996,8 @@ class ReportGenerator:
                 elements.append(Paragraph(material_header_text, material_header_style))
                 
                 # ENHANCED: Create table with NEW COLUMN STRUCTURE and PROPER NAMING
-                # Final headers: S.NO, DATE, SLIP NO, VEHICLE NO, GROSS, IN_TIME, TARE, OUT_TIME, NET WT, AGENCY, OFFICIAL
-                table_data = [['S.NO', 'DATE', 'SLIP NO', 'VEHICLE NO', 'GROSS', 'IN_TIME', 'TARE', 'OUT_TIME', 'NET WT', 'AGENCY', 'OFFICIAL']]
+                # Final headers: S.NO, DATE, SLIP NO, VEHICLE NO, GROSS, IN_TIME, TARE, OUT_TIME, NET WT
+                table_data = [['S.NO', 'DATE', 'SLIP NO', 'VEHICLE NO', 'GROSS', 'IN_TIME', 'TARE', 'OUT_TIME', 'NET WT']]
                 
                 for j, record in enumerate(material_records, 1):
                     # Extract data with proper formatting
@@ -948,18 +1005,20 @@ class ReportGenerator:
                     slip_no = record.get('ticket_no', 'N/A')  # Renamed from Ticket
                     vehicle_no = record.get('vehicle_no', 'N/A')
                     
-                    # NEW COLUMNS: Extract Gross (First Weight) and Tare (Second Weight) with simple validation
+                    # NEW COLUMNS: Extract Gross (First Weight) and Tare (Second Weight) with kg units
                     gross_weight = record.get('first_weight', '').strip()
                     try:
-                        gross_display = f"{float(gross_weight):.1f}" if gross_weight else "0.0"
+                        # CHANGE: Add "kg" to the gross weight display
+                        gross_display = f"{float(gross_weight):.1f} kg" if gross_weight else "0.0 kg"
                     except:
-                        gross_display = "0.0"
+                        gross_display = "0.0 kg"
                     
                     tare_weight = record.get('second_weight', '').strip()
                     try:
-                        tare_display = f"{float(tare_weight):.1f}" if tare_weight else "0.0"
+                        # CHANGE: Add "kg" to the tare weight display
+                        tare_display = f"{float(tare_weight):.1f} kg" if tare_weight else "0.0 kg"
                     except:
-                        tare_display = "0.0"
+                        tare_display = "0.0 kg"
                     
                     # NEW COLUMNS: Extract time from datetime timestamp (21-06-2025 10:04:58 → 10:04:58)
                     in_time = record.get('first_timestamp', '').strip()
@@ -968,34 +1027,31 @@ class ReportGenerator:
                     out_time = record.get('second_timestamp', '').strip()
                     out_time_display = out_time.split(' ')[1] if ' ' in out_time else "N/A"
                     
-                    # Net weight with simple validation
+                    # Net weight with kg units
                     net_weight = record.get('net_weight', '').strip()
                     try:
-                        net_weight_display = f"{float(net_weight):.1f}" if net_weight else "0.0"
+                        # CHANGE: Add "kg" to the net weight display
+                        net_weight_display = f"{float(net_weight):.1f} kg" if net_weight else "0.0 kg"
                     except:
-                        net_weight_display = "0.0"
+                        net_weight_display = "0.0 kg"
                     
-                    # Empty cells for manual entry
-                    agency = ''  # Empty cell for manual entry
-                    official = ''  # Empty cell for manual entry
                     
                     table_data.append([
                         str(j),                    # S.NO
                         date,                      # DATE
                         slip_no,                   # SLIP NO (renamed from Ticket)
                         vehicle_no,                # VEHICLE NO
-                        gross_display,             # GROSS (First Weight)
+                        gross_display,             # GROSS (First Weight) with kg
                         in_time_display,           # IN_TIME (First Timestamp)
-                        tare_display,              # TARE (Second Weight)
+                        tare_display,              # TARE (Second Weight) with kg
                         out_time_display,          # OUT_TIME (Second Timestamp)
-                        net_weight_display,        # NET WT
-                        agency,                    # AGENCY (Empty for manual entry)
-                        official                   # OFFICIAL (Empty for manual entry)
+                        net_weight_display        # NET WT with kg
                     ])
                 
-                # ENHANCED: Adjusted column widths for expanded table (11 columns total)
-                # Landscape A4 provides ~800 points width, distribute across 11 columns
-                col_widths = [35, 65, 60, 75, 50, 55, 50, 55, 50, 75, 75]  # Total ~645 points
+                # ENHANCED: Adjusted column widths for expanded table (9 columns total)
+                # Landscape A4 provides ~800 points width, distribute across 9 columns
+                # Increased widths to accommodate larger font sizes
+                col_widths = [40, 75, 70, 85, 70, 65, 70, 65, 70]  # Total ~610 points, adjusted for larger fonts
                 
                 table = Table(table_data, repeatRows=1, colWidths=col_widths)
                 table.setStyle(TableStyle([
@@ -1003,9 +1059,9 @@ class ReportGenerator:
                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, 0), 7),  # Smaller font for more columns
+                    ('FONTSIZE', (0, 0), (-1, 0), 11),  # Increased header font size to 14
                     ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                    ('FONTSIZE', (0, 1), (-1, -1), 6),  # Smaller font for data rows
+                    ('FONTSIZE', (0, 1), (-1, -1), 10),  # Increased data font size to 12
                     ('BOTTOMPADDING', (0, 0), (-1, 0), 4),
                     ('TOPPADDING', (0, 0), (-1, -1), 2),
                     ('BOTTOMPADDING', (0, 1), (-1, -1), 2),
@@ -1024,7 +1080,7 @@ class ReportGenerator:
                 material_summary.setStyle(TableStyle([
                     ('BACKGROUND', (0, 0), (-1, -1), colors.lightgreen),
                     ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, -1), 8),
+                    ('FONTSIZE', (0, 0), (-1, -1), 11),
                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                     ('GRID', (0, 0), (-1, -1), 1, colors.black),
                     ('TOPPADDING', (0, 0), (-1, -1), 3),
@@ -1035,16 +1091,18 @@ class ReportGenerator:
             # Build PDF
             doc.build(elements)
             
-            print(f"📄 ENHANCED PDF EXPORT: Successfully created EXPANDED COLUMNS summary PDF")
+            print(f"📄 ENHANCED PDF EXPORT: Successfully created EXPANDED COLUMNS summary PDF with kg units")
             print(f"   - Total Records: {total_trips}")
             print(f"   - Total Net Weight: {total_weight_tonnes:.3f} MT ({total_net_weight:.2f} kg)")
             print(f"   - Material Types: {len(material_stats)}")
+            print(f"   - UPDATED: Added kg units to all weight columns (Gross, Tare, Net WT)")
+            print(f"   - UPDATED: Increased font sizes - Headers: 14pt, Data: 12pt")
             print(f"   - NEW COLUMNS: Added Gross, In_Time, Tare, Out_Time")
             print(f"   - RENAMED COLUMNS: Ticket → Slip No, etc.")
             for material, stats in material_stats.items():
                 material_tonnes = stats['total_weight'] / 1000
                 print(f"     • {material}: {stats['trip_count']} trips, {material_tonnes:.3f} MT")
-            print(f"   - ORIENTATION: Landscape for 11-column table visibility")
+            print(f"   - ORIENTATION: Landscape for 9-column table visibility")
             
             return True
             
@@ -1053,6 +1111,7 @@ class ReportGenerator:
             import traceback
             print(f"Detailed error: {traceback.format_exc()}")
             return False
+
 
     def calculate_material_statistics(self, records_data):
         """Calculate statistics grouped by material type
@@ -1429,7 +1488,7 @@ class ReportGenerator:
             vehicle_inner_table = Table(vehicle_data, colWidths=[1.2*inch, 1.3*inch, 1.0*inch, 1.3*inch, 1.2*inch, 1.5*inch])
             vehicle_inner_table.setStyle(TableStyle([
                 ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
-                ('FONTSIZE', (0,0), (-1,-1), 13),
+                ('FONTSIZE', (0,0), (-1,-1), 12),
                 ('ALIGN', (0,0), (-1,-1), 'LEFT'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                 ('LEFTPADDING', (0,0), (-1,-1), 2),
@@ -1493,7 +1552,7 @@ class ReportGenerator:
             weighment_inner_table = Table(weighment_data, colWidths=[1.5*inch, 1.5*inch, 1.2*inch, 2.8*inch])
             weighment_inner_table.setStyle(TableStyle([
                 ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
-                ('FONTSIZE', (0,0), (-1,-1), 14),
+                ('FONTSIZE', (0,0), (-1,-1), 12),
                 ('ALIGN', (0,0), (-1,-1), 'LEFT'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                 ('LEFTPADDING', (0,0), (-1,-1), 2),
