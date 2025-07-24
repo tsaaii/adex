@@ -1,12 +1,14 @@
 {
     "sites": [
-        "Guntur"
+        "Kurnool"
     ],
-    "incharges": [],
+    "incharges": [
+        "Avijit Mondal"
+    ],
     "transfer_parties": [
-        "Jindal"
+        "On-site"
     ],
     "agencies": [
-        "Tharuni"
+        "Saurashtra Enviro Projects Pvt. Ltd."
     ]
 }
