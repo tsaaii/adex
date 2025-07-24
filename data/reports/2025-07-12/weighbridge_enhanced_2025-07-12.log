@@ -1,0 +1,26 @@
+2025-07-12 20:50:44,310 - weighbridge - INFO - info:406 - Enhanced logging initialized for WeighbridgeManager
+2025-07-12 20:50:44,313 - weighbridge - INFO - print_info:436 - Initializing WeighbridgeManager
+2025-07-12 20:50:44,319 - weighbridge - DEBUG - print_debug:468 - Weight parsing patterns compiled successfully
+2025-07-12 20:50:44,321 - weighbridge - DEBUG - print_debug:468 - Signal handlers registered
+2025-07-12 20:50:44,324 - weighbridge - INFO - print_success:444 - SUCCESS: WeighbridgeManager initialized successfully
+2025-07-12 20:50:44,348 - weighbridge - DEBUG - print_debug:468 - Scanning for available COM ports
+2025-07-12 20:50:44,384 - weighbridge - WARNING - print_warning:452 - No COM ports found
+2025-07-12 20:50:45,363 - weighbridge - WARNING - print_warning:452 - Test mode ENABLED - weighbridge will simulate readings
+2025-07-12 20:50:52,102 - weighbridge - INFO - print_info:436 - Initiating weighbridge disconnection
+2025-07-12 20:50:52,103 - weighbridge - INFO - print_success:444 - SUCCESS: Weighbridge disconnected successfully
+2025-07-12 20:50:52,296 - weighbridge - INFO - print_info:436 - Initiating weighbridge disconnection
+2025-07-12 20:50:52,302 - weighbridge - INFO - print_success:444 - SUCCESS: Weighbridge disconnected successfully
+2025-07-12 20:55:16,961 - weighbridge - INFO - info:406 - Enhanced logging initialized for WeighbridgeManager
+2025-07-12 20:55:16,962 - weighbridge - INFO - print_info:436 - Initializing WeighbridgeManager
+2025-07-12 20:55:16,965 - weighbridge - DEBUG - print_debug:468 - Weight parsing patterns compiled successfully
+2025-07-12 20:55:16,967 - weighbridge - DEBUG - print_debug:468 - Signal handlers registered
+2025-07-12 20:55:16,967 - weighbridge - INFO - print_success:444 - SUCCESS: WeighbridgeManager initialized successfully
+2025-07-12 20:55:16,980 - weighbridge - DEBUG - print_debug:468 - Scanning for available COM ports
+2025-07-12 20:55:16,994 - weighbridge - WARNING - print_warning:452 - No COM ports found
+2025-07-12 20:55:17,298 - weighbridge - WARNING - print_warning:452 - Test mode ENABLED - weighbridge will simulate readings
+2025-07-12 20:55:20,322 - weighbridge - DEBUG - print_debug:468 - Scanning for available COM ports
+2025-07-12 20:55:20,335 - weighbridge - WARNING - print_warning:452 - No COM ports found
+2025-07-12 20:57:33,174 - weighbridge - INFO - print_info:436 - Initiating weighbridge disconnection
+2025-07-12 20:57:33,177 - weighbridge - INFO - print_success:444 - SUCCESS: Weighbridge disconnected successfully
+2025-07-12 20:57:33,353 - weighbridge - INFO - print_info:436 - Initiating weighbridge disconnection
+2025-07-12 20:57:33,367 - weighbridge - INFO - print_success:444 - SUCCESS: Weighbridge disconnected successfully

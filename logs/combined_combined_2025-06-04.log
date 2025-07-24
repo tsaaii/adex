@@ -1,0 +1,43 @@
+2025-06-04 00:30:04,238 - WeighbridgeApp - INFO - unified_logging.py:177 - Unified logging system initialized
+2025-06-04 00:30:04 - PRINT - 📋 Unified logging initialized:
+2025-06-04 00:30:04 - PRINT -    📄 Combined log: logs\combined_combined_2025-06-04.log
+2025-06-04 00:30:04 - PRINT -    🖨️  Print log: logs\combined_prints_2025-06-04.log
+2025-06-04 00:30:04 - PRINT -    📱 App log: logs\combined_app_2025-06-04.log
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,244 - TharuniApp - INFO - ============================================================
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,246 - TharuniApp - INFO - APPLICATION STARTUP
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,247 - TharuniApp - INFO - ============================================================
+2025-06-04 00:30:04 - PRINT - 📁 Unified folder structure initialized:
+2025-06-04 00:30:04 - PRINT -    • Data: data
+2025-06-04 00:30:04 - PRINT -    • Images: data\images
+2025-06-04 00:30:04 - PRINT -    • Reports: data\reports
+2025-06-04 00:30:04 - PRINT -    • JSON Backups: data\json_backups
+2025-06-04 00:30:04 - PRINT - 🔒 OFFLINE-FIRST MODE ENABLED
+2025-06-04 00:30:04 - PRINT -    • Records and PDFs saved locally first
+2025-06-04 00:30:04 - PRINT -    • JSON backups created for complete records
+2025-06-04 00:30:04 - PRINT -    • Cloud backup available via Settings > Backup
+2025-06-04 00:30:04 - PRINT -    • No internet connection delays during regular saves
+2025-06-04 00:30:04 - PRINT -    • Today's reports folder: data\reports\2025-06-04
+2025-06-04 00:30:04 - PRINT -    • Today's JSON backups folder: data\json_backups\2025-06-04
+2025-06-04 00:30:04 - PRINT -    • Auto cleanup: Keep 10 days, check every 1 day(s)
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,278 - TharuniApp - INFO - Configuration setup completed
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,280 - DataManager - INFO - DataManager initialized with OFFLINE-FIRST approach + JSON local storage
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,289 - DataManager - INFO - CSV structure is up to date
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,291 - DataManager - INFO - Daily PDF folder structure ready:
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,294 - DataManager - INFO -   Base reports folder: data\reports
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,295 - DataManager - INFO -   Today's folder: data\reports\2025-06-04
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,297 - DataManager - INFO - Data file: data\weighbridge_data.csv
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,298 - DataManager - INFO - Reports folder: data\reports
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,299 - DataManager - INFO - JSON backup folder: data\json_backups
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,300 - DataManager - INFO - PDF folder: data\reports\2025-06-04
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,301 - DataManager - INFO - Cloud storage will only be initialized when backup is requested
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,303 - TharuniApp - INFO - Data manager initialized
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,306 - TharuniApp - INFO - Settings storage initialized
+2025-06-04 00:30:04 - PRINT - Reading weighbridge settings from: data\app_settings.json
+2025-06-04 00:30:04 - PRINT - Loaded weighbridge settings: {'com_port': '', 'baud_rate': 2400, 'data_bits': 8, 'parity': 'None', 'stop_bits': 1.0, 'test_mode': True}
+2025-06-04 00:30:04 - PRINT - Reading camera settings from: data\app_settings.json
+2025-06-04 00:30:04 - PRINT - Loaded camera settings: {'front_camera_type': 'USB', 'front_camera_index': 0, 'front_rtsp_username': '', 'front_rtsp_password': '', 'front_rtsp_ip': '', 'front_rtsp_port': '554', 'front_rtsp_endpoint': '/stream1', 'front_http_username': '', 'front_http_password': '', 'front_http_ip': '', 'front_http_port': '80', 'front_http_endpoint': '/mjpeg', 'back_camera_type': 'USB', 'back_camera_index': 1, 'back_rtsp_username': '', 'back_rtsp_password': '', 'back_rtsp_ip': '', 'back_rtsp_port': '554', 'back_rtsp_endpoint': '/stream1', 'back_http_username': '', 'back_http_password': '', 'back_http_ip': '', 'back_http_port': '80', 'back_http_endpoint': '/mjpeg'}
+2025-06-04 00:30:04 - PRINT - Settings integrity check passed
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,315 - TharuniApp - INFO - UI styles initialized
+2025-06-04 00:30:04 - ERROR - 2025-06-04 00:30:04,316 - TharuniApp - INFO - Starting user authentication
+2025-06-04 00:30:06 - ERROR - 2025-06-04 00:30:06,923 - TharuniApp - INFO - Authentication canceled - exiting application
+2025-06-04 00:30:06 - ERROR - 2025-06-04 00:30:06,924 - TharuniApp - INFO - User authentication failed or canceled - exiting

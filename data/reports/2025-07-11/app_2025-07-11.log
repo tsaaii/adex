@@ -1,0 +1,312 @@
+2025-07-11 21:56:00,679 - TharuniApp - INFO - ============================================================
+2025-07-11 21:56:00,679 - TharuniApp - INFO - APPLICATION STARTUP
+2025-07-11 21:56:00,679 - TharuniApp - INFO - ============================================================
+2025-07-11 21:56:00,749 - TharuniApp - INFO - Configuration setup completed
+2025-07-11 21:56:00,752 - DataManager - INFO - DataManager initialized with OFFLINE-FIRST approach + JSON local storage
+2025-07-11 21:56:00,762 - DataManager - INFO - CSV structure is up to date
+2025-07-11 21:56:00,763 - DataManager - INFO - Unified folder structure ready:
+2025-07-11 21:56:00,764 - DataManager - INFO -   Reports: data\reports\2025-07-11
+2025-07-11 21:56:00,764 - DataManager - INFO -   JSON Backups: data\json_backups\2025-07-11
+2025-07-11 21:56:00,764 - DataManager - INFO -   PDF Folder: data\reports\2025-07-11
+2025-07-11 21:56:00,765 - DataManager - INFO - All folder attributes ensured and validated
+2025-07-11 21:56:00,777 - DataManager - INFO - 🔍 Checking if archive is due...
+2025-07-11 21:56:00,778 - DataManager - INFO - CSV analysis: 0 total records, 0 complete records
+2025-07-11 21:56:00,778 - DataManager - INFO - CSV file has no complete records to archive
+2025-07-11 21:56:00,778 - DataManager - INFO - ⏳ Archive not due yet
+2025-07-11 21:56:00,779 - DataManager - INFO - Data file: data\weighbridge_data.csv
+2025-07-11 21:56:00,779 - DataManager - INFO - Reports folder: data\reports
+2025-07-11 21:56:00,779 - DataManager - INFO - JSON backup folder: data\json_backups
+2025-07-11 21:56:00,779 - DataManager - INFO - Today's JSON folder: data\json_backups\2025-07-11
+2025-07-11 21:56:00,780 - DataManager - INFO - Today's PDF folder: data\reports\2025-07-11
+2025-07-11 21:56:00,780 - DataManager - INFO - Cloud storage will only be initialized when backup is requested
+2025-07-11 21:56:00,780 - TharuniApp - INFO - Data manager initialized
+2025-07-11 21:56:00,801 - TharuniApp - INFO - Using hardcoded settings storage
+2025-07-11 21:56:00,803 - TharuniApp - INFO - UI styles initialized
+2025-07-11 21:56:00,804 - TharuniApp - INFO - Starting user authentication
+2025-07-11 21:56:18,751 - TharuniApp - INFO - Hardcoded authentication successful: admin
+2025-07-11 21:56:18,751 - TharuniApp - INFO - User logged in: admin (Role: admin)
+2025-07-11 21:56:18,751 - TharuniApp - INFO - Setting up data context
+2025-07-11 21:56:18,752 - TharuniApp - INFO - Using hardcoded agency and site values
+2025-07-11 21:56:18,766 - DataManager - INFO - CSV structure is up to date
+2025-07-11 21:56:18,767 - DataManager - INFO - Data context set to: Agency='Tharuni associates', Site='Eluru'
+2025-07-11 21:56:18,767 - DataManager - INFO - Data file: data\Tharuni_associates_Eluru_data.csv
+2025-07-11 21:56:18,767 - TharuniApp - INFO - Data context initialized: Agency='Tharuni associates', Site='Eluru'
+2025-07-11 21:56:18,768 - TharuniApp - INFO - Data will be saved to: data\Tharuni_associates_Eluru_data.csv
+2025-07-11 21:56:18,768 - TharuniApp - INFO - PDFs will be saved to: data\reports\2025-07-11
+2025-07-11 21:56:18,768 - TharuniApp - INFO - Creating application widgets
+2025-07-11 21:56:18,778 - TharuniApp - INFO - Creating main panel
+2025-07-11 21:56:18,787 - FormValidator - INFO - FormValidator initialized
+2025-07-11 21:56:18,796 - DataManager - INFO - Successfully loaded 87 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 21:56:18,887 - camera_camera - INFO - Enhanced logging initialized for Camera camera
+2025-07-11 21:56:18,937 - camera_camera - DEBUG - Resource monitoring started
+2025-07-11 21:56:18,950 - camera_camera - DEBUG - Optimized video thread started
+2025-07-11 21:56:18,950 - camera_camera - INFO - Optimized video capture loop started
+2025-07-11 21:56:18,951 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:18,951 - camera_camera - DEBUG - Camera watchdog started
+2025-07-11 21:56:18,955 - camera_camera - DEBUG - Camera watchdog enabled
+2025-07-11 21:56:18,957 - camera_camera - INFO - Enhanced logging initialized for Camera camera
+2025-07-11 21:56:18,963 - camera_camera - DEBUG - Resource monitoring started
+2025-07-11 21:56:18,965 - camera_camera - DEBUG - Optimized video thread started
+2025-07-11 21:56:18,965 - camera_camera - INFO - Optimized video capture loop started
+2025-07-11 21:56:18,966 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:18,967 - camera_camera - DEBUG - Camera watchdog started
+2025-07-11 21:56:18,967 - camera_camera - DEBUG - Camera watchdog enabled
+2025-07-11 21:56:19,166 - DataManager - INFO - Successfully loaded 87 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 21:56:19,166 - MainForm - INFO - MainForm initialized
+2025-07-11 21:56:19,166 - TharuniApp - INFO - Main form created
+2025-07-11 21:56:19,167 - MainForm - INFO - Using hardcoded dropdown values
+2025-07-11 21:56:19,167 - PendingVehiclesPanel - INFO - PendingVehiclesPanel initialized
+2025-07-11 21:56:19,182 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-07-11 21:56:19,184 - DataManager - INFO - Successfully loaded 87 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 21:56:19,184 - PendingVehiclesPanel - INFO - Retrieved 87 total records
+2025-07-11 21:56:19,239 - PendingVehiclesPanel - INFO - Found 0 unique pending vehicles, prevented 0 duplicates
+2025-07-11 21:56:19,243 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 unique vehicles
+2025-07-11 21:56:19,244 - TharuniApp - INFO - Pending vehicles panel created
+2025-07-11 21:56:19,436 - TharuniApp - INFO - Main panel creation completed
+2025-07-11 21:56:19,441 - TharuniApp - INFO - Summary panel created
+2025-07-11 21:56:19,445 - weighbridge - INFO - Enhanced logging initialized for WeighbridgeManager
+2025-07-11 21:56:19,445 - weighbridge - INFO - Initializing WeighbridgeManager
+2025-07-11 21:56:19,447 - weighbridge - DEBUG - Weight parsing patterns compiled successfully
+2025-07-11 21:56:19,449 - weighbridge - DEBUG - Signal handlers registered
+2025-07-11 21:56:19,449 - weighbridge - INFO - SUCCESS: WeighbridgeManager initialized successfully
+2025-07-11 21:56:19,453 - weighbridge - DEBUG - Scanning for available COM ports
+2025-07-11 21:56:19,461 - weighbridge - WARNING - No COM ports found
+2025-07-11 21:56:19,625 - weighbridge - WARNING - Test mode ENABLED - weighbridge will simulate readings
+2025-07-11 21:56:19,629 - TharuniApp - INFO - ✅ Data manager reference set in settings panel
+2025-07-11 21:56:19,630 - TharuniApp - INFO - Widget creation completed successfully
+2025-07-11 21:56:19,631 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-07-11 21:56:19,633 - DataManager - INFO - Successfully loaded 87 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 21:56:19,634 - PendingVehiclesPanel - INFO - Retrieved 87 total records
+2025-07-11 21:56:19,676 - PendingVehiclesPanel - INFO - Found 0 unique pending vehicles, prevented 0 duplicates
+2025-07-11 21:56:19,677 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 unique vehicles
+2025-07-11 21:56:19,680 - TharuniApp - INFO - Application initialization completed successfully
+2025-07-11 21:56:20,630 - TharuniApp - INFO - Ensuring settings persistence...
+2025-07-11 21:56:20,632 - TharuniApp - INFO - Found saved weighbridge settings: {'com_port': 'COM3', 'baud_rate': 9600, 'data_bits': 8, 'parity': 'None', 'stop_bits': 1.0, 'test_mode': True}
+2025-07-11 21:56:20,633 - TharuniApp - INFO - Settings persistence check completed
+2025-07-11 21:56:21,296 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:22,648 - weighbridge - DEBUG - Scanning for available COM ports
+2025-07-11 21:56:22,652 - weighbridge - WARNING - No COM ports found
+2025-07-11 21:56:23,329 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:23,664 - DataManager - INFO - Successfully loaded 87 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 21:56:23,665 - DataManager - INFO - Returning all 87 records (no filter)
+2025-07-11 21:56:25,355 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:26,392 - DataManager - INFO - Successfully loaded 87 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 21:56:27,186 - camera_camera - INFO - SUCCESS: Camera connection stabilized
+2025-07-11 21:56:27,387 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:29,453 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:31,003 - camera_camera - DEBUG - Resource usage - CPU: 12.5%, Memory: 79.3%
+2025-07-11 21:56:36,494 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:38,530 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:40,571 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:42,611 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:44,650 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:46,692 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:53,730 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:55,773 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:57,806 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:56:59,852 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:01,887 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:03,943 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:10,986 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:13,020 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:15,067 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:17,104 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:19,073 - camera_camera - DEBUG - Performed garbage collection
+2025-07-11 21:57:19,136 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:19,679 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-07-11 21:57:19,685 - DataManager - INFO - Successfully loaded 87 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 21:57:19,686 - PendingVehiclesPanel - INFO - Retrieved 87 total records
+2025-07-11 21:57:19,737 - PendingVehiclesPanel - INFO - Found 0 unique pending vehicles, prevented 0 duplicates
+2025-07-11 21:57:19,738 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 unique vehicles
+2025-07-11 21:57:21,165 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:28,199 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:30,234 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:30,409 - camera_camera - DEBUG - Resource usage - CPU: 9.1%, Memory: 79.1%
+2025-07-11 21:57:32,273 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:34,311 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:36,350 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:38,396 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:45,441 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:47,481 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:49,516 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:51,549 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:53,582 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:57:55,634 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:00,572 - camera_camera - DEBUG - Resource usage - CPU: 5.8%, Memory: 78.8%
+2025-07-11 21:58:02,677 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:04,728 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:06,777 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:08,813 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:10,845 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:12,879 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:19,068 - camera_camera - DEBUG - Performed garbage collection
+2025-07-11 21:58:19,753 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-07-11 21:58:19,755 - DataManager - INFO - Successfully loaded 87 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 21:58:19,755 - PendingVehiclesPanel - INFO - Retrieved 87 total records
+2025-07-11 21:58:19,815 - PendingVehiclesPanel - INFO - Found 0 unique pending vehicles, prevented 0 duplicates
+2025-07-11 21:58:19,816 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 unique vehicles
+2025-07-11 21:58:19,940 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:22,000 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:24,041 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:26,083 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:28,119 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:30,145 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:30,755 - camera_camera - DEBUG - Resource usage - CPU: 10.4%, Memory: 78.6%
+2025-07-11 21:58:37,192 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:39,242 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:41,276 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:43,306 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:45,352 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:47,387 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:54,415 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:56,441 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:58:58,469 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:00,518 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:00,996 - camera_camera - DEBUG - Resource usage - CPU: 12.9%, Memory: 80.7%
+2025-07-11 21:59:02,557 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:04,592 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:11,648 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:13,693 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:15,728 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:17,760 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:19,159 - camera_camera - DEBUG - Performed garbage collection
+2025-07-11 21:59:19,785 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:19,819 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-07-11 21:59:19,821 - DataManager - INFO - Successfully loaded 87 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 21:59:19,821 - PendingVehiclesPanel - INFO - Retrieved 87 total records
+2025-07-11 21:59:19,856 - PendingVehiclesPanel - INFO - Found 0 unique pending vehicles, prevented 0 duplicates
+2025-07-11 21:59:19,857 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 unique vehicles
+2025-07-11 21:59:21,813 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:28,877 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:30,281 - camera_camera - DEBUG - Resource usage - CPU: 33.1%, Memory: 78.9%
+2025-07-11 21:59:30,910 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:32,932 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:34,960 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:36,992 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:39,034 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:46,064 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:48,118 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:50,141 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:52,173 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:54,226 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 21:59:56,266 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:00,498 - camera_camera - DEBUG - Resource usage - CPU: 25.2%, Memory: 79.0%
+2025-07-11 22:00:03,296 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:05,331 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:07,353 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:09,382 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:11,416 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:13,450 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:19,247 - camera_camera - DEBUG - Performed garbage collection
+2025-07-11 22:00:19,861 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-07-11 22:00:19,885 - DataManager - INFO - Successfully loaded 86 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 22:00:19,885 - PendingVehiclesPanel - INFO - Retrieved 86 total records
+2025-07-11 22:00:19,920 - PendingVehiclesPanel - INFO - Found 0 unique pending vehicles, prevented 0 duplicates
+2025-07-11 22:00:19,921 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 unique vehicles
+2025-07-11 22:00:20,225 - DataManager - INFO - Successfully loaded 86 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 22:00:20,226 - DataManager - INFO - Returning all 86 records (no filter)
+2025-07-11 22:00:20,502 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:22,547 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:23,099 - DataManager - INFO - Successfully loaded 86 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 22:00:24,609 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:26,661 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:28,692 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:30,738 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:30,799 - camera_camera - DEBUG - Resource usage - CPU: 10.0%, Memory: 78.9%
+2025-07-11 22:00:37,782 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:39,820 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:41,863 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:43,892 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:45,918 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:47,947 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:54,981 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:57,015 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:00:59,057 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:00,051 - camera_camera - DEBUG - Resource usage - CPU: 29.2%, Memory: 81.4%
+2025-07-11 22:01:01,091 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:03,116 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:05,158 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:12,205 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:14,236 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:16,273 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:18,324 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:19,313 - camera_camera - DEBUG - Performed garbage collection
+2025-07-11 22:01:19,929 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-07-11 22:01:19,934 - DataManager - INFO - Successfully loaded 86 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 22:01:19,935 - PendingVehiclesPanel - INFO - Retrieved 86 total records
+2025-07-11 22:01:19,970 - PendingVehiclesPanel - INFO - Found 0 unique pending vehicles, prevented 0 duplicates
+2025-07-11 22:01:19,971 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 unique vehicles
+2025-07-11 22:01:20,354 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:22,391 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:29,420 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:30,322 - camera_camera - DEBUG - Resource usage - CPU: 15.2%, Memory: 81.1%
+2025-07-11 22:01:31,447 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:33,501 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:35,535 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:37,559 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:39,600 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:46,448 - camera_camera - WARNING - High memory usage (85.1%), triggering garbage collection
+2025-07-11 22:01:46,635 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:47,498 - camera_camera - WARNING - High memory usage (85.2%), triggering garbage collection
+2025-07-11 22:01:48,500 - camera_camera - WARNING - High memory usage (85.2%), triggering garbage collection
+2025-07-11 22:01:48,695 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:49,550 - camera_camera - WARNING - High memory usage (85.2%), triggering garbage collection
+2025-07-11 22:01:50,730 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:51,622 - camera_camera - WARNING - High memory usage (86.9%), triggering garbage collection
+2025-07-11 22:01:52,588 - camera_camera - WARNING - High memory usage (87.5%), triggering garbage collection
+2025-07-11 22:01:52,773 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:53,690 - camera_camera - WARNING - High memory usage (87.6%), triggering garbage collection
+2025-07-11 22:01:54,642 - camera_camera - WARNING - High memory usage (87.6%), triggering garbage collection
+2025-07-11 22:01:54,820 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:55,735 - camera_camera - WARNING - High memory usage (87.6%), triggering garbage collection
+2025-07-11 22:01:56,696 - camera_camera - WARNING - High memory usage (86.7%), triggering garbage collection
+2025-07-11 22:01:56,863 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:01:57,797 - camera_camera - WARNING - High memory usage (85.8%), triggering garbage collection
+2025-07-11 22:01:58,749 - camera_camera - WARNING - High memory usage (85.6%), triggering garbage collection
+2025-07-11 22:01:59,836 - camera_camera - WARNING - High memory usage (85.6%), triggering garbage collection
+2025-07-11 22:02:00,818 - camera_camera - WARNING - High memory usage (86.1%), triggering garbage collection
+2025-07-11 22:02:00,854 - camera_camera - DEBUG - Resource usage - CPU: 23.3%, Memory: 86.1%
+2025-07-11 22:02:01,884 - camera_camera - WARNING - High memory usage (86.1%), triggering garbage collection
+2025-07-11 22:02:02,884 - camera_camera - WARNING - High memory usage (86.1%), triggering garbage collection
+2025-07-11 22:02:03,921 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:02:03,945 - camera_camera - WARNING - High memory usage (88.0%), triggering garbage collection
+2025-07-11 22:02:04,983 - camera_camera - WARNING - High memory usage (87.8%), triggering garbage collection
+2025-07-11 22:02:05,978 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:02:05,999 - camera_camera - WARNING - High memory usage (87.0%), triggering garbage collection
+2025-07-11 22:02:08,050 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:02:10,085 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:02:12,105 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:02:14,137 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:02:19,401 - camera_camera - DEBUG - Performed garbage collection
+2025-07-11 22:02:19,989 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-07-11 22:02:19,992 - DataManager - INFO - Successfully loaded 86 records from data\Tharuni_associates_Eluru_data.csv
+2025-07-11 22:02:19,993 - PendingVehiclesPanel - INFO - Retrieved 86 total records
+2025-07-11 22:02:20,071 - PendingVehiclesPanel - INFO - Found 0 unique pending vehicles, prevented 0 duplicates
+2025-07-11 22:02:20,072 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 unique vehicles
+2025-07-11 22:02:21,191 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:02:23,245 - camera_camera - DEBUG - Initializing USB camera
+2025-07-11 22:02:23,418 - TharuniApp - INFO - User logging out...
+2025-07-11 22:02:23,419 - camera_camera - INFO - Stopping camera feed
+2025-07-11 22:02:23,491 - camera_camera - INFO - Optimized video capture loop ending
+2025-07-11 22:02:23,807 - camera_camera - INFO - Stopping camera feed
+2025-07-11 22:02:23,808 - camera_camera - INFO - Optimized video capture loop ending
+2025-07-11 22:02:23,814 - TharuniApp - INFO - Updating camera settings: {'front_camera_type': 'USB', 'front_camera_index': 0, 'front_rtsp_username': '', 'front_rtsp_password': '', 'front_rtsp_ip': '', 'front_rtsp_port': '554', 'front_rtsp_endpoint': '/stream1', 'front_http_username': '', 'front_http_password': '', 'front_http_ip': '', 'front_http_port': '80', 'front_http_endpoint': '/mjpeg', 'back_camera_type': 'USB', 'back_camera_index': 1, 'back_rtsp_username': '', 'back_rtsp_password': '', 'back_rtsp_ip': '', 'back_rtsp_port': '554', 'back_rtsp_endpoint': '/stream1', 'back_http_username': '', 'back_http_password': '', 'back_http_ip': '', 'back_http_port': '80', 'back_http_endpoint': '/mjpeg'}
+2025-07-11 22:02:23,815 - camera_camera - INFO - Stopping camera feed
+2025-07-11 22:02:23,816 - camera_camera - INFO - Stopping camera feed
+2025-07-11 22:02:23,819 - TharuniApp - INFO - Camera settings saved for persistence
+2025-07-11 22:02:23,819 - weighbridge - INFO - Initiating weighbridge disconnection
+2025-07-11 22:02:23,820 - weighbridge - INFO - SUCCESS: Weighbridge disconnected successfully
+2025-07-11 22:02:23,820 - TharuniApp - INFO - Logout completed - closing application
+2025-07-11 22:02:23,849 - TharuniApp - INFO - Application closing - saving settings...
+2025-07-11 22:02:23,856 - TharuniApp - INFO - Updating camera settings: {'front_camera_type': 'USB', 'front_camera_index': 0, 'front_rtsp_username': '', 'front_rtsp_password': '', 'front_rtsp_ip': '', 'front_rtsp_port': '554', 'front_rtsp_endpoint': '/stream1', 'front_http_username': '', 'front_http_password': '', 'front_http_ip': '', 'front_http_port': '80', 'front_http_endpoint': '/mjpeg', 'back_camera_type': 'USB', 'back_camera_index': 1, 'back_rtsp_username': '', 'back_rtsp_password': '', 'back_rtsp_ip': '', 'back_rtsp_port': '554', 'back_rtsp_endpoint': '/stream1', 'back_http_username': '', 'back_http_password': '', 'back_http_ip': '', 'back_http_port': '80', 'back_http_endpoint': '/mjpeg'}
+2025-07-11 22:02:23,857 - camera_camera - INFO - Stopping camera feed
+2025-07-11 22:02:23,857 - camera_camera - INFO - Stopping camera feed
+2025-07-11 22:02:23,862 - TharuniApp - INFO - Camera settings saved for persistence
+2025-07-11 22:02:23,863 - weighbridge - INFO - Initiating weighbridge disconnection
+2025-07-11 22:02:23,865 - weighbridge - INFO - SUCCESS: Weighbridge disconnected successfully
+2025-07-11 22:02:23,866 - camera_camera - INFO - Stopping camera feed
+2025-07-11 22:02:23,868 - camera_camera - INFO - Stopping camera feed
+2025-07-11 22:02:23,870 - TharuniApp - INFO - ============================================================
+2025-07-11 22:02:23,870 - TharuniApp - INFO - APPLICATION SHUTDOWN COMPLETED
+2025-07-11 22:02:23,870 - TharuniApp - INFO - ============================================================
+2025-07-11 22:02:23,871 - TharuniApp - ERROR - Error during shutdown: can't invoke "destroy" command: application has been destroyed

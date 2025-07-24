@@ -1,1 +1,4 @@
 Date,Time,Site Name,Agency Name,Material,Ticket No,Vehicle No,Transfer Party Name,First Weight,First Timestamp,Second Weight,Second Timestamp,Net Weight,Material Type,Front Image,Back Image,Site Incharge,User Name
+15-06-2025,02:31:08,Guntur,Tharuni,Inert,T0001,1111,Jindal,22080.00,15-06-2025 02:29:44,14530.00,15-06-2025 02:31:03,7550.00,Inert,,,Guntur_1111_20250615_023106_2nd_front.jpg,,,admin
+15-06-2025,02:31:31,Guntur,Tharuni,,T0002,2222,Jindal,23280.00,15-06-2025 02:29:54,7660.00,15-06-2025 02:31:25,15620.00,,Guntur_2222_20250615_023115_1st_front.jpg,,Guntur_2222_20250615_023128_2nd_front.jpg,,,admin
+15-06-2025,02:31:46,Guntur,Tharuni,,T0003,33333,Jindal,40680.00,15-06-2025 02:30:13,6970.00,15-06-2025 02:31:40,33710.00,,Guntur_33333_20250615_023137_1st_front.jpg,,Guntur_33333_20250615_023144_2nd_front.jpg,,,admin

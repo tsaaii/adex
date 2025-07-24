@@ -1,0 +1,933 @@
+2025-07-09 23:44:14,440 - camera_camera - INFO - info:406 - Enhanced logging initialized for Camera camera
+2025-07-09 23:44:14,497 - camera_camera - DEBUG - print_debug:468 - Resource monitoring started
+2025-07-09 23:44:14,510 - camera_camera - INFO - print_info:436 - Optimized video capture loop started
+2025-07-09 23:44:14,511 - camera_camera - DEBUG - print_debug:468 - Optimized video thread started
+2025-07-09 23:44:14,511 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:14,514 - camera_camera - DEBUG - print_debug:468 - Camera watchdog started
+2025-07-09 23:44:14,515 - camera_camera - DEBUG - print_debug:468 - Camera watchdog enabled
+2025-07-09 23:44:14,516 - camera_camera - INFO - info:406 - Enhanced logging initialized for Camera camera
+2025-07-09 23:44:14,521 - camera_camera - DEBUG - print_debug:468 - Resource monitoring started
+2025-07-09 23:44:14,523 - camera_camera - INFO - print_info:436 - Optimized video capture loop started
+2025-07-09 23:44:14,524 - camera_camera - DEBUG - print_debug:468 - Optimized video thread started
+2025-07-09 23:44:14,525 - camera_camera - DEBUG - print_debug:468 - Camera watchdog enabled
+2025-07-09 23:44:14,525 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:14,525 - camera_camera - DEBUG - print_debug:468 - Camera watchdog started
+2025-07-09 23:44:17,403 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:19,437 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:21,471 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:23,503 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:23,540 - camera_camera - INFO - print_success:444 - SUCCESS: Camera connection stabilized
+2025-07-09 23:44:25,537 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:30,621 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 8.4%, Memory: 83.3%
+2025-07-09 23:44:30,639 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 8.1%, Memory: 83.3%
+2025-07-09 23:44:32,576 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:34,618 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:36,650 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:38,701 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:38,719 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:44:38,720 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:44:40,769 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:40,788 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:44:40,834 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:44:42,834 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:44:42,835 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:42,897 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:44:44,890 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:44:44,937 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:44:46,941 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:44:47,003 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:44:49,005 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:44:49,078 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:44:49,899 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:51,065 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:44:51,152 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:44:51,947 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:53,120 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:44:53,208 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:44:53,974 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:55,185 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:44:55,262 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:44:55,997 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:57,238 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:44:57,317 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:44:58,025 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:44:59,306 - camera_camera - WARNING - print_warning:452 - High memory usage (86.2%), triggering garbage collection
+2025-07-09 23:44:59,374 - camera_camera - WARNING - print_warning:452 - High memory usage (86.2%), triggering garbage collection
+2025-07-09 23:45:00,061 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:01,367 - camera_camera - WARNING - print_warning:452 - High memory usage (86.2%), triggering garbage collection
+2025-07-09 23:45:01,434 - camera_camera - WARNING - print_warning:452 - High memory usage (86.2%), triggering garbage collection
+2025-07-09 23:45:03,429 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:45:03,494 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:45:05,505 - camera_camera - WARNING - print_warning:452 - High memory usage (86.3%), triggering garbage collection
+2025-07-09 23:45:05,558 - camera_camera - WARNING - print_warning:452 - High memory usage (86.3%), triggering garbage collection
+2025-07-09 23:45:07,092 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:07,577 - camera_camera - WARNING - print_warning:452 - High memory usage (85.3%), triggering garbage collection
+2025-07-09 23:45:09,114 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:11,161 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:13,196 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:14,622 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:45:15,229 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:17,259 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:24,301 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:26,342 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:27,781 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-09 23:45:27,781 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-09 23:45:28,388 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:29,845 - camera_camera - WARNING - print_warning:452 - High memory usage (86.8%), triggering garbage collection
+2025-07-09 23:45:29,897 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-09 23:45:30,424 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:31,924 - camera_camera - WARNING - print_warning:452 - High memory usage (85.4%), triggering garbage collection
+2025-07-09 23:45:31,965 - camera_camera - WARNING - print_warning:452 - High memory usage (85.3%), triggering garbage collection
+2025-07-09 23:45:32,456 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:33,974 - camera_camera - WARNING - print_warning:452 - High memory usage (87.5%), triggering garbage collection
+2025-07-09 23:45:34,026 - camera_camera - WARNING - print_warning:452 - High memory usage (87.5%), triggering garbage collection
+2025-07-09 23:45:34,488 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:36,037 - camera_camera - WARNING - print_warning:452 - High memory usage (90.3%), triggering garbage collection
+2025-07-09 23:45:36,084 - camera_camera - WARNING - print_warning:452 - High memory usage (90.3%), triggering garbage collection
+2025-07-09 23:45:38,089 - camera_camera - WARNING - print_warning:452 - High memory usage (93.5%), triggering garbage collection
+2025-07-09 23:45:38,138 - camera_camera - WARNING - print_warning:452 - High memory usage (90.3%), triggering garbage collection
+2025-07-09 23:45:40,155 - camera_camera - WARNING - print_warning:452 - High memory usage (90.1%), triggering garbage collection
+2025-07-09 23:45:40,207 - camera_camera - WARNING - print_warning:452 - High memory usage (90.1%), triggering garbage collection
+2025-07-09 23:45:41,526 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:42,225 - camera_camera - WARNING - print_warning:452 - High memory usage (87.6%), triggering garbage collection
+2025-07-09 23:45:42,280 - camera_camera - WARNING - print_warning:452 - High memory usage (87.4%), triggering garbage collection
+2025-07-09 23:45:43,554 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:45,603 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:47,652 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:49,694 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:51,738 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:45:58,785 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:00,441 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 36.6%, Memory: 83.0%
+2025-07-09 23:46:00,525 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 38.1%, Memory: 83.0%
+2025-07-09 23:46:00,816 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:02,850 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:04,875 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:06,915 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:08,949 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:14,619 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:46:15,996 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:18,033 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:20,063 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:22,096 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:24,119 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:26,148 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:30,693 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 11.2%, Memory: 83.7%
+2025-07-09 23:46:30,761 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 10.8%, Memory: 83.7%
+2025-07-09 23:46:33,196 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:35,228 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:37,262 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:39,312 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:41,346 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:43,381 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:50,409 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:52,438 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:54,468 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:56,506 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:46:58,556 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:00,586 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:00,955 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 14.8%, Memory: 83.6%
+2025-07-09 23:47:00,993 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 15.3%, Memory: 83.6%
+2025-07-09 23:47:07,632 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:09,654 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:11,701 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:13,730 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:14,634 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:47:15,762 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:17,788 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:24,821 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:26,864 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:28,887 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:30,933 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:32,967 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:34,999 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:42,033 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:44,070 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:46,114 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:48,145 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:50,181 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:52,229 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:47:59,267 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:01,295 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:03,345 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:05,376 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:07,405 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:09,443 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:14,670 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:48:16,493 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:18,525 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:20,560 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:22,607 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:24,640 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:26,672 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:33,706 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:35,738 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:37,772 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:39,812 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:41,873 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:43,919 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:50,964 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:53,002 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:55,035 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:57,101 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:48:59,134 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:00,074 - camera_camera - WARNING - print_warning:452 - High memory usage (85.4%), triggering garbage collection
+2025-07-09 23:49:00,075 - camera_camera - WARNING - print_warning:452 - High memory usage (85.4%), triggering garbage collection
+2025-07-09 23:49:00,152 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 27.3%, Memory: 85.4%
+2025-07-09 23:49:00,153 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 27.3%, Memory: 85.4%
+2025-07-09 23:49:01,165 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:02,182 - camera_camera - WARNING - print_warning:452 - High memory usage (85.3%), triggering garbage collection
+2025-07-09 23:49:02,183 - camera_camera - WARNING - print_warning:452 - High memory usage (85.3%), triggering garbage collection
+2025-07-09 23:49:04,274 - camera_camera - WARNING - print_warning:452 - High memory usage (85.2%), triggering garbage collection
+2025-07-09 23:49:04,362 - camera_camera - WARNING - print_warning:452 - High memory usage (85.2%), triggering garbage collection
+2025-07-09 23:49:06,390 - camera_camera - WARNING - print_warning:452 - High memory usage (85.1%), triggering garbage collection
+2025-07-09 23:49:06,473 - camera_camera - WARNING - print_warning:452 - High memory usage (85.1%), triggering garbage collection
+2025-07-09 23:49:08,201 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:08,492 - camera_camera - WARNING - print_warning:452 - High memory usage (85.2%), triggering garbage collection
+2025-07-09 23:49:08,570 - camera_camera - WARNING - print_warning:452 - High memory usage (85.2%), triggering garbage collection
+2025-07-09 23:49:10,317 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:12,382 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:14,436 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:14,711 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:49:16,533 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:18,598 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:25,688 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:27,714 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:29,795 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:30,778 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 24.7%, Memory: 83.0%
+2025-07-09 23:49:30,864 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 22.7%, Memory: 83.2%
+2025-07-09 23:49:31,869 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:33,914 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:35,946 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:40,863 - camera_camera - WARNING - print_warning:452 - High memory usage (85.2%), triggering garbage collection
+2025-07-09 23:49:40,952 - camera_camera - WARNING - print_warning:452 - High memory usage (85.3%), triggering garbage collection
+2025-07-09 23:49:42,928 - camera_camera - WARNING - print_warning:452 - High memory usage (85.4%), triggering garbage collection
+2025-07-09 23:49:43,011 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:43,029 - camera_camera - WARNING - print_warning:452 - High memory usage (85.4%), triggering garbage collection
+2025-07-09 23:49:44,976 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-09 23:49:45,075 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:45,093 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-09 23:49:47,044 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-09 23:49:47,135 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:47,144 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-09 23:49:49,093 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-09 23:49:49,185 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:49,206 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-09 23:49:51,143 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:49:51,273 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:51,293 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:49:53,197 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:49:53,340 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:49:53,362 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-09 23:49:55,274 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:49:55,425 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:49:57,330 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:49:57,475 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:49:59,391 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:49:59,525 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:50:00,416 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:01,458 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:50:01,578 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:50:02,457 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:03,528 - camera_camera - WARNING - print_warning:452 - High memory usage (86.5%), triggering garbage collection
+2025-07-09 23:50:03,649 - camera_camera - WARNING - print_warning:452 - High memory usage (86.6%), triggering garbage collection
+2025-07-09 23:50:04,503 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:05,610 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-09 23:50:05,724 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-09 23:50:06,548 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:07,677 - camera_camera - WARNING - print_warning:452 - High memory usage (86.8%), triggering garbage collection
+2025-07-09 23:50:07,773 - camera_camera - WARNING - print_warning:452 - High memory usage (86.8%), triggering garbage collection
+2025-07-09 23:50:08,581 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:09,736 - camera_camera - WARNING - print_warning:452 - High memory usage (86.9%), triggering garbage collection
+2025-07-09 23:50:09,840 - camera_camera - WARNING - print_warning:452 - High memory usage (86.8%), triggering garbage collection
+2025-07-09 23:50:10,617 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:11,792 - camera_camera - WARNING - print_warning:452 - High memory usage (87.2%), triggering garbage collection
+2025-07-09 23:50:11,907 - camera_camera - WARNING - print_warning:452 - High memory usage (87.2%), triggering garbage collection
+2025-07-09 23:50:13,854 - camera_camera - WARNING - print_warning:452 - High memory usage (87.3%), triggering garbage collection
+2025-07-09 23:50:13,975 - camera_camera - WARNING - print_warning:452 - High memory usage (87.1%), triggering garbage collection
+2025-07-09 23:50:14,764 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:50:15,906 - camera_camera - WARNING - print_warning:452 - High memory usage (87.1%), triggering garbage collection
+2025-07-09 23:50:16,038 - camera_camera - WARNING - print_warning:452 - High memory usage (87.2%), triggering garbage collection
+2025-07-09 23:50:17,658 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:17,954 - camera_camera - WARNING - print_warning:452 - High memory usage (87.3%), triggering garbage collection
+2025-07-09 23:50:18,089 - camera_camera - WARNING - print_warning:452 - High memory usage (87.2%), triggering garbage collection
+2025-07-09 23:50:19,701 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:20,020 - camera_camera - WARNING - print_warning:452 - High memory usage (87.3%), triggering garbage collection
+2025-07-09 23:50:20,165 - camera_camera - WARNING - print_warning:452 - High memory usage (87.3%), triggering garbage collection
+2025-07-09 23:50:21,734 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:22,070 - camera_camera - WARNING - print_warning:452 - High memory usage (87.4%), triggering garbage collection
+2025-07-09 23:50:22,221 - camera_camera - WARNING - print_warning:452 - High memory usage (87.4%), triggering garbage collection
+2025-07-09 23:50:23,773 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:24,120 - camera_camera - WARNING - print_warning:452 - High memory usage (87.3%), triggering garbage collection
+2025-07-09 23:50:24,279 - camera_camera - WARNING - print_warning:452 - High memory usage (87.3%), triggering garbage collection
+2025-07-09 23:50:25,805 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:26,173 - camera_camera - WARNING - print_warning:452 - High memory usage (87.4%), triggering garbage collection
+2025-07-09 23:50:26,331 - camera_camera - WARNING - print_warning:452 - High memory usage (87.4%), triggering garbage collection
+2025-07-09 23:50:27,836 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:28,219 - camera_camera - WARNING - print_warning:452 - High memory usage (87.4%), triggering garbage collection
+2025-07-09 23:50:28,384 - camera_camera - WARNING - print_warning:452 - High memory usage (87.3%), triggering garbage collection
+2025-07-09 23:50:30,267 - camera_camera - WARNING - print_warning:452 - High memory usage (87.4%), triggering garbage collection
+2025-07-09 23:50:30,306 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 23.1%, Memory: 87.4%
+2025-07-09 23:50:30,444 - camera_camera - WARNING - print_warning:452 - High memory usage (87.4%), triggering garbage collection
+2025-07-09 23:50:30,481 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 22.3%, Memory: 87.4%
+2025-07-09 23:50:32,318 - camera_camera - WARNING - print_warning:452 - High memory usage (87.4%), triggering garbage collection
+2025-07-09 23:50:32,512 - camera_camera - WARNING - print_warning:452 - High memory usage (87.4%), triggering garbage collection
+2025-07-09 23:50:34,366 - camera_camera - WARNING - print_warning:452 - High memory usage (87.8%), triggering garbage collection
+2025-07-09 23:50:34,568 - camera_camera - WARNING - print_warning:452 - High memory usage (87.8%), triggering garbage collection
+2025-07-09 23:50:34,879 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:36,432 - camera_camera - WARNING - print_warning:452 - High memory usage (87.8%), triggering garbage collection
+2025-07-09 23:50:36,612 - camera_camera - WARNING - print_warning:452 - High memory usage (87.7%), triggering garbage collection
+2025-07-09 23:50:36,924 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:38,484 - camera_camera - WARNING - print_warning:452 - High memory usage (87.9%), triggering garbage collection
+2025-07-09 23:50:38,677 - camera_camera - WARNING - print_warning:452 - High memory usage (87.9%), triggering garbage collection
+2025-07-09 23:50:38,951 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:40,533 - camera_camera - WARNING - print_warning:452 - High memory usage (87.8%), triggering garbage collection
+2025-07-09 23:50:40,737 - camera_camera - WARNING - print_warning:452 - High memory usage (88.0%), triggering garbage collection
+2025-07-09 23:50:40,977 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:42,581 - camera_camera - WARNING - print_warning:452 - High memory usage (87.9%), triggering garbage collection
+2025-07-09 23:50:42,798 - camera_camera - WARNING - print_warning:452 - High memory usage (88.0%), triggering garbage collection
+2025-07-09 23:50:43,012 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:44,639 - camera_camera - WARNING - print_warning:452 - High memory usage (88.0%), triggering garbage collection
+2025-07-09 23:50:44,848 - camera_camera - WARNING - print_warning:452 - High memory usage (88.1%), triggering garbage collection
+2025-07-09 23:50:45,045 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:46,680 - camera_camera - WARNING - print_warning:452 - High memory usage (87.9%), triggering garbage collection
+2025-07-09 23:50:46,899 - camera_camera - WARNING - print_warning:452 - High memory usage (88.1%), triggering garbage collection
+2025-07-09 23:50:48,732 - camera_camera - WARNING - print_warning:452 - High memory usage (88.0%), triggering garbage collection
+2025-07-09 23:50:48,957 - camera_camera - WARNING - print_warning:452 - High memory usage (88.1%), triggering garbage collection
+2025-07-09 23:50:50,789 - camera_camera - WARNING - print_warning:452 - High memory usage (88.4%), triggering garbage collection
+2025-07-09 23:50:51,020 - camera_camera - WARNING - print_warning:452 - High memory usage (88.4%), triggering garbage collection
+2025-07-09 23:50:52,079 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:52,865 - camera_camera - WARNING - print_warning:452 - High memory usage (89.1%), triggering garbage collection
+2025-07-09 23:50:53,092 - camera_camera - WARNING - print_warning:452 - High memory usage (89.1%), triggering garbage collection
+2025-07-09 23:50:54,120 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:54,933 - camera_camera - WARNING - print_warning:452 - High memory usage (89.2%), triggering garbage collection
+2025-07-09 23:50:55,147 - camera_camera - WARNING - print_warning:452 - High memory usage (89.2%), triggering garbage collection
+2025-07-09 23:50:56,157 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:57,000 - camera_camera - WARNING - print_warning:452 - High memory usage (89.2%), triggering garbage collection
+2025-07-09 23:50:57,195 - camera_camera - WARNING - print_warning:452 - High memory usage (89.2%), triggering garbage collection
+2025-07-09 23:50:58,194 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:50:59,057 - camera_camera - WARNING - print_warning:452 - High memory usage (89.4%), triggering garbage collection
+2025-07-09 23:50:59,253 - camera_camera - WARNING - print_warning:452 - High memory usage (89.4%), triggering garbage collection
+2025-07-09 23:51:00,226 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:01,114 - camera_camera - WARNING - print_warning:452 - High memory usage (88.8%), triggering garbage collection
+2025-07-09 23:51:01,297 - camera_camera - WARNING - print_warning:452 - High memory usage (88.8%), triggering garbage collection
+2025-07-09 23:51:02,262 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:03,186 - camera_camera - WARNING - print_warning:452 - High memory usage (89.1%), triggering garbage collection
+2025-07-09 23:51:03,367 - camera_camera - WARNING - print_warning:452 - High memory usage (89.1%), triggering garbage collection
+2025-07-09 23:51:05,245 - camera_camera - WARNING - print_warning:452 - High memory usage (89.0%), triggering garbage collection
+2025-07-09 23:51:05,437 - camera_camera - WARNING - print_warning:452 - High memory usage (89.0%), triggering garbage collection
+2025-07-09 23:51:07,294 - camera_camera - WARNING - print_warning:452 - High memory usage (89.2%), triggering garbage collection
+2025-07-09 23:51:07,494 - camera_camera - WARNING - print_warning:452 - High memory usage (89.2%), triggering garbage collection
+2025-07-09 23:51:09,340 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:09,346 - camera_camera - WARNING - print_warning:452 - High memory usage (89.8%), triggering garbage collection
+2025-07-09 23:51:09,555 - camera_camera - WARNING - print_warning:452 - High memory usage (89.8%), triggering garbage collection
+2025-07-09 23:51:11,414 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:11,427 - camera_camera - WARNING - print_warning:452 - High memory usage (91.1%), triggering garbage collection
+2025-07-09 23:51:11,616 - camera_camera - WARNING - print_warning:452 - High memory usage (91.2%), triggering garbage collection
+2025-07-09 23:51:13,477 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:13,497 - camera_camera - WARNING - print_warning:452 - High memory usage (90.8%), triggering garbage collection
+2025-07-09 23:51:13,667 - camera_camera - WARNING - print_warning:452 - High memory usage (90.9%), triggering garbage collection
+2025-07-09 23:51:14,745 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:51:15,556 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:15,556 - camera_camera - WARNING - print_warning:452 - High memory usage (89.5%), triggering garbage collection
+2025-07-09 23:51:15,755 - camera_camera - WARNING - print_warning:452 - High memory usage (89.5%), triggering garbage collection
+2025-07-09 23:51:17,610 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:17,629 - camera_camera - WARNING - print_warning:452 - High memory usage (89.6%), triggering garbage collection
+2025-07-09 23:51:17,810 - camera_camera - WARNING - print_warning:452 - High memory usage (89.7%), triggering garbage collection
+2025-07-09 23:51:19,680 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:19,700 - camera_camera - WARNING - print_warning:452 - High memory usage (89.6%), triggering garbage collection
+2025-07-09 23:51:19,855 - camera_camera - WARNING - print_warning:452 - High memory usage (89.6%), triggering garbage collection
+2025-07-09 23:51:21,773 - camera_camera - WARNING - print_warning:452 - High memory usage (89.5%), triggering garbage collection
+2025-07-09 23:51:21,909 - camera_camera - WARNING - print_warning:452 - High memory usage (89.4%), triggering garbage collection
+2025-07-09 23:51:23,847 - camera_camera - WARNING - print_warning:452 - High memory usage (88.8%), triggering garbage collection
+2025-07-09 23:51:23,968 - camera_camera - WARNING - print_warning:452 - High memory usage (88.8%), triggering garbage collection
+2025-07-09 23:51:25,911 - camera_camera - WARNING - print_warning:452 - High memory usage (89.4%), triggering garbage collection
+2025-07-09 23:51:26,033 - camera_camera - WARNING - print_warning:452 - High memory usage (89.4%), triggering garbage collection
+2025-07-09 23:51:26,769 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:27,983 - camera_camera - WARNING - print_warning:452 - High memory usage (89.4%), triggering garbage collection
+2025-07-09 23:51:28,091 - camera_camera - WARNING - print_warning:452 - High memory usage (89.4%), triggering garbage collection
+2025-07-09 23:51:28,802 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:30,076 - camera_camera - WARNING - print_warning:452 - High memory usage (89.7%), triggering garbage collection
+2025-07-09 23:51:30,142 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 52.0%, Memory: 89.7%
+2025-07-09 23:51:30,165 - camera_camera - WARNING - print_warning:452 - High memory usage (89.7%), triggering garbage collection
+2025-07-09 23:51:30,232 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 54.2%, Memory: 89.7%
+2025-07-09 23:51:30,852 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:32,910 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:34,949 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:36,986 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:44,047 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:46,094 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:48,139 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:50,180 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:50,311 - camera_camera - WARNING - print_warning:452 - High memory usage (85.1%), triggering garbage collection
+2025-07-09 23:51:50,417 - camera_camera - WARNING - print_warning:452 - High memory usage (85.1%), triggering garbage collection
+2025-07-09 23:51:52,275 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:52,405 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-09 23:51:52,482 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:51:54,332 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:51:54,496 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:51:54,554 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:52:00,613 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 18.3%, Memory: 83.3%
+2025-07-09 23:52:00,650 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 18.4%, Memory: 83.3%
+2025-07-09 23:52:01,380 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:03,422 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:05,448 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:07,482 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:09,519 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:11,547 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:14,805 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:52:18,596 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:20,646 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:22,694 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:24,756 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:26,793 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:28,855 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:30,861 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 22.9%, Memory: 82.2%
+2025-07-09 23:52:30,946 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 22.8%, Memory: 82.1%
+2025-07-09 23:52:35,905 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:37,938 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:39,971 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:42,024 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:44,071 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:46,106 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:53,151 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:55,182 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:57,210 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:52:59,245 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:01,281 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:03,308 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:10,336 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:12,368 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:14,398 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:14,759 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:53:16,427 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:18,465 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:20,496 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:27,527 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:29,582 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:31,623 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:33,647 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:35,679 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:37,730 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:44,778 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:46,804 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:48,846 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:50,883 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:52,909 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:53:54,943 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:01,974 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:04,025 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:06,058 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:08,090 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:10,121 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:12,154 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:14,814 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:54:19,189 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:21,239 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:23,287 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:25,335 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:27,370 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:29,420 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:36,473 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:38,495 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:40,535 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:42,587 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:44,614 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:46,648 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:53,700 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:55,727 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:57,753 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:54:59,780 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:00,148 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 10.5%, Memory: 83.4%
+2025-07-09 23:55:00,241 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 10.6%, Memory: 83.4%
+2025-07-09 23:55:01,829 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:03,860 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:10,896 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:12,942 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:14,869 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:55:14,965 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:16,989 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:19,026 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:21,060 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:28,109 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:30,155 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:30,396 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 9.3%, Memory: 83.3%
+2025-07-09 23:55:30,491 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 9.3%, Memory: 83.3%
+2025-07-09 23:55:32,192 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:34,237 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:36,258 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:38,290 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:45,335 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:47,385 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:49,436 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:51,470 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:53,520 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:55:55,580 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:56:00,655 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 16.1%, Memory: 84.0%
+2025-07-09 23:56:00,732 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 18.1%, Memory: 84.0%
+2025-07-09 23:56:02,618 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:56:04,667 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:56:06,699 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:56:08,749 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:56:10,783 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:56:12,834 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:56:14,835 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:56:19,872 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:56:21,894 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:56:22,922 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-09 23:56:22,966 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:56:23,929 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:56:24,983 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-09 23:56:25,045 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-09 23:56:25,973 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:56:27,059 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-09 23:56:27,115 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-09 23:56:27,995 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:56:29,114 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:56:29,180 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:56:30,024 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:56:31,183 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:56:31,247 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:56:33,623 - camera_camera - INFO - print_info:436 - Stopping camera feed
+2025-07-09 23:56:33,638 - camera_camera - INFO - print_info:436 - Optimized video capture loop ending
+2025-07-09 23:57:00,375 - camera_camera - INFO - info:406 - Enhanced logging initialized for Camera camera
+2025-07-09 23:57:00,422 - camera_camera - DEBUG - print_debug:468 - Resource monitoring started
+2025-07-09 23:57:00,422 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 0.0%, Memory: 83.4%
+2025-07-09 23:57:00,436 - camera_camera - INFO - print_info:436 - Optimized video capture loop started
+2025-07-09 23:57:00,436 - camera_camera - DEBUG - print_debug:468 - Optimized video thread started
+2025-07-09 23:57:00,437 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:00,437 - camera_camera - DEBUG - print_debug:468 - Camera watchdog started
+2025-07-09 23:57:00,437 - camera_camera - DEBUG - print_debug:468 - Camera watchdog enabled
+2025-07-09 23:57:00,438 - camera_camera - INFO - info:406 - Enhanced logging initialized for Camera camera
+2025-07-09 23:57:00,450 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 0.0%, Memory: 83.4%
+2025-07-09 23:57:00,450 - camera_camera - DEBUG - print_debug:468 - Resource monitoring started
+2025-07-09 23:57:00,454 - camera_camera - INFO - print_info:436 - Optimized video capture loop started
+2025-07-09 23:57:00,454 - camera_camera - DEBUG - print_debug:468 - Optimized video thread started
+2025-07-09 23:57:00,455 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:00,456 - camera_camera - DEBUG - print_debug:468 - Camera watchdog enabled
+2025-07-09 23:57:00,456 - camera_camera - DEBUG - print_debug:468 - Camera watchdog started
+2025-07-09 23:57:02,671 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:04,707 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:06,735 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:08,551 - camera_camera - INFO - print_success:444 - SUCCESS: Camera connection stabilized
+2025-07-09 23:57:08,772 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:10,802 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:17,855 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:19,902 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:21,936 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:23,968 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:26,018 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:28,051 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:30,691 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 12.7%, Memory: 84.4%
+2025-07-09 23:57:30,707 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 13.1%, Memory: 84.4%
+2025-07-09 23:57:35,088 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:37,125 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:39,181 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:41,214 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:43,247 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:45,284 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:52,334 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:54,363 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:56,410 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:57:58,447 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:00,533 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:00,533 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:58:00,916 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 15.3%, Memory: 84.4%
+2025-07-09 23:58:00,961 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 15.4%, Memory: 84.4%
+2025-07-09 23:58:02,562 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:09,610 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:11,659 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:13,709 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:15,743 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:17,788 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:19,822 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:25,161 - camera_camera - WARNING - print_warning:452 - High memory usage (85.1%), triggering garbage collection
+2025-07-09 23:58:25,162 - camera_camera - WARNING - print_warning:452 - High memory usage (85.1%), triggering garbage collection
+2025-07-09 23:58:26,886 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:27,208 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:58:27,266 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:28,910 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:29,275 - camera_camera - WARNING - print_warning:452 - High memory usage (86.3%), triggering garbage collection
+2025-07-09 23:58:29,314 - camera_camera - WARNING - print_warning:452 - High memory usage (86.3%), triggering garbage collection
+2025-07-09 23:58:30,938 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:31,325 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:58:31,369 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:58:32,969 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:33,389 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:58:33,430 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:58:35,001 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:35,452 - camera_camera - WARNING - print_warning:452 - High memory usage (86.2%), triggering garbage collection
+2025-07-09 23:58:35,494 - camera_camera - WARNING - print_warning:452 - High memory usage (86.2%), triggering garbage collection
+2025-07-09 23:58:37,023 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:37,523 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:37,567 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:39,593 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:39,636 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:41,657 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:58:41,703 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:58:43,710 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:58:43,778 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:58:44,067 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:45,774 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:45,846 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:46,105 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:47,842 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:47,907 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:48,133 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:49,914 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:49,963 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:50,162 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:51,985 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:58:52,028 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:52,197 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:54,038 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:54,086 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:58:54,230 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:58:56,086 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:58:56,144 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:58:58,137 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-09 23:58:58,203 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-09 23:59:00,201 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-09 23:59:00,240 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 26.2%, Memory: 85.5%
+2025-07-09 23:59:00,254 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-09 23:59:00,292 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 25.8%, Memory: 85.5%
+2025-07-09 23:59:00,549 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-09 23:59:01,261 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:02,251 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-09 23:59:02,309 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-09 23:59:03,297 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:04,301 - camera_camera - WARNING - print_warning:452 - High memory usage (85.4%), triggering garbage collection
+2025-07-09 23:59:04,384 - camera_camera - WARNING - print_warning:452 - High memory usage (85.3%), triggering garbage collection
+2025-07-09 23:59:05,329 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:06,354 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-09 23:59:06,439 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-09 23:59:07,365 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:08,418 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:08,501 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:09,409 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:10,478 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:10,553 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:11,447 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:12,525 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:12,600 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:14,580 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:59:14,664 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-09 23:59:16,646 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:16,726 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:18,496 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:18,710 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:18,770 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:20,527 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:20,773 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:20,819 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:22,561 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:22,834 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-09 23:59:22,881 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-09 23:59:24,591 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:24,897 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-09 23:59:24,943 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-09 23:59:26,623 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:26,960 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:27,004 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-09 23:59:28,665 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:29,023 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:59:29,068 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:59:31,096 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:59:31,140 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:59:33,149 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:59:33,200 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:59:35,225 - camera_camera - WARNING - print_warning:452 - High memory usage (86.3%), triggering garbage collection
+2025-07-09 23:59:35,277 - camera_camera - WARNING - print_warning:452 - High memory usage (86.3%), triggering garbage collection
+2025-07-09 23:59:35,710 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:37,279 - camera_camera - WARNING - print_warning:452 - High memory usage (86.5%), triggering garbage collection
+2025-07-09 23:59:37,335 - camera_camera - WARNING - print_warning:452 - High memory usage (86.5%), triggering garbage collection
+2025-07-09 23:59:37,742 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:39,328 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:59:39,397 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:59:39,775 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:41,403 - camera_camera - WARNING - print_warning:452 - High memory usage (86.5%), triggering garbage collection
+2025-07-09 23:59:41,461 - camera_camera - WARNING - print_warning:452 - High memory usage (86.5%), triggering garbage collection
+2025-07-09 23:59:41,806 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:43,459 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:59:43,511 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:59:43,842 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:45,527 - camera_camera - WARNING - print_warning:452 - High memory usage (86.5%), triggering garbage collection
+2025-07-09 23:59:45,573 - camera_camera - WARNING - print_warning:452 - High memory usage (86.5%), triggering garbage collection
+2025-07-09 23:59:45,870 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:47,587 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:59:47,646 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:59:49,633 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:59:49,700 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-09 23:59:51,709 - camera_camera - WARNING - print_warning:452 - High memory usage (86.2%), triggering garbage collection
+2025-07-09 23:59:51,764 - camera_camera - WARNING - print_warning:452 - High memory usage (86.2%), triggering garbage collection
+2025-07-09 23:59:52,920 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:53,767 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:59:53,828 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-09 23:59:54,957 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:55,825 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:59:55,892 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-09 23:59:56,987 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:57,882 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:59:57,944 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:59:59,019 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-09 23:59:59,942 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-09 23:59:59,994 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-10 00:00:00,627 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-10 00:00:01,051 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:02,006 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:02,057 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:03,089 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:04,058 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:04,112 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:06,114 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:06,173 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:08,174 - camera_camera - WARNING - print_warning:452 - High memory usage (86.6%), triggering garbage collection
+2025-07-10 00:00:08,223 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:10,137 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:10,246 - camera_camera - WARNING - print_warning:452 - High memory usage (86.6%), triggering garbage collection
+2025-07-10 00:00:10,288 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:12,169 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:12,291 - camera_camera - WARNING - print_warning:452 - High memory usage (86.6%), triggering garbage collection
+2025-07-10 00:00:12,350 - camera_camera - WARNING - print_warning:452 - High memory usage (86.6%), triggering garbage collection
+2025-07-10 00:00:14,203 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:14,367 - camera_camera - WARNING - print_warning:452 - High memory usage (86.6%), triggering garbage collection
+2025-07-10 00:00:14,414 - camera_camera - WARNING - print_warning:452 - High memory usage (86.6%), triggering garbage collection
+2025-07-10 00:00:16,249 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:16,429 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:16,473 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:18,279 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:18,476 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:18,532 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:20,315 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:20,524 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:20,598 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:22,567 - camera_camera - WARNING - print_warning:452 - High memory usage (86.5%), triggering garbage collection
+2025-07-10 00:00:22,654 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:00:27,367 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:29,415 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:30,685 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 26.6%, Memory: 84.8%
+2025-07-10 00:00:30,726 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 26.4%, Memory: 84.9%
+2025-07-10 00:00:31,440 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:32,692 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:00:32,739 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:00:33,465 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:34,750 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-10 00:00:34,794 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-10 00:00:35,499 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:36,806 - camera_camera - WARNING - print_warning:452 - High memory usage (85.3%), triggering garbage collection
+2025-07-10 00:00:36,858 - camera_camera - WARNING - print_warning:452 - High memory usage (85.3%), triggering garbage collection
+2025-07-10 00:00:37,531 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:38,873 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-10 00:00:38,919 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-10 00:00:40,933 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-10 00:00:40,974 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-10 00:00:42,983 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-10 00:00:43,027 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-10 00:00:44,564 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:45,049 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-10 00:00:45,091 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-10 00:00:46,619 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:47,107 - camera_camera - WARNING - print_warning:452 - High memory usage (87.3%), triggering garbage collection
+2025-07-10 00:00:47,166 - camera_camera - WARNING - print_warning:452 - High memory usage (87.3%), triggering garbage collection
+2025-07-10 00:00:48,661 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:49,181 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-10 00:00:49,236 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-10 00:00:50,691 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:51,242 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-10 00:00:51,304 - camera_camera - WARNING - print_warning:452 - High memory usage (86.4%), triggering garbage collection
+2025-07-10 00:00:52,728 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:53,313 - camera_camera - WARNING - print_warning:452 - High memory usage (86.3%), triggering garbage collection
+2025-07-10 00:00:53,381 - camera_camera - WARNING - print_warning:452 - High memory usage (86.3%), triggering garbage collection
+2025-07-10 00:00:54,775 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:00:55,396 - camera_camera - WARNING - print_warning:452 - High memory usage (86.2%), triggering garbage collection
+2025-07-10 00:00:55,454 - camera_camera - WARNING - print_warning:452 - High memory usage (86.3%), triggering garbage collection
+2025-07-10 00:00:57,463 - camera_camera - WARNING - print_warning:452 - High memory usage (86.3%), triggering garbage collection
+2025-07-10 00:00:57,517 - camera_camera - WARNING - print_warning:452 - High memory usage (86.3%), triggering garbage collection
+2025-07-10 00:00:59,528 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-10 00:00:59,581 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-10 00:01:00,642 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-10 00:01:01,589 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-10 00:01:01,657 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-10 00:01:01,830 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:03,662 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-10 00:01:03,724 - camera_camera - WARNING - print_warning:452 - High memory usage (86.0%), triggering garbage collection
+2025-07-10 00:01:03,871 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:05,731 - camera_camera - WARNING - print_warning:452 - High memory usage (87.5%), triggering garbage collection
+2025-07-10 00:01:05,831 - camera_camera - WARNING - print_warning:452 - High memory usage (88.1%), triggering garbage collection
+2025-07-10 00:01:05,921 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:07,851 - camera_camera - WARNING - print_warning:452 - High memory usage (87.0%), triggering garbage collection
+2025-07-10 00:01:07,926 - camera_camera - WARNING - print_warning:452 - High memory usage (87.0%), triggering garbage collection
+2025-07-10 00:01:08,001 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:09,925 - camera_camera - WARNING - print_warning:452 - High memory usage (87.1%), triggering garbage collection
+2025-07-10 00:01:09,997 - camera_camera - WARNING - print_warning:452 - High memory usage (87.1%), triggering garbage collection
+2025-07-10 00:01:10,053 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:12,009 - camera_camera - WARNING - print_warning:452 - High memory usage (87.1%), triggering garbage collection
+2025-07-10 00:01:12,069 - camera_camera - WARNING - print_warning:452 - High memory usage (87.1%), triggering garbage collection
+2025-07-10 00:01:12,120 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:14,081 - camera_camera - WARNING - print_warning:452 - High memory usage (87.3%), triggering garbage collection
+2025-07-10 00:01:14,170 - camera_camera - WARNING - print_warning:452 - High memory usage (87.4%), triggering garbage collection
+2025-07-10 00:01:16,190 - camera_camera - WARNING - print_warning:452 - High memory usage (87.3%), triggering garbage collection
+2025-07-10 00:01:16,249 - camera_camera - WARNING - print_warning:452 - High memory usage (87.3%), triggering garbage collection
+2025-07-10 00:01:18,253 - camera_camera - WARNING - print_warning:452 - High memory usage (87.2%), triggering garbage collection
+2025-07-10 00:01:18,314 - camera_camera - WARNING - print_warning:452 - High memory usage (87.2%), triggering garbage collection
+2025-07-10 00:01:19,159 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:20,324 - camera_camera - WARNING - print_warning:452 - High memory usage (87.2%), triggering garbage collection
+2025-07-10 00:01:20,381 - camera_camera - WARNING - print_warning:452 - High memory usage (87.1%), triggering garbage collection
+2025-07-10 00:01:21,205 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:22,375 - camera_camera - WARNING - print_warning:452 - High memory usage (86.8%), triggering garbage collection
+2025-07-10 00:01:22,436 - camera_camera - WARNING - print_warning:452 - High memory usage (86.8%), triggering garbage collection
+2025-07-10 00:01:23,236 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:24,428 - camera_camera - WARNING - print_warning:452 - High memory usage (86.8%), triggering garbage collection
+2025-07-10 00:01:24,492 - camera_camera - WARNING - print_warning:452 - High memory usage (86.8%), triggering garbage collection
+2025-07-10 00:01:25,277 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:26,479 - camera_camera - WARNING - print_warning:452 - High memory usage (86.9%), triggering garbage collection
+2025-07-10 00:01:26,557 - camera_camera - WARNING - print_warning:452 - High memory usage (86.9%), triggering garbage collection
+2025-07-10 00:01:27,307 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:28,554 - camera_camera - WARNING - print_warning:452 - High memory usage (86.9%), triggering garbage collection
+2025-07-10 00:01:28,614 - camera_camera - WARNING - print_warning:452 - High memory usage (86.9%), triggering garbage collection
+2025-07-10 00:01:29,337 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:30,634 - camera_camera - WARNING - print_warning:452 - High memory usage (86.6%), triggering garbage collection
+2025-07-10 00:01:30,682 - camera_camera - WARNING - print_warning:452 - High memory usage (86.7%), triggering garbage collection
+2025-07-10 00:01:30,682 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 36.4%, Memory: 86.6%
+2025-07-10 00:01:30,729 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 36.3%, Memory: 86.7%
+2025-07-10 00:01:32,693 - camera_camera - WARNING - print_warning:452 - High memory usage (86.6%), triggering garbage collection
+2025-07-10 00:01:32,743 - camera_camera - WARNING - print_warning:452 - High memory usage (86.3%), triggering garbage collection
+2025-07-10 00:01:36,386 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:38,504 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:40,548 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:42,578 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:44,612 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:46,639 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:53,668 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:55,719 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:57,756 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:01:59,788 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:00,602 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-10 00:02:00,951 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 16.5%, Memory: 81.5%
+2025-07-10 00:02:01,820 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:03,862 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:10,898 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:12,933 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:14,979 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:17,004 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:19,030 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:21,077 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:28,108 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:30,142 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:32,192 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:34,238 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:36,289 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:38,323 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:45,376 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:47,412 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:49,454 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:51,501 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:53,555 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:02:55,595 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:00,692 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-10 00:03:02,636 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:04,660 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:06,684 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:08,714 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:10,742 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:12,764 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:19,803 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:21,834 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:23,870 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:25,902 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:27,947 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:29,982 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:37,062 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:39,095 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:41,126 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:43,214 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:45,256 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:47,293 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:54,328 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:56,361 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:03:58,393 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:00,012 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 11.0%, Memory: 84.2%
+2025-07-10 00:04:00,440 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:00,645 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-10 00:04:02,469 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:04,507 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:11,556 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:13,597 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:15,638 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:17,696 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:19,724 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:21,752 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:28,787 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:30,319 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 19.7%, Memory: 84.2%
+2025-07-10 00:04:30,319 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 19.7%, Memory: 84.2%
+2025-07-10 00:04:30,826 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:32,870 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:34,901 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:36,922 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:38,952 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:46,001 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:48,034 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:50,065 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:52,098 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:54,132 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:04:54,552 - camera_camera - WARNING - print_warning:452 - High memory usage (85.1%), triggering garbage collection
+2025-07-10 00:04:54,602 - camera_camera - WARNING - print_warning:452 - High memory usage (85.1%), triggering garbage collection
+2025-07-10 00:04:56,163 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:00,633 - camera_camera - WARNING - print_warning:452 - High memory usage (85.1%), triggering garbage collection
+2025-07-10 00:05:00,681 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 40.9%, Memory: 85.1%
+2025-07-10 00:05:00,686 - camera_camera - DEBUG - print_debug:468 - Resource usage - CPU: 41.3%, Memory: 85.0%
+2025-07-10 00:05:00,748 - camera_camera - DEBUG - print_debug:468 - Performed garbage collection
+2025-07-10 00:05:02,704 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:05:02,704 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:05:03,183 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:04,820 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:05:04,868 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:05:05,255 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:06,867 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:05:06,927 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:05:07,287 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:08,936 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:05:08,988 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:05:09,311 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:10,996 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:05:11,042 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:05:11,360 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:13,061 - camera_camera - WARNING - print_warning:452 - High memory usage (85.4%), triggering garbage collection
+2025-07-10 00:05:13,096 - camera_camera - WARNING - print_warning:452 - High memory usage (85.4%), triggering garbage collection
+2025-07-10 00:05:13,389 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:15,110 - camera_camera - WARNING - print_warning:452 - High memory usage (85.3%), triggering garbage collection
+2025-07-10 00:05:15,152 - camera_camera - WARNING - print_warning:452 - High memory usage (85.3%), triggering garbage collection
+2025-07-10 00:05:17,158 - camera_camera - WARNING - print_warning:452 - High memory usage (85.4%), triggering garbage collection
+2025-07-10 00:05:17,206 - camera_camera - WARNING - print_warning:452 - High memory usage (85.4%), triggering garbage collection
+2025-07-10 00:05:19,205 - camera_camera - WARNING - print_warning:452 - High memory usage (85.2%), triggering garbage collection
+2025-07-10 00:05:19,266 - camera_camera - WARNING - print_warning:452 - High memory usage (85.4%), triggering garbage collection
+2025-07-10 00:05:20,450 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:21,269 - camera_camera - WARNING - print_warning:452 - High memory usage (85.3%), triggering garbage collection
+2025-07-10 00:05:21,312 - camera_camera - WARNING - print_warning:452 - High memory usage (85.3%), triggering garbage collection
+2025-07-10 00:05:22,474 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:23,326 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:05:23,376 - camera_camera - WARNING - print_warning:452 - High memory usage (85.5%), triggering garbage collection
+2025-07-10 00:05:24,504 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:25,378 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-10 00:05:25,430 - camera_camera - WARNING - print_warning:452 - High memory usage (85.6%), triggering garbage collection
+2025-07-10 00:05:26,525 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:27,437 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-10 00:05:27,510 - camera_camera - WARNING - print_warning:452 - High memory usage (85.8%), triggering garbage collection
+2025-07-10 00:05:28,557 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:29,506 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-10 00:05:29,569 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-10 00:05:30,604 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:31,556 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-10 00:05:31,612 - camera_camera - WARNING - print_warning:452 - High memory usage (85.7%), triggering garbage collection
+2025-07-10 00:05:33,609 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-10 00:05:33,677 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-10 00:05:35,674 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-10 00:05:35,744 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-10 00:05:37,640 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:37,751 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-10 00:05:37,798 - camera_camera - WARNING - print_warning:452 - High memory usage (85.9%), triggering garbage collection
+2025-07-10 00:05:39,689 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera
+2025-07-10 00:05:39,794 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-10 00:05:39,855 - camera_camera - WARNING - print_warning:452 - High memory usage (86.1%), triggering garbage collection
+2025-07-10 00:05:41,503 - camera_camera - INFO - print_info:436 - Stopping camera feed
+2025-07-10 00:05:41,536 - camera_camera - INFO - print_info:436 - Optimized video capture loop ending
+2025-07-10 00:05:41,721 - camera_camera - DEBUG - print_debug:468 - Initializing USB camera

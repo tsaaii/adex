@@ -1,0 +1,276 @@
+2025-07-19 22:40:33,843 - TharuniApp - INFO - ============================================================
+2025-07-19 22:40:33,843 - TharuniApp - INFO - APPLICATION STARTUP
+2025-07-19 22:40:33,844 - TharuniApp - INFO - ============================================================
+2025-07-19 22:40:33,865 - TharuniApp - INFO - Configuration setup completed
+2025-07-19 22:40:33,866 - DataManager - INFO - DataManager initialized with OFFLINE-FIRST approach + JSON local storage
+2025-07-19 22:40:33,874 - DataManager - INFO - CSV structure is up to date
+2025-07-19 22:40:33,875 - DataManager - INFO - Unified folder structure ready:
+2025-07-19 22:40:33,876 - DataManager - INFO -   Reports: data\reports\2025-07-19
+2025-07-19 22:40:33,876 - DataManager - INFO -   JSON Backups: data\json_backups\2025-07-19
+2025-07-19 22:40:33,877 - DataManager - INFO -   PDF Folder: data\reports\2025-07-19
+2025-07-19 22:40:33,877 - DataManager - INFO - All folder attributes ensured and validated
+2025-07-19 22:40:33,888 - DataManager - INFO - 🔍 Checking if archive is due...
+2025-07-19 22:40:33,888 - DataManager - INFO - CSV analysis: 0 total records, 0 complete records
+2025-07-19 22:40:33,889 - DataManager - INFO - CSV file has no complete records to archive
+2025-07-19 22:40:33,889 - DataManager - INFO - ⏳ Archive not due yet
+2025-07-19 22:40:33,889 - DataManager - INFO - Data file: data\weighbridge_data.csv
+2025-07-19 22:40:33,889 - DataManager - INFO - Reports folder: data\reports
+2025-07-19 22:40:33,890 - DataManager - INFO - JSON backup folder: data\json_backups
+2025-07-19 22:40:33,890 - DataManager - INFO - Today's JSON folder: data\json_backups\2025-07-19
+2025-07-19 22:40:33,890 - DataManager - INFO - Today's PDF folder: data\reports\2025-07-19
+2025-07-19 22:40:33,890 - DataManager - INFO - Cloud storage will only be initialized when backup is requested
+2025-07-19 22:40:33,890 - TharuniApp - INFO - Data manager initialized
+2025-07-19 22:40:33,913 - TharuniApp - INFO - Using hardcoded settings storage
+2025-07-19 22:40:33,913 - TharuniApp - INFO - UI styles initialized
+2025-07-19 22:40:33,914 - TharuniApp - INFO - Starting user authentication
+2025-07-19 22:40:43,999 - TharuniApp - INFO - Hardcoded authentication successful: admin
+2025-07-19 22:40:44,000 - TharuniApp - INFO - User logged in: admin (Role: admin)
+2025-07-19 22:40:44,000 - TharuniApp - INFO - Setting up data context
+2025-07-19 22:40:44,000 - TharuniApp - INFO - Using hardcoded agency and site values
+2025-07-19 22:40:44,015 - DataManager - INFO - CSV structure is up to date
+2025-07-19 22:40:44,015 - DataManager - INFO - Data context set to: Agency='Tharuni Associates', Site='Kadapa'
+2025-07-19 22:40:44,015 - DataManager - INFO - Data file: data\Tharuni_Associates_Kadapa_data.csv
+2025-07-19 22:40:44,016 - TharuniApp - INFO - Data context initialized: Agency='Tharuni Associates', Site='Kadapa'
+2025-07-19 22:40:44,016 - TharuniApp - INFO - Data will be saved to: data\Tharuni_Associates_Kadapa_data.csv
+2025-07-19 22:40:44,017 - TharuniApp - INFO - PDFs will be saved to: data\reports\2025-07-19
+2025-07-19 22:40:44,017 - TharuniApp - INFO - Creating application widgets
+2025-07-19 22:40:44,028 - TharuniApp - INFO - Creating main panel
+2025-07-19 22:40:44,038 - FormValidator - INFO - FormValidator initialized
+2025-07-19 22:40:44,048 - DataManager - INFO - Successfully loaded 0 records from data\Tharuni_Associates_Kadapa_data.csv
+2025-07-19 22:40:44,141 - camera_camera - INFO - Enhanced logging initialized for Camera camera
+2025-07-19 22:40:44,189 - camera_camera - DEBUG - Resource monitoring started
+2025-07-19 22:40:44,202 - camera_camera - DEBUG - Optimized video thread started
+2025-07-19 22:40:44,202 - camera_camera - INFO - Optimized video capture loop started
+2025-07-19 22:40:44,203 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:40:44,203 - camera_camera - DEBUG - Camera watchdog started
+2025-07-19 22:40:44,207 - camera_camera - DEBUG - Camera watchdog enabled
+2025-07-19 22:40:44,208 - camera_camera - INFO - Enhanced logging initialized for Camera camera
+2025-07-19 22:40:44,217 - camera_camera - DEBUG - Resource monitoring started
+2025-07-19 22:40:44,219 - camera_camera - DEBUG - Optimized video thread started
+2025-07-19 22:40:44,218 - camera_camera - INFO - Optimized video capture loop started
+2025-07-19 22:40:44,219 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:40:44,221 - camera_camera - DEBUG - Camera watchdog started
+2025-07-19 22:40:44,221 - camera_camera - DEBUG - Camera watchdog enabled
+2025-07-19 22:40:44,415 - DataManager - INFO - Successfully loaded 0 records from data\Tharuni_Associates_Kadapa_data.csv
+2025-07-19 22:40:44,416 - MainForm - INFO - MainForm initialized
+2025-07-19 22:40:44,416 - TharuniApp - INFO - Main form created
+2025-07-19 22:40:44,416 - MainForm - INFO - Using hardcoded dropdown values
+2025-07-19 22:40:44,417 - PendingVehiclesPanel - INFO - PendingVehiclesPanel initialized
+2025-07-19 22:40:44,423 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-07-19 22:40:44,424 - DataManager - INFO - Successfully loaded 0 records from data\Tharuni_Associates_Kadapa_data.csv
+2025-07-19 22:40:44,425 - PendingVehiclesPanel - INFO - Retrieved 0 total records
+2025-07-19 22:40:44,425 - PendingVehiclesPanel - INFO - Found 0 unique pending vehicles, prevented 0 duplicates
+2025-07-19 22:40:44,426 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 unique vehicles
+2025-07-19 22:40:44,427 - TharuniApp - INFO - Pending vehicles panel created
+2025-07-19 22:40:44,596 - TharuniApp - INFO - Main panel creation completed
+2025-07-19 22:40:44,603 - TharuniApp - INFO - Summary panel created
+2025-07-19 22:40:44,608 - weighbridge - INFO - Enhanced logging initialized for WeighbridgeManager
+2025-07-19 22:40:44,609 - weighbridge - INFO - Initializing WeighbridgeManager
+2025-07-19 22:40:44,610 - weighbridge - DEBUG - Weight parsing patterns compiled successfully
+2025-07-19 22:40:44,611 - weighbridge - DEBUG - Signal handlers registered
+2025-07-19 22:40:44,612 - weighbridge - INFO - SUCCESS: WeighbridgeManager initialized successfully
+2025-07-19 22:40:44,616 - weighbridge - DEBUG - Scanning for available COM ports
+2025-07-19 22:40:44,624 - weighbridge - WARNING - No COM ports found
+2025-07-19 22:40:44,800 - weighbridge - WARNING - Test mode ENABLED - weighbridge will simulate readings
+2025-07-19 22:40:44,804 - TharuniApp - INFO - ✅ Data manager reference set in settings panel
+2025-07-19 22:40:44,805 - TharuniApp - INFO - Widget creation completed successfully
+2025-07-19 22:40:44,806 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-07-19 22:40:44,807 - DataManager - INFO - Successfully loaded 0 records from data\Tharuni_Associates_Kadapa_data.csv
+2025-07-19 22:40:44,807 - PendingVehiclesPanel - INFO - Retrieved 0 total records
+2025-07-19 22:40:44,808 - PendingVehiclesPanel - INFO - Found 0 unique pending vehicles, prevented 0 duplicates
+2025-07-19 22:40:44,810 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 unique vehicles
+2025-07-19 22:40:44,813 - TharuniApp - INFO - Application initialization completed successfully
+2025-07-19 22:40:45,805 - TharuniApp - INFO - Ensuring settings persistence...
+2025-07-19 22:40:45,809 - TharuniApp - INFO - Found saved weighbridge settings: {'com_port': 'COM3', 'baud_rate': 9600, 'data_bits': 8, 'parity': 'None', 'stop_bits': 1.0, 'test_mode': True}
+2025-07-19 22:40:45,810 - TharuniApp - INFO - Settings persistence check completed
+2025-07-19 22:40:46,456 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:40:47,824 - weighbridge - DEBUG - Scanning for available COM ports
+2025-07-19 22:40:47,829 - weighbridge - WARNING - No COM ports found
+2025-07-19 22:40:48,489 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:40:50,515 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:40:52,450 - camera_camera - INFO - SUCCESS: Camera connection stabilized
+2025-07-19 22:40:52,540 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:40:54,277 - DataManager - INFO - Successfully loaded 0 records from data\Tharuni_Associates_Kadapa_data.csv
+2025-07-19 22:40:54,278 - DataManager - INFO - Returning all 0 records (no filter)
+2025-07-19 22:40:54,568 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:00,325 - camera_camera - DEBUG - Resource usage - CPU: 18.9%, Memory: 84.6%
+2025-07-19 22:41:00,345 - camera_camera - DEBUG - Resource usage - CPU: 18.7%, Memory: 84.6%
+2025-07-19 22:41:01,621 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:03,673 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:04,361 - camera_camera - WARNING - High memory usage (85.1%), triggering garbage collection
+2025-07-19 22:41:04,398 - camera_camera - WARNING - High memory usage (85.1%), triggering garbage collection
+2025-07-19 22:41:05,721 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:07,766 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:08,425 - camera_camera - WARNING - High memory usage (85.1%), triggering garbage collection
+2025-07-19 22:41:08,473 - camera_camera - WARNING - High memory usage (85.1%), triggering garbage collection
+2025-07-19 22:41:09,803 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:11,835 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:12,508 - camera_camera - WARNING - High memory usage (85.7%), triggering garbage collection
+2025-07-19 22:41:12,562 - camera_camera - WARNING - High memory usage (85.7%), triggering garbage collection
+2025-07-19 22:41:14,562 - camera_camera - WARNING - High memory usage (85.8%), triggering garbage collection
+2025-07-19 22:41:14,621 - camera_camera - WARNING - High memory usage (85.9%), triggering garbage collection
+2025-07-19 22:41:16,624 - camera_camera - WARNING - High memory usage (85.8%), triggering garbage collection
+2025-07-19 22:41:16,671 - camera_camera - WARNING - High memory usage (85.8%), triggering garbage collection
+2025-07-19 22:41:17,788 - DataManager - INFO - Successfully loaded 108 records from data\Tharuni_Associates_Kadapa_data.csv
+2025-07-19 22:41:17,788 - DataManager - INFO - Returning all 108 records (no filter)
+2025-07-19 22:41:18,687 - camera_camera - WARNING - High memory usage (85.8%), triggering garbage collection
+2025-07-19 22:41:18,731 - camera_camera - WARNING - High memory usage (85.8%), triggering garbage collection
+2025-07-19 22:41:18,883 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:20,752 - camera_camera - WARNING - High memory usage (85.5%), triggering garbage collection
+2025-07-19 22:41:20,798 - camera_camera - WARNING - High memory usage (85.5%), triggering garbage collection
+2025-07-19 22:41:20,942 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:22,586 - DataManager - INFO - Successfully loaded 108 records from data\Tharuni_Associates_Kadapa_data.csv
+2025-07-19 22:41:22,790 - camera_camera - WARNING - High memory usage (85.1%), triggering garbage collection
+2025-07-19 22:41:22,854 - camera_camera - WARNING - High memory usage (85.1%), triggering garbage collection
+2025-07-19 22:41:22,983 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:25,028 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:27,051 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:29,092 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:30,912 - camera_camera - DEBUG - Resource usage - CPU: 19.8%, Memory: 84.7%
+2025-07-19 22:41:30,968 - camera_camera - DEBUG - Resource usage - CPU: 20.1%, Memory: 84.7%
+2025-07-19 22:41:36,123 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:38,172 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:40,212 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:40,985 - camera_camera - WARNING - High memory usage (85.5%), triggering garbage collection
+2025-07-19 22:41:41,043 - camera_camera - WARNING - High memory usage (85.4%), triggering garbage collection
+2025-07-19 22:41:42,246 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:43,050 - camera_camera - WARNING - High memory usage (85.5%), triggering garbage collection
+2025-07-19 22:41:43,093 - camera_camera - WARNING - High memory usage (85.4%), triggering garbage collection
+2025-07-19 22:41:44,287 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:44,289 - camera_camera - DEBUG - Performed garbage collection
+2025-07-19 22:41:44,832 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-07-19 22:41:44,839 - DataManager - INFO - Successfully loaded 108 records from data\Tharuni_Associates_Kadapa_data.csv
+2025-07-19 22:41:44,841 - PendingVehiclesPanel - INFO - Retrieved 108 total records
+2025-07-19 22:41:44,916 - PendingVehiclesPanel - INFO - Found 0 unique pending vehicles, prevented 0 duplicates
+2025-07-19 22:41:44,916 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 unique vehicles
+2025-07-19 22:41:46,311 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:53,345 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:55,398 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:57,447 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:41:59,493 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:01,542 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:03,589 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:09,320 - camera_camera - WARNING - High memory usage (85.5%), triggering garbage collection
+2025-07-19 22:42:09,365 - camera_camera - WARNING - High memory usage (85.4%), triggering garbage collection
+2025-07-19 22:42:10,623 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:11,378 - camera_camera - WARNING - High memory usage (85.4%), triggering garbage collection
+2025-07-19 22:42:11,421 - camera_camera - WARNING - High memory usage (85.4%), triggering garbage collection
+2025-07-19 22:42:12,656 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:13,444 - camera_camera - WARNING - High memory usage (85.2%), triggering garbage collection
+2025-07-19 22:42:13,487 - camera_camera - WARNING - High memory usage (85.2%), triggering garbage collection
+2025-07-19 22:42:14,689 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:15,509 - camera_camera - WARNING - High memory usage (85.2%), triggering garbage collection
+2025-07-19 22:42:15,550 - camera_camera - WARNING - High memory usage (85.2%), triggering garbage collection
+2025-07-19 22:42:16,722 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:17,576 - camera_camera - WARNING - High memory usage (88.0%), triggering garbage collection
+2025-07-19 22:42:17,625 - camera_camera - WARNING - High memory usage (88.1%), triggering garbage collection
+2025-07-19 22:42:18,755 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:19,649 - camera_camera - WARNING - High memory usage (88.5%), triggering garbage collection
+2025-07-19 22:42:19,690 - camera_camera - WARNING - High memory usage (88.5%), triggering garbage collection
+2025-07-19 22:42:20,790 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:21,709 - camera_camera - WARNING - High memory usage (88.2%), triggering garbage collection
+2025-07-19 22:42:21,753 - camera_camera - WARNING - High memory usage (88.1%), triggering garbage collection
+2025-07-19 22:42:23,776 - camera_camera - WARNING - High memory usage (91.7%), triggering garbage collection
+2025-07-19 22:42:23,893 - camera_camera - WARNING - High memory usage (91.3%), triggering garbage collection
+2025-07-19 22:42:25,887 - camera_camera - WARNING - High memory usage (94.5%), triggering garbage collection
+2025-07-19 22:42:25,942 - camera_camera - WARNING - High memory usage (94.3%), triggering garbage collection
+2025-07-19 22:42:27,873 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:27,940 - camera_camera - WARNING - High memory usage (93.9%), triggering garbage collection
+2025-07-19 22:42:28,008 - camera_camera - WARNING - High memory usage (93.9%), triggering garbage collection
+2025-07-19 22:42:29,915 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:29,995 - camera_camera - WARNING - High memory usage (93.9%), triggering garbage collection
+2025-07-19 22:42:30,071 - camera_camera - WARNING - High memory usage (93.9%), triggering garbage collection
+2025-07-19 22:42:30,117 - camera_camera - DEBUG - Resource usage - CPU: 34.1%, Memory: 93.9%
+2025-07-19 22:42:31,940 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:32,056 - camera_camera - WARNING - High memory usage (91.5%), triggering garbage collection
+2025-07-19 22:42:32,139 - camera_camera - WARNING - High memory usage (91.5%), triggering garbage collection
+2025-07-19 22:42:33,969 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:34,106 - camera_camera - WARNING - High memory usage (91.5%), triggering garbage collection
+2025-07-19 22:42:34,203 - camera_camera - WARNING - High memory usage (91.5%), triggering garbage collection
+2025-07-19 22:42:36,019 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:36,168 - camera_camera - WARNING - High memory usage (90.2%), triggering garbage collection
+2025-07-19 22:42:36,264 - camera_camera - WARNING - High memory usage (90.3%), triggering garbage collection
+2025-07-19 22:42:38,055 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:38,228 - camera_camera - WARNING - High memory usage (90.5%), triggering garbage collection
+2025-07-19 22:42:38,331 - camera_camera - WARNING - High memory usage (90.4%), triggering garbage collection
+2025-07-19 22:42:40,287 - camera_camera - WARNING - High memory usage (89.0%), triggering garbage collection
+2025-07-19 22:42:40,372 - camera_camera - WARNING - High memory usage (89.0%), triggering garbage collection
+2025-07-19 22:42:42,336 - camera_camera - WARNING - High memory usage (90.0%), triggering garbage collection
+2025-07-19 22:42:42,422 - camera_camera - WARNING - High memory usage (89.9%), triggering garbage collection
+2025-07-19 22:42:44,322 - camera_camera - DEBUG - Performed garbage collection
+2025-07-19 22:42:44,387 - camera_camera - WARNING - High memory usage (89.7%), triggering garbage collection
+2025-07-19 22:42:44,469 - camera_camera - WARNING - High memory usage (89.7%), triggering garbage collection
+2025-07-19 22:42:44,926 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-07-19 22:42:44,932 - DataManager - INFO - Successfully loaded 108 records from data\Tharuni_Associates_Kadapa_data.csv
+2025-07-19 22:42:44,934 - PendingVehiclesPanel - INFO - Retrieved 108 total records
+2025-07-19 22:42:44,997 - PendingVehiclesPanel - INFO - Found 0 unique pending vehicles, prevented 0 duplicates
+2025-07-19 22:42:44,997 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 unique vehicles
+2025-07-19 22:42:45,098 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:46,437 - camera_camera - WARNING - High memory usage (89.7%), triggering garbage collection
+2025-07-19 22:42:46,534 - camera_camera - WARNING - High memory usage (89.7%), triggering garbage collection
+2025-07-19 22:42:47,149 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:48,491 - camera_camera - WARNING - High memory usage (88.2%), triggering garbage collection
+2025-07-19 22:42:48,585 - camera_camera - WARNING - High memory usage (88.2%), triggering garbage collection
+2025-07-19 22:42:49,184 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:50,573 - camera_camera - WARNING - High memory usage (87.9%), triggering garbage collection
+2025-07-19 22:42:50,650 - camera_camera - WARNING - High memory usage (87.9%), triggering garbage collection
+2025-07-19 22:42:51,233 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:52,640 - camera_camera - WARNING - High memory usage (87.7%), triggering garbage collection
+2025-07-19 22:42:52,702 - camera_camera - WARNING - High memory usage (87.6%), triggering garbage collection
+2025-07-19 22:42:53,281 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:54,706 - camera_camera - WARNING - High memory usage (87.8%), triggering garbage collection
+2025-07-19 22:42:54,757 - camera_camera - WARNING - High memory usage (87.8%), triggering garbage collection
+2025-07-19 22:42:55,315 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:42:56,767 - camera_camera - WARNING - High memory usage (90.0%), triggering garbage collection
+2025-07-19 22:42:56,813 - camera_camera - WARNING - High memory usage (90.0%), triggering garbage collection
+2025-07-19 22:42:58,823 - camera_camera - WARNING - High memory usage (90.5%), triggering garbage collection
+2025-07-19 22:42:58,874 - camera_camera - WARNING - High memory usage (90.5%), triggering garbage collection
+2025-07-19 22:43:00,888 - camera_camera - WARNING - High memory usage (90.6%), triggering garbage collection
+2025-07-19 22:43:00,936 - camera_camera - DEBUG - Resource usage - CPU: 20.8%, Memory: 90.6%
+2025-07-19 22:43:00,936 - camera_camera - WARNING - High memory usage (90.6%), triggering garbage collection
+2025-07-19 22:43:00,971 - camera_camera - DEBUG - Resource usage - CPU: 20.6%, Memory: 90.6%
+2025-07-19 22:43:02,347 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:43:02,954 - camera_camera - WARNING - High memory usage (90.6%), triggering garbage collection
+2025-07-19 22:43:02,999 - camera_camera - WARNING - High memory usage (90.5%), triggering garbage collection
+2025-07-19 22:43:04,380 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:43:05,012 - camera_camera - WARNING - High memory usage (90.7%), triggering garbage collection
+2025-07-19 22:43:05,050 - camera_camera - WARNING - High memory usage (90.7%), triggering garbage collection
+2025-07-19 22:43:06,478 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:43:07,066 - camera_camera - WARNING - High memory usage (91.1%), triggering garbage collection
+2025-07-19 22:43:07,116 - camera_camera - WARNING - High memory usage (91.1%), triggering garbage collection
+2025-07-19 22:43:08,511 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:43:09,129 - camera_camera - WARNING - High memory usage (90.6%), triggering garbage collection
+2025-07-19 22:43:09,166 - camera_camera - WARNING - High memory usage (90.6%), triggering garbage collection
+2025-07-19 22:43:10,550 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:43:11,181 - camera_camera - WARNING - High memory usage (91.3%), triggering garbage collection
+2025-07-19 22:43:11,219 - camera_camera - WARNING - High memory usage (91.3%), triggering garbage collection
+2025-07-19 22:43:12,578 - camera_camera - DEBUG - Initializing USB camera
+2025-07-19 22:43:13,249 - camera_camera - WARNING - High memory usage (90.9%), triggering garbage collection
+2025-07-19 22:43:13,292 - camera_camera - WARNING - High memory usage (90.9%), triggering garbage collection
+2025-07-19 22:43:15,303 - camera_camera - WARNING - High memory usage (90.8%), triggering garbage collection
+2025-07-19 22:43:15,350 - camera_camera - WARNING - High memory usage (90.8%), triggering garbage collection
+2025-07-19 22:43:15,562 - TharuniApp - INFO - User logging out...
+2025-07-19 22:43:15,562 - camera_camera - INFO - Stopping camera feed
+2025-07-19 22:43:15,638 - camera_camera - INFO - Optimized video capture loop ending
+2025-07-19 22:43:15,961 - camera_camera - INFO - Stopping camera feed
+2025-07-19 22:43:15,962 - camera_camera - INFO - Optimized video capture loop ending
+2025-07-19 22:43:15,968 - TharuniApp - INFO - Updating camera settings: {'front_camera_type': 'USB', 'front_camera_index': 0, 'front_rtsp_username': '', 'front_rtsp_password': '', 'front_rtsp_ip': '', 'front_rtsp_port': '554', 'front_rtsp_endpoint': '/stream1', 'front_http_username': '', 'front_http_password': '', 'front_http_ip': '', 'front_http_port': '80', 'front_http_endpoint': '/mjpeg', 'back_camera_type': 'USB', 'back_camera_index': 1, 'back_rtsp_username': '', 'back_rtsp_password': '', 'back_rtsp_ip': '', 'back_rtsp_port': '554', 'back_rtsp_endpoint': '/stream1', 'back_http_username': '', 'back_http_password': '', 'back_http_ip': '', 'back_http_port': '80', 'back_http_endpoint': '/mjpeg'}
+2025-07-19 22:43:15,969 - camera_camera - INFO - Stopping camera feed
+2025-07-19 22:43:15,970 - camera_camera - INFO - Stopping camera feed
+2025-07-19 22:43:15,974 - TharuniApp - INFO - Camera settings saved for persistence
+2025-07-19 22:43:15,975 - weighbridge - INFO - Initiating weighbridge disconnection
+2025-07-19 22:43:15,976 - weighbridge - INFO - SUCCESS: Weighbridge disconnected successfully
+2025-07-19 22:43:15,976 - TharuniApp - INFO - Logout completed - closing application
+2025-07-19 22:43:16,005 - TharuniApp - INFO - Application closing - saving settings...
+2025-07-19 22:43:16,015 - TharuniApp - INFO - Updating camera settings: {'front_camera_type': 'USB', 'front_camera_index': 0, 'front_rtsp_username': '', 'front_rtsp_password': '', 'front_rtsp_ip': '', 'front_rtsp_port': '554', 'front_rtsp_endpoint': '/stream1', 'front_http_username': '', 'front_http_password': '', 'front_http_ip': '', 'front_http_port': '80', 'front_http_endpoint': '/mjpeg', 'back_camera_type': 'USB', 'back_camera_index': 1, 'back_rtsp_username': '', 'back_rtsp_password': '', 'back_rtsp_ip': '', 'back_rtsp_port': '554', 'back_rtsp_endpoint': '/stream1', 'back_http_username': '', 'back_http_password': '', 'back_http_ip': '', 'back_http_port': '80', 'back_http_endpoint': '/mjpeg'}
+2025-07-19 22:43:16,018 - camera_camera - INFO - Stopping camera feed
+2025-07-19 22:43:16,020 - camera_camera - INFO - Stopping camera feed
+2025-07-19 22:43:16,032 - TharuniApp - INFO - Camera settings saved for persistence
+2025-07-19 22:43:16,032 - weighbridge - INFO - Initiating weighbridge disconnection
+2025-07-19 22:43:16,033 - weighbridge - INFO - SUCCESS: Weighbridge disconnected successfully
+2025-07-19 22:43:16,034 - camera_camera - INFO - Stopping camera feed
+2025-07-19 22:43:16,036 - camera_camera - INFO - Stopping camera feed
+2025-07-19 22:43:16,037 - TharuniApp - INFO - ============================================================
+2025-07-19 22:43:16,038 - TharuniApp - INFO - APPLICATION SHUTDOWN COMPLETED
+2025-07-19 22:43:16,038 - TharuniApp - INFO - ============================================================
+2025-07-19 22:43:16,038 - TharuniApp - ERROR - Error during shutdown: can't invoke "destroy" command: application has been destroyed

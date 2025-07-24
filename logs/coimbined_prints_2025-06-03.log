@@ -1,0 +1,2265 @@
+2025-06-03 16:53:14 - PRINT - 📋 Unified logging initialized:
+2025-06-03 16:53:14 - PRINT -    📄 Combined log: logs\coimbined_combined_2025-06-03.log
+2025-06-03 16:53:14 - PRINT -    🖨️  Print log: logs\coimbined_prints_2025-06-03.log
+2025-06-03 16:53:14 - PRINT -    📱 App log: logs\coimbined_app_2025-06-03.log
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,874 - TharuniApp - INFO - ============================================================
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,877 - TharuniApp - INFO - APPLICATION STARTUP
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,878 - TharuniApp - INFO - ============================================================
+2025-06-03 16:53:14 - PRINT - 📁 Unified folder structure initialized:
+2025-06-03 16:53:14 - PRINT -    • Data: data
+2025-06-03 16:53:14 - PRINT -    • Images: data\images
+2025-06-03 16:53:14 - PRINT -    • Reports: data\reports
+2025-06-03 16:53:14 - PRINT -    • JSON Backups: data\json_backups
+2025-06-03 16:53:14 - PRINT - 🔒 OFFLINE-FIRST MODE ENABLED
+2025-06-03 16:53:14 - PRINT -    • Records and PDFs saved locally first
+2025-06-03 16:53:14 - PRINT -    • JSON backups created for complete records
+2025-06-03 16:53:14 - PRINT -    • Cloud backup available via Settings > Backup
+2025-06-03 16:53:14 - PRINT -    • No internet connection delays during regular saves
+2025-06-03 16:53:14 - PRINT -    • Today's reports folder: data\reports\2025-06-03
+2025-06-03 16:53:14 - PRINT -    • Today's JSON backups folder: data\json_backups\2025-06-03
+2025-06-03 16:53:14 - PRINT -    • Auto cleanup: Keep 10 days, check every 1 day(s)
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,895 - TharuniApp - INFO - Configuration setup completed
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,896 - DataManager - INFO - DataManager initialized with OFFLINE-FIRST approach + JSON local storage
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,897 - DataManager - INFO - CSV structure is up to date
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,899 - DataManager - INFO - Daily PDF folder structure ready:
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,900 - DataManager - INFO -   Base reports folder: data\reports
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,901 - DataManager - INFO -   Today's folder: data\reports\2025-06-03
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,902 - DataManager - INFO - Data file: data\weighbridge_data.csv
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,903 - DataManager - INFO - Reports folder: data\reports
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,904 - DataManager - INFO - JSON backup folder: data\json_backups
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,905 - DataManager - INFO - PDF folder: data\reports\2025-06-03
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,907 - DataManager - INFO - Cloud storage will only be initialized when backup is requested
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,908 - TharuniApp - INFO - Data manager initialized
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,911 - TharuniApp - INFO - Settings storage initialized
+2025-06-03 16:53:14 - PRINT - Reading weighbridge settings from: data\app_settings.json
+2025-06-03 16:53:14 - PRINT - Loaded weighbridge settings: {'com_port': '', 'baud_rate': 2400, 'data_bits': 8, 'parity': 'None', 'stop_bits': 1.0, 'test_mode': True}
+2025-06-03 16:53:14 - PRINT - Reading camera settings from: data\app_settings.json
+2025-06-03 16:53:14 - PRINT - Loaded camera settings: {'front_camera_type': 'USB', 'front_camera_index': 0, 'front_rtsp_username': '', 'front_rtsp_password': '', 'front_rtsp_ip': '', 'front_rtsp_port': '554', 'front_rtsp_endpoint': '/stream1', 'front_http_username': '', 'front_http_password': '', 'front_http_ip': '', 'front_http_port': '80', 'front_http_endpoint': '/mjpeg', 'back_camera_type': 'USB', 'back_camera_index': 1, 'back_rtsp_username': '', 'back_rtsp_password': '', 'back_rtsp_ip': '', 'back_rtsp_port': '554', 'back_rtsp_endpoint': '/stream1', 'back_http_username': '', 'back_http_password': '', 'back_http_ip': '', 'back_http_port': '80', 'back_http_endpoint': '/mjpeg'}
+2025-06-03 16:53:14 - PRINT - Settings integrity check passed
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,917 - TharuniApp - INFO - UI styles initialized
+2025-06-03 16:53:14 - ERROR - 2025-06-03 16:53:14,918 - TharuniApp - INFO - Starting user authentication
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,331 - TharuniApp - INFO - Authentication successful: admin
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,332 - TharuniApp - INFO - User logged in: admin (Role: admin)
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,333 - TharuniApp - INFO - Setting up data context
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,334 - DataManager - INFO - CSV structure is up to date
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,335 - DataManager - INFO - Data context set to: Agency='Tharuni', Site='Guntur'
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,336 - DataManager - INFO - Data file: data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,338 - TharuniApp - INFO - Data context initialized: Agency='Tharuni', Site='Guntur'
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,339 - TharuniApp - INFO - Data will be saved to: data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,343 - TharuniApp - INFO - PDFs will be saved to: data\reports\2025-06-03
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,345 - TharuniApp - INFO - Creating application widgets
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,353 - TharuniApp - INFO - Creating main panel
+2025-06-03 16:53:18 - PRINT - 🎫 FORM DEBUG: Reserving next ticket number...
+2025-06-03 16:53:18 - PRINT - 🎫 CONFIG DEBUG: Reserving next ticket number...
+2025-06-03 16:53:18 - PRINT - 🎫 CONFIG DEBUG: Current ticket counter value: 29
+2025-06-03 16:53:18 - PRINT - 🎫 CONFIG DEBUG: Reserved ticket number: T0029
+2025-06-03 16:53:18 - PRINT - 🎫 FORM DEBUG: Reserved ticket number: T0029
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,365 - FormValidator - INFO - FormValidator initialized
+2025-06-03 16:53:18 - PRINT - ImageHandler initialized
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,377 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:18 - PRINT - 🔍 Detecting available USB cameras...
+2025-06-03 16:53:18 - PRINT - Error detecting cameras: type object 'RobustCameraView' has no attribute 'detect_available_cameras'
+2025-06-03 16:53:18 - PRINT - Reading camera settings from: data\app_settings.json
+2025-06-03 16:53:18 - PRINT - Loaded camera settings: {'front_camera_type': 'USB', 'front_camera_index': 0, 'front_rtsp_username': '', 'front_rtsp_password': '', 'front_rtsp_ip': '', 'front_rtsp_port': '554', 'front_rtsp_endpoint': '/stream1', 'front_http_username': '', 'front_http_password': '', 'front_http_ip': '', 'front_http_port': '80', 'front_http_endpoint': '/mjpeg', 'back_camera_type': 'USB', 'back_camera_index': 1, 'back_rtsp_username': '', 'back_rtsp_password': '', 'back_rtsp_ip': '', 'back_rtsp_port': '554', 'back_rtsp_endpoint': '/stream1', 'back_http_username': '', 'back_http_password': '', 'back_http_ip': '', 'back_http_port': '80', 'back_http_endpoint': '/mjpeg'}
+2025-06-03 16:53:18 - PRINT - Front camera configured for USB index: 0
+2025-06-03 16:53:18 - PRINT - Back camera configured for USB index: 1
+2025-06-03 16:53:18 - PRINT - Camera settings loaded and applied to robust feed system
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,995 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,996 - TharuniApp - INFO - Main form created
+2025-06-03 16:53:18 - ERROR - 2025-06-03 16:53:18,999 - DataManager - INFO - CSV structure is up to date
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,000 - DataManager - INFO - Data context set to: Agency='Tharuni', Site='Guntur'
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,001 - DataManager - INFO - Data file: data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:19 - PRINT - Updated data context: Tharuni_Guntur
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,003 - DataManager - INFO - CSV structure is up to date
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,004 - DataManager - INFO - Data context set to: Agency='Tharuni', Site='Guntur'
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,005 - DataManager - INFO - Data file: data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:19 - PRINT - Updated data context: Tharuni_Guntur
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,007 - DataManager - INFO - CSV structure is up to date
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,008 - DataManager - INFO - Data context set to: Agency='Tharuni', Site='Guntur'
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,009 - DataManager - INFO - Data file: data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:19 - PRINT - Updated data context: Tharuni_Guntur
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,011 - PendingVehiclesPanel - INFO - PendingVehiclesPanel initialized
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Refreshing pending vehicles list...
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,019 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,022 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Retrieved 26 total records
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,024 - PendingVehiclesPanel - INFO - Retrieved 26 total records
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0001:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '18960.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 00:40:48' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '11830.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 00:40:59' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0001 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0002:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '28220.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 00:42:26' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '9850.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 00:43:02' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0002 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0003:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '43320.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:40:08' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '9780.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:41:33' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0003 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0004:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '18980.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:40:20' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '12170.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:41:14' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0004 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0005:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '42940.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:40:39' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '5020.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:40:49' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0005 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0008:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '36030.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:47:16' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '9240.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:48:23' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0008 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0009:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '22970.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:47:28' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '7740.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:47:58' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0009 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0010:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '42420.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:48:39' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '11590.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:48:41' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0010 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0011:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '20250.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:49:01' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '14800.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:49:53' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0011 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0012:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '36480.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:49:27' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '7040.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:49:38' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0012 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0013:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '30980.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 02:32:11' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '5630.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 02:33:09' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0013 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0014:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '39650.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 02:32:43' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '14760.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 02:32:45' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0014 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0015:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '16400.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 02:44:27' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '9680.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 02:44:40' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0015 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0016:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '36640.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 02:51:04' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '12690.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 02:51:39' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0016 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0017:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '15220.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 02:51:17' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '11360.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 02:51:19' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0017 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0018:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '29250.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:01:32' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '6400.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:01:35' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0018 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0019:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '24230.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:01:58' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '6750.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:04:17' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0019 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0020:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '27150.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:02:44' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '8790.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:04:29' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0020 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0021:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '41150.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:03:06' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '8270.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:04:44' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0021 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0022:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '37430.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:03:34' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:03:38' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0022 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0023:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '23850.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:18:27' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '10450.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:19:12' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0023 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0024:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '29420.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:18:42' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '10720.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:19:26' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0024 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0025:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '37300.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:18:54' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '9940.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:18:56' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0025 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0026:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '22850.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:24:56' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:24:57' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0026 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0027:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '25330.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:26:40' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '10110.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:26:41' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0027 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0028:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '39320.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:29:28' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '12160.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:29:30' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0028 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Found 0 pending records
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,225 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ✅ Successfully refreshed pending list with 0 items
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,227 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,229 - TharuniApp - INFO - Pending vehicles panel created
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,431 - TharuniApp - INFO - Main panel creation completed
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,440 - TharuniApp - INFO - Summary panel created
+2025-06-03 16:53:19 - PRINT - ❌ Could not find data_manager anywhere
+2025-06-03 16:53:19 - PRINT - Available attributes in self:
+2025-06-03 16:53:19 - PRINT - ['data_bits_var', 'find_data_manager']
+2025-06-03 16:53:19 - PRINT - Loading saved settings...
+2025-06-03 16:53:19 - PRINT - Reading weighbridge settings from: data\app_settings.json
+2025-06-03 16:53:19 - PRINT - Loaded weighbridge settings: {'com_port': '', 'baud_rate': 2400, 'data_bits': 8, 'parity': 'None', 'stop_bits': 1.0, 'test_mode': True}
+2025-06-03 16:53:19 - PRINT - WeighbridgeManager test mode set to: True
+2025-06-03 16:53:19 - PRINT - Applied test mode True to weighbridge manager
+2025-06-03 16:53:19 - PRINT - Loaded weighbridge settings with test mode: True
+2025-06-03 16:53:19 - PRINT - Reading camera settings from: data\app_settings.json
+2025-06-03 16:53:19 - PRINT - Loaded camera settings: {'front_camera_type': 'USB', 'front_camera_index': 0, 'front_rtsp_username': '', 'front_rtsp_password': '', 'front_rtsp_ip': '', 'front_rtsp_port': '554', 'front_rtsp_endpoint': '/stream1', 'front_http_username': '', 'front_http_password': '', 'front_http_ip': '', 'front_http_port': '80', 'front_http_endpoint': '/mjpeg', 'back_camera_type': 'USB', 'back_camera_index': 1, 'back_rtsp_username': '', 'back_rtsp_password': '', 'back_rtsp_ip': '', 'back_rtsp_port': '554', 'back_rtsp_endpoint': '/stream1', 'back_http_username': '', 'back_http_password': '', 'back_http_ip': '', 'back_http_port': '80', 'back_http_endpoint': '/mjpeg'}
+2025-06-03 16:53:19 - PRINT - Loading camera settings: {'front_camera_type': 'USB', 'front_camera_index': 0, 'front_rtsp_username': '', 'front_rtsp_password': '', 'front_rtsp_ip': '', 'front_rtsp_port': '554', 'front_rtsp_endpoint': '/stream1', 'front_http_username': '', 'front_http_password': '', 'front_http_ip': '', 'front_http_port': '80', 'front_http_endpoint': '/mjpeg', 'back_camera_type': 'USB', 'back_camera_index': 1, 'back_rtsp_username': '', 'back_rtsp_password': '', 'back_rtsp_ip': '', 'back_rtsp_port': '554', 'back_rtsp_endpoint': '/stream1', 'back_http_username': '', 'back_http_password': '', 'back_http_ip': '', 'back_http_port': '80', 'back_http_endpoint': '/mjpeg'}
+2025-06-03 16:53:19 - PRINT - Camera settings loaded successfully
+2025-06-03 16:53:19 - PRINT - All settings loaded successfully
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,672 - TharuniApp - INFO - ✅ Data manager reference set in settings panel
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,673 - TharuniApp - INFO - Widget creation completed successfully
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Refreshing pending vehicles list...
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,676 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,677 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Retrieved 26 total records
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,679 - PendingVehiclesPanel - INFO - Retrieved 26 total records
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0001:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '18960.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 00:40:48' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '11830.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 00:40:59' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0001 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0002:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '28220.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 00:42:26' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '9850.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 00:43:02' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0002 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0003:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '43320.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:40:08' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '9780.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:41:33' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0003 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0004:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '18980.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:40:20' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '12170.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:41:14' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0004 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0005:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '42940.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:40:39' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '5020.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:40:49' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0005 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0008:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '36030.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:47:16' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '9240.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:48:23' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0008 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0009:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '22970.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:47:28' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '7740.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:47:58' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0009 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0010:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '42420.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:48:39' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '11590.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:48:41' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0010 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0011:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '20250.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:49:01' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '14800.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:49:53' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0011 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0012:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '36480.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 01:49:27' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '7040.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 01:49:38' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0012 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0013:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '30980.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 02:32:11' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '5630.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 02:33:09' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0013 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0014:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '39650.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 02:32:43' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '14760.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 02:32:45' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0014 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0015:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '16400.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 02:44:27' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '9680.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 02:44:40' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0015 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0016:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '36640.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 02:51:04' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '12690.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 02:51:39' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0016 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0017:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '15220.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 02:51:17' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '11360.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 02:51:19' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0017 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0018:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '29250.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:01:32' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '6400.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:01:35' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0018 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0019:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '24230.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:01:58' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '6750.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:04:17' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0019 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0020:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '27150.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:02:44' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '8790.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:04:29' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0020 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0021:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '41150.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:03:06' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '8270.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:04:44' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0021 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0022:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '37430.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:03:34' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:03:38' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0022 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0023:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '23850.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:18:27' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '10450.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:19:12' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0023 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0024:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '29420.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:18:42' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '10720.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:19:26' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0024 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0025:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '37300.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:18:54' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '9940.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:18:56' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0025 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0026:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '22850.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:24:56' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:24:57' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0026 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0027:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '25330.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:26:40' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '10110.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:26:41' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0027 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0028:
+2025-06-03 16:53:19 - PRINT -    - first_weight: '39320.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - first_timestamp: '03-06-2025 16:29:28' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_weight: '12160.00' (has: True)
+2025-06-03 16:53:19 - PRINT -    - second_timestamp: '03-06-2025 16:29:30' (has: True)
+2025-06-03 16:53:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0028 - not pending
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: Found 0 pending records
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,845 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 16:53:19 - PRINT - 🚛 PENDING DEBUG: ✅ Successfully refreshed pending list with 0 items
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,847 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,848 - DataManager - INFO - Created new daily folder: data\reports\03-06
+2025-06-03 16:53:19 - PRINT - 📂 Loaded 0 items from queue file
+2025-06-03 16:53:19 - PRINT - 📥 Queue initialized with 0 items
+2025-06-03 16:53:19 - PRINT - 🚀 Fast sync manager initialized with parallel processing
+2025-06-03 16:53:19 - PRINT - 🔍 Connectivity checker started
+2025-06-03 16:53:19 - PRINT - 🎛️ Enhanced connectivity UI initialized with fast sync
+2025-06-03 16:53:19 - PRINT - ✅ Enhanced FAST connectivity added to app
+2025-06-03 16:53:19 - ERROR - 2025-06-03 16:53:19,857 - TharuniApp - INFO - Application initialization completed successfully
+2025-06-03 16:53:19 - PRINT - 🔄 Connectivity changed: 🌐 ONLINE
+2025-06-03 16:53:20 - PRINT - 🔄 Connectivity status changed: 🌐 Online
+2025-06-03 16:53:20 - PRINT - 🌐 Internet connection detected - starting FAST sync
+2025-06-03 16:53:20 - ERROR - 2025-06-03 16:53:20,681 - TharuniApp - INFO - Ensuring settings persistence...
+2025-06-03 16:53:20 - PRINT - Reading weighbridge settings from: data\app_settings.json
+2025-06-03 16:53:20 - PRINT - Loaded weighbridge settings: {'com_port': '', 'baud_rate': 2400, 'data_bits': 8, 'parity': 'None', 'stop_bits': 1.0, 'test_mode': True}
+2025-06-03 16:53:20 - PRINT - Reading camera settings from: data\app_settings.json
+2025-06-03 16:53:20 - PRINT - Loaded camera settings: {'front_camera_type': 'USB', 'front_camera_index': 0, 'front_rtsp_username': '', 'front_rtsp_password': '', 'front_rtsp_ip': '', 'front_rtsp_port': '554', 'front_rtsp_endpoint': '/stream1', 'front_http_username': '', 'front_http_password': '', 'front_http_ip': '', 'front_http_port': '80', 'front_http_endpoint': '/mjpeg', 'back_camera_type': 'USB', 'back_camera_index': 1, 'back_rtsp_username': '', 'back_rtsp_password': '', 'back_rtsp_ip': '', 'back_rtsp_port': '554', 'back_rtsp_endpoint': '/stream1', 'back_http_username': '', 'back_http_password': '', 'back_http_ip': '', 'back_http_port': '80', 'back_http_endpoint': '/mjpeg'}
+2025-06-03 16:53:20 - PRINT - Settings integrity check passed
+2025-06-03 16:53:20 - PRINT - Reading weighbridge settings from: data\app_settings.json
+2025-06-03 16:53:20 - PRINT - Loaded weighbridge settings: {'com_port': '', 'baud_rate': 2400, 'data_bits': 8, 'parity': 'None', 'stop_bits': 1.0, 'test_mode': True}
+2025-06-03 16:53:20 - ERROR - 2025-06-03 16:53:20,696 - TharuniApp - INFO - Settings persistence check completed
+2025-06-03 16:53:21 - PRINT - 📭 Queue is empty, nothing to sync
+2025-06-03 16:53:21 - PRINT - ℹ️ Fast sync not started (already running or queue empty)
+2025-06-03 16:53:22 - ERROR - 2025-06-03 16:53:22,282 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:22 - ERROR - 2025-06-03 16:53:22,288 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:22 - ERROR - 2025-06-03 16:53:22,289 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:22 - ERROR - 2025-06-03 16:53:22,745 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:23 - ERROR - 2025-06-03 16:53:23,237 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:23 - ERROR - 2025-06-03 16:53:23,240 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:23 - PRINT - Capture weight called
+2025-06-03 16:53:23 - PRINT - Checking test mode...
+2025-06-03 16:53:23 - PRINT - Could not find main app after 8 attempts
+2025-06-03 16:53:23 - PRINT - Creating new SettingsStorage instance
+2025-06-03 16:53:23 - PRINT - Reading weighbridge settings from: data\app_settings.json
+2025-06-03 16:53:23 - PRINT - Loaded weighbridge settings: {'com_port': '', 'baud_rate': 2400, 'data_bits': 8, 'parity': 'None', 'stop_bits': 1.0, 'test_mode': True}
+2025-06-03 16:53:23 - PRINT - Test mode from settings storage: True
+2025-06-03 16:53:23 - PRINT - Test mode is enabled - generating random weight
+2025-06-03 16:53:23 - PRINT - Generating weight for first weighment
+2025-06-03 16:53:23 - PRINT - First weighment - generated: 21480.56385301186
+2025-06-03 16:53:23 - PRINT - Generated random weight: 21480.0 kg
+2025-06-03 16:53:23 - PRINT - Processing captured weight: 21480.0
+2025-06-03 16:53:23 - PRINT - Checking test mode...
+2025-06-03 16:53:23 - PRINT - Could not find main app after 8 attempts
+2025-06-03 16:53:23 - PRINT - Creating new SettingsStorage instance
+2025-06-03 16:53:23 - PRINT - Reading weighbridge settings from: data\app_settings.json
+2025-06-03 16:53:23 - PRINT - Loaded weighbridge settings: {'com_port': '', 'baud_rate': 2400, 'data_bits': 8, 'parity': 'None', 'stop_bits': 1.0, 'test_mode': True}
+2025-06-03 16:53:23 - PRINT - Test mode from settings storage: True
+2025-06-03 16:53:24 - ERROR - 2025-06-03 16:53:24,616 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:24 - ERROR - 2025-06-03 16:53:24,617 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:25 - PRINT - Capture weight called
+2025-06-03 16:53:25 - PRINT - Checking test mode...
+2025-06-03 16:53:25 - PRINT - Could not find main app after 8 attempts
+2025-06-03 16:53:25 - PRINT - Creating new SettingsStorage instance
+2025-06-03 16:53:25 - PRINT - Reading weighbridge settings from: data\app_settings.json
+2025-06-03 16:53:25 - PRINT - Loaded weighbridge settings: {'com_port': '', 'baud_rate': 2400, 'data_bits': 8, 'parity': 'None', 'stop_bits': 1.0, 'test_mode': True}
+2025-06-03 16:53:25 - PRINT - Test mode from settings storage: True
+2025-06-03 16:53:25 - PRINT - Test mode is enabled - generating random weight
+2025-06-03 16:53:25 - PRINT - Generating weight for second weighment
+2025-06-03 16:53:25 - PRINT - Second weighment - generated: 14881.04542920688
+2025-06-03 16:53:25 - PRINT - Generated random weight: 14880.0 kg
+2025-06-03 16:53:25 - PRINT - Processing captured weight: 14880.0
+2025-06-03 16:53:25 - PRINT - Checking test mode...
+2025-06-03 16:53:25 - PRINT - Could not find main app after 8 attempts
+2025-06-03 16:53:25 - PRINT - Creating new SettingsStorage instance
+2025-06-03 16:53:25 - PRINT - Reading weighbridge settings from: data\app_settings.json
+2025-06-03 16:53:25 - PRINT - Loaded weighbridge settings: {'com_port': '', 'baud_rate': 2400, 'data_bits': 8, 'parity': 'None', 'stop_bits': 1.0, 'test_mode': True}
+2025-06-03 16:53:25 - PRINT - Test mode from settings storage: True
+2025-06-03 16:53:25 - ERROR - 2025-06-03 16:53:25,883 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:25 - ERROR - 2025-06-03 16:53:25,886 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:27 - ERROR - 2025-06-03 16:53:27,921 - TharuniApp - INFO - ==================================================
+2025-06-03 16:53:27 - ERROR - 2025-06-03 16:53:27,923 - TharuniApp - INFO - SAVE RECORD OPERATION STARTED WITH SMART TICKET FLOW
+2025-06-03 16:53:27 - ERROR - 2025-06-03 16:53:27,925 - FormValidator - INFO - Starting comprehensive form validation
+2025-06-03 16:53:27 - ERROR - 2025-06-03 16:53:27,927 - FormValidator - INFO - Validating basic fields
+2025-06-03 16:53:27 - ERROR - 2025-06-03 16:53:27,929 - FormValidator - INFO - Field values: ticket='T0029', vehicle='AO07GT0123', agency='Tharuni'
+2025-06-03 16:53:27 - ERROR - 2025-06-03 16:53:27,931 - FormValidator - INFO - Basic validation passed
+2025-06-03 16:53:27 - ERROR - 2025-06-03 16:53:27,933 - FormValidator - INFO - Validating weighment data
+2025-06-03 16:53:27 - ERROR - 2025-06-03 16:53:27,935 - FormValidator - INFO - Weighment data: first_weight='21480.00', first_timestamp='03-06-2025 16:53:23', second_weight='14880.00', second_timestamp='03-06-2025 16:53:25'
+2025-06-03 16:53:27 - ERROR - 2025-06-03 16:53:27,938 - FormValidator - INFO - Weighment validation passed
+2025-06-03 16:53:27 - ERROR - 2025-06-03 16:53:27,940 - FormValidator - INFO - Validating images for second weighment
+2025-06-03 16:53:27 - ERROR - 2025-06-03 16:53:27,942 - FormValidator - INFO - Images validation for second: front=False, back=False
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,301 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,304 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,311 - FormValidator - INFO - User chose to continue without images
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,313 - FormValidator - INFO - Form validation passed successfully
+2025-06-03 16:53:29 - PRINT - Get all image filenames returning: {'first_front_image': '', 'first_back_image': '', 'second_front_image': '', 'second_back_image': ''}
+2025-06-03 16:53:29 - PRINT - DEBUG - User name var: 'admin'
+2025-06-03 16:53:29 - PRINT - DEBUG - Site incharge var: ''
+2025-06-03 16:53:29 - PRINT - DEBUG - Net weight var: '6600.00'
+2025-06-03 16:53:29 - PRINT - DEBUG - Final data user_name: 'admin'
+2025-06-03 16:53:29 - PRINT - DEBUG - Final data site_incharge: ''
+2025-06-03 16:53:29 - PRINT - DEBUG - Final data net_weight: '6600.00'
+2025-06-03 16:53:29 - PRINT - 🎫 TICKET FLOW DEBUG: Starting save for ticket: T0029
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,325 - TharuniApp - INFO - Saving record for ticket: T0029
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,326 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,327 - DataManager - INFO - Filtered 26 records to 0 using filter: 't0029'
+2025-06-03 16:53:29 - PRINT - 🎫 TICKET FLOW DEBUG: This is a NEW record: T0029
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,329 - TharuniApp - INFO - Adding new record: T0029
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,330 - TharuniApp - INFO - Calling data_manager.save_record for T0029
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,331 - DataManager - INFO - ==================================================
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,332 - DataManager - INFO - STARTING OFFLINE-FIRST RECORD SAVE
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,333 - DataManager - INFO - Input data keys: ['date', 'time', 'site_name', 'agency_name', 'material', 'ticket_no', 'vehicle_no', 'transfer_party_name', 'first_weight', 'first_timestamp', 'second_weight', 'second_timestamp', 'net_weight', 'material_type', 'first_front_image', 'first_back_image', 'second_front_image', 'second_back_image', 'site_incharge', 'user_name']
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,334 - DataManager - INFO - Net weight calculated: 21480.0 - 14880.0 = 6600.00
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,336 - DataManager - INFO - Using data file: data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,340 - DataManager - INFO - Successfully loaded 26 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,341 - DataManager - INFO - Filtered 26 records to 0 using filter: 't0029'
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,342 - DataManager - INFO - Adding new record: T0029
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,343 - DataManager - INFO - Adding new record to CSV
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,344 - DataManager - INFO - Record data: ['03-06-2025', '16:53:29', 'Guntur', 'Tharuni', 'Inert', 'T0029', 'AO07GT0123', 'Jindal', '21480.00', '03-06-2025 16:53:23', '14880.00', '03-06-2025 16:53:25', '6600.00', 'Inert', '', '', '', '', '', 'admin']
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,345 - DataManager - INFO - ✅ New record added to data\Tharuni_Guntur_data.csv
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,346 - DataManager - INFO - ✅ Record T0029 saved to local CSV successfully
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,347 - DataManager - INFO - Weighment analysis:
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,348 - DataManager - INFO -   - Has first weighment: True
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,349 - DataManager - INFO -   - Has second weighment: True
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,350 - DataManager - INFO -   - Is first weighment save: False
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,351 - DataManager - INFO -   - Is complete record: True
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,355 - DataManager - INFO -   - Is update: False
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,356 - DataManager - INFO - Complete record detected - saving JSON backup locally...
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,358 - DataManager - INFO - Created new daily JSON folder: data\json_backups\2025-06-03
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,359 - DataManager - INFO - ✅ JSON backup saved: data\json_backups\2025-06-03\T0029_Tharuni_Guntur_165329.json
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,360 - DataManager - INFO - ✅ JSON backup saved locally for T0029
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,361 - DataManager - INFO - Complete record detected for ticket T0029 - generating PDF locally...
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,363 - DataManager - INFO - Today's reports folder ensured: data\reports\2025-06-03
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,364 - DataManager - INFO - Reports will be saved to: data\reports\2025-06-03
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,365 - DataManager - INFO - Today's reports folder ensured: data\reports\2025-06-03
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,369 - DataManager - INFO - SIMPLE TEST - Net display: '6600.00 kg'
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,372 - DataManager - INFO - Building PDF document: data\reports\2025-06-03\Tharuni_Guntur_T0029_AO07GT0123_165329.pdf
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,383 - DataManager - INFO - PDF created successfully: data\reports\2025-06-03\Tharuni_Guntur_T0029_AO07GT0123_165329.pdf (2962 bytes)
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,385 - DataManager - INFO - Auto-generated PDF: data\reports\2025-06-03\Tharuni_Guntur_T0029_AO07GT0123_165329.pdf
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,389 - DataManager - INFO - PDF saved to today's reports folder: data\reports\2025-06-03
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,390 - DataManager - INFO - ✅ PDF auto-generated locally: data\reports\2025-06-03\Tharuni_Guntur_T0029_AO07GT0123_165329.pdf
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,391 - DataManager - INFO - ✅ OFFLINE-FIRST SAVE COMPLETED - Local CSV, JSON backup, and PDF generated
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,393 - DataManager - INFO - 📂 PDF saved to today's reports folder: data\reports\2025-06-03
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,393 - DataManager - INFO - 💡 Cloud backup available via Settings > Cloud Storage > Backup
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,394 - DataManager - INFO - ==================================================
+2025-06-03 16:53:29 - ERROR - 2025-06-03 16:53:29,395 - TharuniApp - INFO - ✅ Record T0029 saved successfully
+2025-06-03 16:53:29 - PRINT - 📥 Queued record: T0029 (Queue size: 1)
+2025-06-03 16:53:29 - PRINT - 📥 Added complete record to queue: T0029
+2025-06-03 16:53:29 - PRINT - 🌐 Online - attempting immediate FAST sync
+2025-06-03 16:53:29 - PRINT - 🎫 TICKET FLOW DEBUG: Save result analysis:
+2025-06-03 16:53:29 - PRINT -    - is_complete_record: True
+2025-06-03 16:53:29 - PRINT -    - is_first_weighment_save: False
+2025-06-03 16:53:29 - PRINT -    - is_update: False
+2025-06-03 16:53:29 - PRINT - 🎫 TICKET FLOW DEBUG: NEW record - will increment counter
+2025-06-03 16:53:29 - PRINT - 🎫 TICKET FLOW DEBUG: INCREMENTING ticket counter after save of T0029
+2025-06-03 16:53:29 - PRINT - 🎫 FORM DEBUG: Committing current ticket number: T0029
+2025-06-03 16:53:29 - PRINT - 🎫 CONFIG DEBUG: Committing ticket number increment...
+2025-06-03 16:53:29 - PRINT - 🎫 CONFIG DEBUG: Incrementing counter from 29 to 30
+2025-06-03 16:53:29 - PRINT - 🎫 CONFIG DEBUG: ✅ Committed ticket number: T0029, next will be: T0030
+2025-06-03 16:53:29 - PRINT - 🎫 FORM DEBUG: ✅ Successfully committed ticket number: T0029
+2025-06-03 16:53:29 - PRINT - 🎫 TICKET FLOW DEBUG: ✅ Ticket counter incremented from T0029
+2025-06-03 16:53:29 - PRINT - 🎫 TICKET FLOW DEBUG: Complete record saved for NEW ticket T0029
+2025-06-03 16:53:29 - PRINT - 🎫 FORM DEBUG: Preparing for new ticket after completion
+2025-06-03 16:53:29 - PRINT - Resetting all image paths
+2025-06-03 16:53:29 - PRINT - Image status update: 1st=0/2, 2nd=0/2
+2025-06-03 16:53:29 - PRINT - 🎫 FORM DEBUG: Reserving next ticket number...
+2025-06-03 16:53:29 - PRINT - 🎫 CONFIG DEBUG: Reserving next ticket number...
+2025-06-03 16:53:29 - PRINT - 🎫 CONFIG DEBUG: Current ticket counter value: 30
+2025-06-03 16:53:29 - PRINT - 🎫 CONFIG DEBUG: Reserved ticket number: T0030
+2025-06-03 16:53:29 - PRINT - 🎫 FORM DEBUG: Reserved ticket number: T0030
+2025-06-03 16:53:29 - PRINT - 🎫 FORM DEBUG: New ticket number reserved after completion: T0030
+2025-06-03 16:53:29 - PRINT - 🎫 FORM DEBUG: Form prepared for new ticket after completion - ticket: T0030
+2025-06-03 16:53:29 - PRINT - 🎫 TICKET FLOW DEBUG: Generated next ticket number: T0030
+2025-06-03 16:53:29 - PRINT - 🚀 Starting FAST parallel sync for 1 items
+2025-06-03 16:53:29 - PRINT - ⚡ FAST SYNC: Processing 1 items with 5 parallel workers...
+2025-06-03 16:53:29 - PRINT - 🚀 Fast sync started successfully
+2025-06-03 16:53:30 - PRINT - ✅ Successfully connected to GCS bucket: advitia-weighbridge-data
+2025-06-03 16:53:30 - ERROR - 2025-06-03 16:53:30,420 - DataManager - INFO - Cloud storage initialized on demand
+2025-06-03 16:53:30 - PRINT - ✅ Saved JSON record as Tharuni/Guntur/2025-06-03/json_backups/Tharuni/Guntur/T0029/20250603_165330.json
+2025-06-03 16:53:30 - ERROR - 2025-06-03 16:53:30,744 - DataManager - INFO - Record T0029 successfully saved to cloud at Tharuni/Guntur/T0029/20250603_165330.json
+2025-06-03 16:53:30 - ERROR - 2025-06-03 16:53:30,745 - DataManager - INFO - No images found to upload for ticket T0029
+2025-06-03 16:53:30 - PRINT - ✅ 1/1: T0029 (0/0 images)
+2025-06-03 16:53:30 - PRINT - 🗑️ Batch removing 1 successful items from queue...
+2025-06-03 16:53:30 - PRINT - 🗑️ Batch removed 1 items from queue (Queue size: 0)
+2025-06-03 16:53:30 - PRINT - ⚡ FAST SYNC COMPLETED in 0.83s:
+2025-06-03 16:53:30 - PRINT -    ✅ Synced: 1 records
+2025-06-03 16:53:30 - PRINT -    🖼️ Images: 0
+2025-06-03 16:53:30 - PRINT -    ❌ Failed: 0
+2025-06-03 16:53:30 - PRINT -    📋 Remaining: 0
+2025-06-03 16:53:30 - PRINT -    📊 Speed: 1.2 records/sec
+2025-06-03 16:53:30 - PRINT - 🎉 Successfully synced 1 records to cloud in 0.83s!
+2025-06-03 16:53:30 - PRINT - 🏁 Fast sync process completed
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Refreshing pending vehicles list...
+2025-06-03 16:54:19 - ERROR - 2025-06-03 16:54:19,878 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 16:54:19 - ERROR - 2025-06-03 16:54:19,889 - DataManager - INFO - Successfully loaded 27 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Retrieved 27 total records
+2025-06-03 16:54:19 - ERROR - 2025-06-03 16:54:19,891 - PendingVehiclesPanel - INFO - Retrieved 27 total records
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0001:
+2025-06-03 16:54:19 - PRINT -    - first_weight: '18960.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - first_timestamp: '03-06-2025 00:40:48' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_weight: '11830.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_timestamp: '03-06-2025 00:40:59' (has: True)
+2025-06-03 16:54:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0001 - not pending
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0002:
+2025-06-03 16:54:19 - PRINT -    - first_weight: '28220.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - first_timestamp: '03-06-2025 00:42:26' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_weight: '9850.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_timestamp: '03-06-2025 00:43:02' (has: True)
+2025-06-03 16:54:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0002 - not pending
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0003:
+2025-06-03 16:54:19 - PRINT -    - first_weight: '43320.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - first_timestamp: '03-06-2025 01:40:08' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_weight: '9780.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_timestamp: '03-06-2025 01:41:33' (has: True)
+2025-06-03 16:54:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0003 - not pending
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0004:
+2025-06-03 16:54:19 - PRINT -    - first_weight: '18980.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - first_timestamp: '03-06-2025 01:40:20' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_weight: '12170.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_timestamp: '03-06-2025 01:41:14' (has: True)
+2025-06-03 16:54:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0004 - not pending
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0005:
+2025-06-03 16:54:19 - PRINT -    - first_weight: '42940.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - first_timestamp: '03-06-2025 01:40:39' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_weight: '5020.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_timestamp: '03-06-2025 01:40:49' (has: True)
+2025-06-03 16:54:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0005 - not pending
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0008:
+2025-06-03 16:54:19 - PRINT -    - first_weight: '36030.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - first_timestamp: '03-06-2025 01:47:16' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_weight: '9240.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_timestamp: '03-06-2025 01:48:23' (has: True)
+2025-06-03 16:54:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0008 - not pending
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0009:
+2025-06-03 16:54:19 - PRINT -    - first_weight: '22970.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - first_timestamp: '03-06-2025 01:47:28' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_weight: '7740.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_timestamp: '03-06-2025 01:47:58' (has: True)
+2025-06-03 16:54:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0009 - not pending
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0010:
+2025-06-03 16:54:19 - PRINT -    - first_weight: '42420.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - first_timestamp: '03-06-2025 01:48:39' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_weight: '11590.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_timestamp: '03-06-2025 01:48:41' (has: True)
+2025-06-03 16:54:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0010 - not pending
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0011:
+2025-06-03 16:54:19 - PRINT -    - first_weight: '20250.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - first_timestamp: '03-06-2025 01:49:01' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_weight: '14800.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_timestamp: '03-06-2025 01:49:53' (has: True)
+2025-06-03 16:54:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0011 - not pending
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0012:
+2025-06-03 16:54:19 - PRINT -    - first_weight: '36480.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - first_timestamp: '03-06-2025 01:49:27' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_weight: '7040.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_timestamp: '03-06-2025 01:49:38' (has: True)
+2025-06-03 16:54:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0012 - not pending
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0013:
+2025-06-03 16:54:19 - PRINT -    - first_weight: '30980.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - first_timestamp: '03-06-2025 02:32:11' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_weight: '5630.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_timestamp: '03-06-2025 02:33:09' (has: True)
+2025-06-03 16:54:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0013 - not pending
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0014:
+2025-06-03 16:54:19 - PRINT -    - first_weight: '39650.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - first_timestamp: '03-06-2025 02:32:43' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_weight: '14760.00' (has: True)
+2025-06-03 16:54:19 - PRINT -    - second_timestamp: '03-06-2025 02:32:45' (has: True)
+2025-06-03 16:54:19 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0014 - not pending
+2025-06-03 16:54:19 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0015:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '16400.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 02:44:27' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '9680.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 02:44:40' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0015 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0016:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '36640.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 02:51:04' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '12690.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 02:51:39' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0016 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0017:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '15220.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 02:51:17' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '11360.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 02:51:19' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0017 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0018:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '29250.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 16:01:32' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '6400.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 16:01:35' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0018 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0019:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '24230.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 16:01:58' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '6750.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 16:04:17' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0019 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0020:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '27150.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 16:02:44' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '8790.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 16:04:29' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0020 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0021:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '41150.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 16:03:06' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '8270.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 16:04:44' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0021 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0022:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '37430.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 16:03:34' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 16:03:38' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0022 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0023:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '23850.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 16:18:27' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '10450.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 16:19:12' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0023 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0024:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '29420.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 16:18:42' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '10720.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 16:19:26' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0024 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0025:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '37300.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 16:18:54' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '9940.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 16:18:56' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0025 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0026:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '22850.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 16:24:56' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 16:24:57' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0026 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0027:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '25330.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 16:26:40' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '10110.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 16:26:41' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0027 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0028:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '39320.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 16:29:28' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '12160.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 16:29:30' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0028 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0029:
+2025-06-03 16:54:20 - PRINT -    - first_weight: '21480.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - first_timestamp: '03-06-2025 16:53:23' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_weight: '14880.00' (has: True)
+2025-06-03 16:54:20 - PRINT -    - second_timestamp: '03-06-2025 16:53:25' (has: True)
+2025-06-03 16:54:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0029 - not pending
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: Found 0 pending records
+2025-06-03 16:54:20 - ERROR - 2025-06-03 16:54:20,138 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 16:54:20 - PRINT - 🚛 PENDING DEBUG: ✅ Successfully refreshed pending list with 0 items
+2025-06-03 16:54:20 - ERROR - 2025-06-03 16:54:20,141 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 16:54:20 - ERROR - 2025-06-03 16:54:20,143 - DataManager - INFO - Created new daily folder: data\reports\03-06
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Refreshing pending vehicles list...
+2025-06-03 16:55:20 - ERROR - 2025-06-03 16:55:20,147 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 16:55:20 - ERROR - 2025-06-03 16:55:20,149 - DataManager - INFO - Successfully loaded 27 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Retrieved 27 total records
+2025-06-03 16:55:20 - ERROR - 2025-06-03 16:55:20,151 - PendingVehiclesPanel - INFO - Retrieved 27 total records
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0001:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '18960.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 00:40:48' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '11830.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 00:40:59' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0001 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0002:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '28220.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 00:42:26' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '9850.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 00:43:02' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0002 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0003:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '43320.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 01:40:08' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '9780.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 01:41:33' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0003 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0004:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '18980.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 01:40:20' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '12170.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 01:41:14' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0004 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0005:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '42940.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 01:40:39' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '5020.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 01:40:49' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0005 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0008:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '36030.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 01:47:16' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '9240.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 01:48:23' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0008 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0009:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '22970.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 01:47:28' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '7740.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 01:47:58' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0009 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0010:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '42420.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 01:48:39' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '11590.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 01:48:41' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0010 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0011:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '20250.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 01:49:01' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '14800.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 01:49:53' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0011 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0012:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '36480.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 01:49:27' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '7040.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 01:49:38' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0012 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0013:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '30980.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 02:32:11' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '5630.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 02:33:09' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0013 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0014:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '39650.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 02:32:43' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '14760.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 02:32:45' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0014 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0015:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '16400.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 02:44:27' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '9680.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 02:44:40' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0015 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0016:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '36640.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 02:51:04' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '12690.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 02:51:39' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0016 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0017:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '15220.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 02:51:17' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '11360.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 02:51:19' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0017 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0018:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '29250.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 16:01:32' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '6400.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 16:01:35' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0018 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0019:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '24230.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 16:01:58' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '6750.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 16:04:17' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0019 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0020:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '27150.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 16:02:44' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '8790.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 16:04:29' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0020 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0021:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '41150.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 16:03:06' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '8270.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 16:04:44' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0021 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0022:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '37430.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 16:03:34' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 16:03:38' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0022 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0023:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '23850.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 16:18:27' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '10450.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 16:19:12' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0023 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0024:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '29420.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 16:18:42' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '10720.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 16:19:26' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0024 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0025:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '37300.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 16:18:54' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '9940.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 16:18:56' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0025 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0026:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '22850.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 16:24:56' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 16:24:57' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0026 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0027:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '25330.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 16:26:40' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '10110.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 16:26:41' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0027 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0028:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '39320.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 16:29:28' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '12160.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 16:29:30' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0028 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0029:
+2025-06-03 16:55:20 - PRINT -    - first_weight: '21480.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - first_timestamp: '03-06-2025 16:53:23' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_weight: '14880.00' (has: True)
+2025-06-03 16:55:20 - PRINT -    - second_timestamp: '03-06-2025 16:53:25' (has: True)
+2025-06-03 16:55:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0029 - not pending
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: Found 0 pending records
+2025-06-03 16:55:20 - ERROR - 2025-06-03 16:55:20,337 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 16:55:20 - PRINT - 🚛 PENDING DEBUG: ✅ Successfully refreshed pending list with 0 items
+2025-06-03 16:55:20 - ERROR - 2025-06-03 16:55:20,339 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Refreshing pending vehicles list...
+2025-06-03 16:56:20 - ERROR - 2025-06-03 16:56:20,355 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 16:56:20 - ERROR - 2025-06-03 16:56:20,357 - DataManager - INFO - Successfully loaded 27 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Retrieved 27 total records
+2025-06-03 16:56:20 - ERROR - 2025-06-03 16:56:20,359 - PendingVehiclesPanel - INFO - Retrieved 27 total records
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0001:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '18960.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 00:40:48' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '11830.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 00:40:59' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0001 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0002:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '28220.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 00:42:26' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '9850.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 00:43:02' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0002 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0003:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '43320.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 01:40:08' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '9780.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 01:41:33' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0003 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0004:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '18980.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 01:40:20' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '12170.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 01:41:14' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0004 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0005:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '42940.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 01:40:39' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '5020.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 01:40:49' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0005 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0008:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '36030.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 01:47:16' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '9240.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 01:48:23' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0008 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0009:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '22970.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 01:47:28' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '7740.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 01:47:58' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0009 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0010:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '42420.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 01:48:39' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '11590.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 01:48:41' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0010 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0011:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '20250.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 01:49:01' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '14800.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 01:49:53' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0011 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0012:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '36480.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 01:49:27' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '7040.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 01:49:38' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0012 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0013:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '30980.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 02:32:11' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '5630.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 02:33:09' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0013 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0014:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '39650.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 02:32:43' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '14760.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 02:32:45' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0014 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0015:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '16400.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 02:44:27' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '9680.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 02:44:40' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0015 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0016:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '36640.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 02:51:04' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '12690.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 02:51:39' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0016 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0017:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '15220.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 02:51:17' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '11360.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 02:51:19' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0017 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0018:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '29250.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 16:01:32' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '6400.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 16:01:35' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0018 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0019:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '24230.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 16:01:58' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '6750.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 16:04:17' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0019 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0020:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '27150.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 16:02:44' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '8790.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 16:04:29' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0020 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0021:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '41150.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 16:03:06' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '8270.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 16:04:44' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0021 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0022:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '37430.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 16:03:34' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 16:03:38' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0022 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0023:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '23850.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 16:18:27' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '10450.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 16:19:12' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0023 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0024:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '29420.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 16:18:42' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '10720.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 16:19:26' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0024 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0025:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '37300.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 16:18:54' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '9940.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 16:18:56' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0025 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0026:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '22850.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 16:24:56' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 16:24:57' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0026 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0027:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '25330.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 16:26:40' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '10110.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 16:26:41' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0027 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0028:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '39320.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 16:29:28' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '12160.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 16:29:30' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0028 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0029:
+2025-06-03 16:56:20 - PRINT -    - first_weight: '21480.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - first_timestamp: '03-06-2025 16:53:23' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_weight: '14880.00' (has: True)
+2025-06-03 16:56:20 - PRINT -    - second_timestamp: '03-06-2025 16:53:25' (has: True)
+2025-06-03 16:56:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0029 - not pending
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: Found 0 pending records
+2025-06-03 16:56:20 - ERROR - 2025-06-03 16:56:20,548 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 16:56:20 - PRINT - 🚛 PENDING DEBUG: ✅ Successfully refreshed pending list with 0 items
+2025-06-03 16:56:20 - ERROR - 2025-06-03 16:56:20,550 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Refreshing pending vehicles list...
+2025-06-03 16:57:20 - ERROR - 2025-06-03 16:57:20,565 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 16:57:20 - ERROR - 2025-06-03 16:57:20,567 - DataManager - INFO - Successfully loaded 27 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Retrieved 27 total records
+2025-06-03 16:57:20 - ERROR - 2025-06-03 16:57:20,568 - PendingVehiclesPanel - INFO - Retrieved 27 total records
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0001:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '18960.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 00:40:48' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '11830.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 00:40:59' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0001 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0002:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '28220.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 00:42:26' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '9850.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 00:43:02' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0002 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0003:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '43320.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 01:40:08' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '9780.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 01:41:33' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0003 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0004:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '18980.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 01:40:20' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '12170.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 01:41:14' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0004 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0005:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '42940.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 01:40:39' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '5020.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 01:40:49' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0005 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0008:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '36030.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 01:47:16' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '9240.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 01:48:23' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0008 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0009:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '22970.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 01:47:28' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '7740.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 01:47:58' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0009 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0010:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '42420.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 01:48:39' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '11590.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 01:48:41' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0010 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0011:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '20250.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 01:49:01' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '14800.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 01:49:53' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0011 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0012:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '36480.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 01:49:27' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '7040.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 01:49:38' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0012 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0013:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '30980.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 02:32:11' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '5630.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 02:33:09' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0013 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0014:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '39650.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 02:32:43' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '14760.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 02:32:45' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0014 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0015:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '16400.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 02:44:27' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '9680.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 02:44:40' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0015 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0016:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '36640.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 02:51:04' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '12690.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 02:51:39' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0016 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0017:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '15220.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 02:51:17' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '11360.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 02:51:19' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0017 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0018:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '29250.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 16:01:32' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '6400.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 16:01:35' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0018 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0019:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '24230.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 16:01:58' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '6750.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 16:04:17' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0019 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0020:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '27150.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 16:02:44' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '8790.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 16:04:29' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0020 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0021:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '41150.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 16:03:06' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '8270.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 16:04:44' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0021 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0022:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '37430.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 16:03:34' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 16:03:38' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0022 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0023:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '23850.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 16:18:27' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '10450.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 16:19:12' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0023 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0024:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '29420.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 16:18:42' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '10720.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 16:19:26' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0024 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0025:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '37300.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 16:18:54' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '9940.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 16:18:56' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0025 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0026:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '22850.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 16:24:56' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 16:24:57' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0026 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0027:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '25330.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 16:26:40' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '10110.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 16:26:41' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0027 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0028:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '39320.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 16:29:28' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '12160.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 16:29:30' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0028 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0029:
+2025-06-03 16:57:20 - PRINT -    - first_weight: '21480.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - first_timestamp: '03-06-2025 16:53:23' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_weight: '14880.00' (has: True)
+2025-06-03 16:57:20 - PRINT -    - second_timestamp: '03-06-2025 16:53:25' (has: True)
+2025-06-03 16:57:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0029 - not pending
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: Found 0 pending records
+2025-06-03 16:57:20 - ERROR - 2025-06-03 16:57:20,802 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 16:57:20 - PRINT - 🚛 PENDING DEBUG: ✅ Successfully refreshed pending list with 0 items
+2025-06-03 16:57:20 - ERROR - 2025-06-03 16:57:20,810 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Refreshing pending vehicles list...
+2025-06-03 16:58:20 - ERROR - 2025-06-03 16:58:20,828 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 16:58:20 - ERROR - 2025-06-03 16:58:20,831 - DataManager - INFO - Successfully loaded 27 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Retrieved 27 total records
+2025-06-03 16:58:20 - ERROR - 2025-06-03 16:58:20,833 - PendingVehiclesPanel - INFO - Retrieved 27 total records
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0001:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '18960.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 00:40:48' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '11830.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 00:40:59' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0001 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0002:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '28220.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 00:42:26' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '9850.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 00:43:02' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0002 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0003:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '43320.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 01:40:08' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '9780.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 01:41:33' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0003 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0004:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '18980.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 01:40:20' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '12170.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 01:41:14' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0004 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0005:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '42940.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 01:40:39' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '5020.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 01:40:49' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0005 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0008:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '36030.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 01:47:16' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '9240.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 01:48:23' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0008 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0009:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '22970.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 01:47:28' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '7740.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 01:47:58' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0009 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0010:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '42420.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 01:48:39' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '11590.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 01:48:41' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0010 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0011:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '20250.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 01:49:01' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '14800.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 01:49:53' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0011 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0012:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '36480.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 01:49:27' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '7040.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 01:49:38' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0012 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0013:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '30980.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 02:32:11' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '5630.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 02:33:09' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0013 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0014:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '39650.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 02:32:43' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '14760.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 02:32:45' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0014 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0015:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '16400.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 02:44:27' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '9680.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 02:44:40' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0015 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0016:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '36640.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 02:51:04' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '12690.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 02:51:39' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0016 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0017:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '15220.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 02:51:17' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '11360.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 02:51:19' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0017 - not pending
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0018:
+2025-06-03 16:58:20 - PRINT -    - first_weight: '29250.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - first_timestamp: '03-06-2025 16:01:32' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_weight: '6400.00' (has: True)
+2025-06-03 16:58:20 - PRINT -    - second_timestamp: '03-06-2025 16:01:35' (has: True)
+2025-06-03 16:58:20 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:20 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0018 - not pending
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0019:
+2025-06-03 16:58:21 - PRINT -    - first_weight: '24230.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - first_timestamp: '03-06-2025 16:01:58' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_weight: '6750.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_timestamp: '03-06-2025 16:04:17' (has: True)
+2025-06-03 16:58:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0019 - not pending
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0020:
+2025-06-03 16:58:21 - PRINT -    - first_weight: '27150.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - first_timestamp: '03-06-2025 16:02:44' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_weight: '8790.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_timestamp: '03-06-2025 16:04:29' (has: True)
+2025-06-03 16:58:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0020 - not pending
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0021:
+2025-06-03 16:58:21 - PRINT -    - first_weight: '41150.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - first_timestamp: '03-06-2025 16:03:06' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_weight: '8270.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_timestamp: '03-06-2025 16:04:44' (has: True)
+2025-06-03 16:58:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0021 - not pending
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0022:
+2025-06-03 16:58:21 - PRINT -    - first_weight: '37430.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - first_timestamp: '03-06-2025 16:03:34' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_timestamp: '03-06-2025 16:03:38' (has: True)
+2025-06-03 16:58:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0022 - not pending
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0023:
+2025-06-03 16:58:21 - PRINT -    - first_weight: '23850.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - first_timestamp: '03-06-2025 16:18:27' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_weight: '10450.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_timestamp: '03-06-2025 16:19:12' (has: True)
+2025-06-03 16:58:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0023 - not pending
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0024:
+2025-06-03 16:58:21 - PRINT -    - first_weight: '29420.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - first_timestamp: '03-06-2025 16:18:42' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_weight: '10720.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_timestamp: '03-06-2025 16:19:26' (has: True)
+2025-06-03 16:58:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0024 - not pending
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0025:
+2025-06-03 16:58:21 - PRINT -    - first_weight: '37300.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - first_timestamp: '03-06-2025 16:18:54' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_weight: '9940.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_timestamp: '03-06-2025 16:18:56' (has: True)
+2025-06-03 16:58:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0025 - not pending
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0026:
+2025-06-03 16:58:21 - PRINT -    - first_weight: '22850.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - first_timestamp: '03-06-2025 16:24:56' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_timestamp: '03-06-2025 16:24:57' (has: True)
+2025-06-03 16:58:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0026 - not pending
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0027:
+2025-06-03 16:58:21 - PRINT -    - first_weight: '25330.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - first_timestamp: '03-06-2025 16:26:40' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_weight: '10110.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_timestamp: '03-06-2025 16:26:41' (has: True)
+2025-06-03 16:58:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0027 - not pending
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0028:
+2025-06-03 16:58:21 - PRINT -    - first_weight: '39320.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - first_timestamp: '03-06-2025 16:29:28' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_weight: '12160.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_timestamp: '03-06-2025 16:29:30' (has: True)
+2025-06-03 16:58:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0028 - not pending
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0029:
+2025-06-03 16:58:21 - PRINT -    - first_weight: '21480.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - first_timestamp: '03-06-2025 16:53:23' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_weight: '14880.00' (has: True)
+2025-06-03 16:58:21 - PRINT -    - second_timestamp: '03-06-2025 16:53:25' (has: True)
+2025-06-03 16:58:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0029 - not pending
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: Found 0 pending records
+2025-06-03 16:58:21 - ERROR - 2025-06-03 16:58:21,123 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 16:58:21 - PRINT - 🚛 PENDING DEBUG: ✅ Successfully refreshed pending list with 0 items
+2025-06-03 16:58:21 - ERROR - 2025-06-03 16:58:21,126 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Refreshing pending vehicles list...
+2025-06-03 16:59:21 - ERROR - 2025-06-03 16:59:21,138 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 16:59:21 - ERROR - 2025-06-03 16:59:21,139 - DataManager - INFO - Successfully loaded 27 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Retrieved 27 total records
+2025-06-03 16:59:21 - ERROR - 2025-06-03 16:59:21,141 - PendingVehiclesPanel - INFO - Retrieved 27 total records
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0001:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '18960.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 00:40:48' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '11830.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 00:40:59' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0001 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0002:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '28220.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 00:42:26' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '9850.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 00:43:02' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0002 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0003:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '43320.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 01:40:08' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '9780.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 01:41:33' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0003 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0004:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '18980.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 01:40:20' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '12170.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 01:41:14' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0004 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0005:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '42940.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 01:40:39' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '5020.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 01:40:49' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0005 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0008:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '36030.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 01:47:16' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '9240.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 01:48:23' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0008 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0009:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '22970.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 01:47:28' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '7740.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 01:47:58' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0009 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0010:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '42420.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 01:48:39' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '11590.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 01:48:41' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0010 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0011:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '20250.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 01:49:01' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '14800.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 01:49:53' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0011 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0012:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '36480.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 01:49:27' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '7040.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 01:49:38' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0012 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0013:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '30980.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 02:32:11' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '5630.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 02:33:09' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0013 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0014:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '39650.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 02:32:43' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '14760.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 02:32:45' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0014 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0015:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '16400.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 02:44:27' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '9680.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 02:44:40' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0015 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0016:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '36640.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 02:51:04' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '12690.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 02:51:39' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0016 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0017:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '15220.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 02:51:17' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '11360.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 02:51:19' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0017 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0018:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '29250.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 16:01:32' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '6400.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 16:01:35' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0018 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0019:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '24230.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 16:01:58' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '6750.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 16:04:17' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0019 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0020:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '27150.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 16:02:44' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '8790.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 16:04:29' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0020 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0021:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '41150.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 16:03:06' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '8270.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 16:04:44' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0021 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0022:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '37430.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 16:03:34' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 16:03:38' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0022 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0023:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '23850.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 16:18:27' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '10450.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 16:19:12' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0023 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0024:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '29420.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 16:18:42' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '10720.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 16:19:26' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0024 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0025:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '37300.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 16:18:54' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '9940.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 16:18:56' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0025 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0026:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '22850.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 16:24:56' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 16:24:57' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0026 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0027:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '25330.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 16:26:40' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '10110.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 16:26:41' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0027 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0028:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '39320.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 16:29:28' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '12160.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 16:29:30' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0028 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0029:
+2025-06-03 16:59:21 - PRINT -    - first_weight: '21480.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - first_timestamp: '03-06-2025 16:53:23' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_weight: '14880.00' (has: True)
+2025-06-03 16:59:21 - PRINT -    - second_timestamp: '03-06-2025 16:53:25' (has: True)
+2025-06-03 16:59:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0029 - not pending
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: Found 0 pending records
+2025-06-03 16:59:21 - ERROR - 2025-06-03 16:59:21,338 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 16:59:21 - PRINT - 🚛 PENDING DEBUG: ✅ Successfully refreshed pending list with 0 items
+2025-06-03 16:59:21 - ERROR - 2025-06-03 16:59:21,341 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Refreshing pending vehicles list...
+2025-06-03 17:00:21 - ERROR - 2025-06-03 17:00:21,354 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 17:00:21 - ERROR - 2025-06-03 17:00:21,360 - DataManager - INFO - Successfully loaded 27 records from data\Tharuni_Guntur_data.csv
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Retrieved 27 total records
+2025-06-03 17:00:21 - ERROR - 2025-06-03 17:00:21,363 - PendingVehiclesPanel - INFO - Retrieved 27 total records
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0001:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '18960.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 00:40:48' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '11830.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 00:40:59' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0001 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0002:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '28220.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 00:42:26' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '9850.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 00:43:02' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0002 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0003:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '43320.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 01:40:08' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '9780.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 01:41:33' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0003 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0004:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '18980.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 01:40:20' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '12170.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 01:41:14' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0004 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0005:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '42940.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 01:40:39' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '5020.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 01:40:49' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0005 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0008:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '36030.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 01:47:16' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '9240.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 01:48:23' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0008 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0009:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '22970.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 01:47:28' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '7740.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 01:47:58' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0009 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0010:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '42420.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 01:48:39' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '11590.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 01:48:41' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0010 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0011:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '20250.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 01:49:01' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '14800.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 01:49:53' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0011 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0012:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '36480.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 01:49:27' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '7040.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 01:49:38' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0012 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0013:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '30980.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 02:32:11' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '5630.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 02:33:09' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0013 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0014:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '39650.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 02:32:43' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '14760.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 02:32:45' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0014 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0015:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '16400.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 02:44:27' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '9680.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 02:44:40' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0015 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0016:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '36640.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 02:51:04' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '12690.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 02:51:39' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0016 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0017:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '15220.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 02:51:17' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '11360.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 02:51:19' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0017 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0018:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '29250.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 16:01:32' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '6400.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 16:01:35' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0018 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0019:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '24230.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 16:01:58' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '6750.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 16:04:17' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0019 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0020:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '27150.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 16:02:44' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '8790.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 16:04:29' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0020 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0021:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '41150.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 16:03:06' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '8270.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 16:04:44' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0021 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0022:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '37430.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 16:03:34' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 16:03:38' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0022 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0023:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '23850.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 16:18:27' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '10450.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 16:19:12' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0023 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0024:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '29420.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 16:18:42' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '10720.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 16:19:26' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0024 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0025:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '37300.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 16:18:54' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '9940.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 16:18:56' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0025 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0026:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '22850.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 16:24:56' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 16:24:57' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0026 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0027:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '25330.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 16:26:40' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '10110.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 16:26:41' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0027 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0028:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '39320.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 16:29:28' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '12160.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 16:29:30' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0028 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0029:
+2025-06-03 17:00:21 - PRINT -    - first_weight: '21480.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - first_timestamp: '03-06-2025 16:53:23' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_weight: '14880.00' (has: True)
+2025-06-03 17:00:21 - PRINT -    - second_timestamp: '03-06-2025 16:53:25' (has: True)
+2025-06-03 17:00:21 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0029 - not pending
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: Found 0 pending records
+2025-06-03 17:00:21 - ERROR - 2025-06-03 17:00:21,550 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 17:00:21 - PRINT - 🚛 PENDING DEBUG: ✅ Successfully refreshed pending list with 0 items
+2025-06-03 17:00:21 - ERROR - 2025-06-03 17:00:21,552 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 17:00:36 - ERROR - 2025-06-03 17:00:36,463 - DataManager - INFO - Successfully loaded 27 records from data\Tharuni_Guntur_data.csv
+2025-06-03 17:00:36 - ERROR - 2025-06-03 17:00:36,464 - DataManager - INFO - Successfully loaded 27 records from data\Tharuni_Guntur_data.csv
+2025-06-03 17:00:36 - ERROR - 2025-06-03 17:00:36,468 - DataManager - INFO - Successfully loaded 27 records from data\Tharuni_Guntur_data.csv
+2025-06-03 17:00:36 - ERROR - 2025-06-03 17:00:36,469 - DataManager - INFO - Returning all 27 records (no filter)
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Refreshing pending vehicles list...
+2025-06-03 17:00:36 - ERROR - 2025-06-03 17:00:36,475 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 17:00:36 - ERROR - 2025-06-03 17:00:36,477 - DataManager - INFO - Successfully loaded 27 records from data\Tharuni_Guntur_data.csv
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Retrieved 27 total records
+2025-06-03 17:00:36 - ERROR - 2025-06-03 17:00:36,479 - PendingVehiclesPanel - INFO - Retrieved 27 total records
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0001:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '18960.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 00:40:48' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '11830.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 00:40:59' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0001 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0002:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '28220.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 00:42:26' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '9850.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 00:43:02' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0002 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0003:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '43320.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 01:40:08' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '9780.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 01:41:33' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0003 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0004:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '18980.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 01:40:20' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '12170.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 01:41:14' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0004 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0005:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '42940.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 01:40:39' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '5020.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 01:40:49' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0005 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0008:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '36030.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 01:47:16' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '9240.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 01:48:23' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0008 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0009:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '22970.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 01:47:28' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '7740.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 01:47:58' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0009 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0010:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '42420.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 01:48:39' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '11590.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 01:48:41' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0010 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0011:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '20250.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 01:49:01' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '14800.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 01:49:53' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0011 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0012:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '36480.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 01:49:27' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '7040.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 01:49:38' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0012 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0013:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '30980.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 02:32:11' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '5630.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 02:33:09' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0013 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0014:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '39650.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 02:32:43' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '14760.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 02:32:45' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0014 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0015:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '16400.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 02:44:27' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '9680.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 02:44:40' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0015 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0016:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '36640.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 02:51:04' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '12690.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 02:51:39' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0016 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0017:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '15220.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 02:51:17' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '11360.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 02:51:19' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0017 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0018:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '29250.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 16:01:32' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '6400.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 16:01:35' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0018 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0019:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '24230.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 16:01:58' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '6750.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 16:04:17' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0019 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0020:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '27150.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 16:02:44' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '8790.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 16:04:29' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0020 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0021:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '41150.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 16:03:06' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '8270.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 16:04:44' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0021 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0022:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '37430.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 16:03:34' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 16:03:38' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0022 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0023:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '23850.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 16:18:27' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '10450.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 16:19:12' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0023 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0024:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '29420.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 16:18:42' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '10720.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 16:19:26' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0024 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0025:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '37300.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 16:18:54' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '9940.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 16:18:56' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0025 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0026:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '22850.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 16:24:56' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '13520.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 16:24:57' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0026 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0027:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '25330.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 16:26:40' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '10110.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 16:26:41' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0027 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0028:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '39320.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 16:29:28' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '12160.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 16:29:30' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0028 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Checking ticket T0029:
+2025-06-03 17:00:36 - PRINT -    - first_weight: '21480.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - first_timestamp: '03-06-2025 16:53:23' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_weight: '14880.00' (has: True)
+2025-06-03 17:00:36 - PRINT -    - second_timestamp: '03-06-2025 16:53:25' (has: True)
+2025-06-03 17:00:36 - PRINT -    - has_first: True, missing_second: False
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ⏭️  Skipped ticket T0029 - not pending
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: Found 0 pending records
+2025-06-03 17:00:36 - ERROR - 2025-06-03 17:00:36,685 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 17:00:36 - PRINT - 🚛 PENDING DEBUG: ✅ Successfully refreshed pending list with 0 items
+2025-06-03 17:00:36 - ERROR - 2025-06-03 17:00:36,687 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 17:00:36 - PRINT - 🎫 TICKET FLOW DEBUG: Save operation completed successfully
+2025-06-03 17:00:36 - ERROR - 2025-06-03 17:00:36,690 - TharuniApp - INFO - SAVE RECORD OPERATION COMPLETED SUCCESSFULLY WITH SMART TICKET FLOW
+2025-06-03 17:00:36 - PRINT - 🎫 TICKET FLOW DEBUG: ==================================================
+2025-06-03 17:00:36 - ERROR - 2025-06-03 17:00:36,692 - TharuniApp - INFO - ==================================================
+2025-06-03 17:00:36 - ERROR - Traceback (most recent call last):
+2025-06-03 17:00:36 - ERROR -   File "C:\Users\saait\Downloads\adex_nonlogin\advexe-fa064e14cc2125900dc230b01018a938253408bf\advitia_app.py", line 1036, in <module>
+    root.mainloop()
+    ~~~~~~~~~~~~~^^
+2025-06-03 17:00:36 - ERROR -   File "C:\Program Files\Python313\Lib\tkinter\__init__.py", line 1599, in mainloop
+    self.tk.mainloop(n)
+    ~~~~~~~~~~~~~~~~^^^
+2025-06-03 17:00:36 - ERROR -   File "C:\Program Files\Python313\Lib\tkinter\__init__.py", line 2063, in __call__
+    def __call__(self, *args):
+2025-06-03 17:00:36 - ERROR - KeyboardInterrupt

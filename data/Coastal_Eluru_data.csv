@@ -1,0 +1,23 @@
+Date,Time,Site Name,Agency Name,Material,Ticket No,Vehicle No,Transfer Party Name,First Weight,First Timestamp,Second Weight,Second Timestamp,Net Weight,Material Type,First Front Image,First Back Image,Second Front Image,Second Back Image,Site Incharge,User Name
+03-06-2025,18:16:17,Eluru,Coastal,Inert,T0031,AP04AP4444,Coromandel,32340.00,03-06-2025 18:16:07,14630.00,03-06-2025 18:16:12,17710.00,Inert,,,,,Vishnu,admin
+03-06-2025,18:40:25,Eluru,Coastal,Inert,T0032,AP04AP4444,Coromandel,41900.00,03-06-2025 18:40:02,10350.00,03-06-2025 18:40:19,31550.00,Inert,,,,,Vishnu,admin
+03-06-2025,20:09:17,Eluru,Coastal,Inert,T0033,AP04AP4444,Coromandel,21440.00,03-06-2025 20:08:54,8650.00,03-06-2025 20:09:13,12790.00,Inert,,,,,Vishnu,admin
+15-06-2025,00:49:03,Eluru,Coastal,Inert,T0001,AP04AP4444,Coromandel,19281.03,15-06-2025 00:48:57,,,,Inert,,,,,Vishnu,admin
+03-06-2025,20:12:23,Eluru,Coastal,Inert,T0002,AP04AP4444,Coromandel,15970.00,03-06-2025 20:11:22,5320.00,03-06-2025 20:12:18,10650.00,Inert,,,,,Vishnu,admin
+03-06-2025,20:11:58,Eluru,Coastal,Inert,T0003,AP04AP4444,Coromandel,29910.00,03-06-2025 20:11:44,12080.00,03-06-2025 20:11:54,17830.00,Inert,,,,,Vishnu,admin
+03-06-2025,23:32:35,Eluru,Coastal,Inert,T0004,AP04AP4444,Coromandel,16410.00,03-06-2025 23:31:40,12100.00,03-06-2025 23:32:31,4310.00,Inert,,,,,Vishnu,admin
+03-06-2025,23:32:48,Eluru,Coastal,Inert,T0005,AP04AP4444,Coromandel,28940.00,03-06-2025 23:31:54,11150.00,03-06-2025 23:32:43,17790.00,Inert,,,,,Vishnu,admin
+03-06-2025,23:32:21,Eluru,Coastal,Inert,T0006,AP04AP4444,Coromandel,18740.00,03-06-2025 23:32:13,8380.00,03-06-2025 23:32:18,10360.00,Inert,,,,,Vishnu,admin
+04-06-2025,00:26:18,Eluru,Coastal,Inert,T0007,AP04AP4444,Coromandel,21910.00,04-06-2025 00:24:28,8430.00,04-06-2025 00:26:14,13480.00,Inert,,,,,Vishnu,admin
+04-06-2025,00:26:04,Eluru,Coastal,Inert,T0008,AP04AP4444,Coromandel,21850.00,04-06-2025 00:24:45,10740.00,04-06-2025 00:25:57,11110.00,Inert,,,Eluru_AP04AP4444_20250604_002602_2nd_front.jpg,,Vishnu,admin
+04-06-2025,00:25:41,Eluru,Coastal,Inert,T0009,AP04AP4444,Coromandel,26090.00,04-06-2025 00:25:02,9330.00,04-06-2025 00:25:16,16760.00,Inert,,,Eluru_AP04AP4444_20250604_002538_2nd_front.jpg,,Vishnu,admin
+09-06-2025,21:46:05,Eluru,Coastal,Inert,T0101,AP04AP4444,Coromandel,31470.00,09-06-2025 21:45:57,9120.00,09-06-2025 21:46:00,22350.00,Inert,,,,,Vishnu,admin
+09-06-2025,21:58:14,Eluru,Coastal,Legacy/MSW,T0102,AP04AP4444,Coromandel,44160.00,09-06-2025 21:58:02,10000.00,09-06-2025 21:58:05,34160.00,Legacy/MSW,,,,,Vishnu,admin
+12-06-2025,02:21:14,Eluru,Coastal,Inert,T0103,AP04AP4444,Coromandel,42510.00,12-06-2025 02:20:04,11800.00,12-06-2025 02:21:07,30710.00,Inert,,,,,Vishnu,admin
+12-06-2025,02:21:38,Eluru,Coastal,Inert,T0104,AP04AP4444,Coromandel,37820.00,12-06-2025 02:20:29,14290.00,12-06-2025 02:21:32,23530.00,Inert,,,,,Vishnu,admin
+12-06-2025,03:08:56,Eluru,Coastal,Inert,T0105,AP04AP4444,Coromandel,28390.00,12-06-2025 03:05:22,8200.00,12-06-2025 03:08:51,20190.00,Inert,,,,,Vishnu,admin
+12-06-2025,03:05:57,Eluru,Coastal,Legacy/MSW,T0106,AP04AP4444,Coromandel,38460.00,12-06-2025 03:05:41,13280.00,12-06-2025 03:05:50,25180.00,Legacy/MSW,,,,,Vishnu,admin
+12-06-2025,03:07:24,Eluru,Coastal,Legacy/MSW,T0107,AP04AP4444,Coromandel,38360.00,12-06-2025 03:06:49,6540.00,12-06-2025 03:07:17,31820.00,Legacy/MSW,,,,,Vishnu,admin
+12-06-2025,03:09:30,Eluru,Coastal,Legacy/MSW,T0108,AP04AP4444,Coromandel,23500.00,12-06-2025 03:08:36,6710.00,12-06-2025 03:09:13,16790.00,Legacy/MSW,,,,,Vishnu,admin
+12-06-2025,03:25:27,Eluru,Coastal,Inert,T0109,AP04AP4444,Coromandel,32120.00,12-06-2025 03:24:57,14980.00,12-06-2025 03:25:18,17140.00,Inert,,,,,Vishnu,admin
+15-06-2025,00:49:11,Eluru,Coastal,Inert,T0110,AP04AP4444,Coromandel,18631.63,15-06-2025 00:26:26,,,,Inert,,,,,Vishnu,admin

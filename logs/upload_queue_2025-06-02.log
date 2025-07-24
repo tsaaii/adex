@@ -1,0 +1,389 @@
+2025-06-02 18:14:37,312 - AutoUploadQueue - INFO - No existing queue file found
+2025-06-02 18:14:37,313 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 18:14:37,313 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 18:14:37,314 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 18:15:19,100 - AutoUploadQueue - INFO - Added to upload queue: json - T0056_Tharuni_Guntur_181519.json
+2025-06-02 18:15:19,102 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0056_AP39V6553_181519.pdf
+2025-06-02 18:15:19,103 - AutoUploadQueue - INFO - Queued 2 files for ticket T0056
+2025-06-02 18:36:29,962 - AutoUploadQueue - INFO - Loaded queued item: data\json_backups\2025-06-02\T0056_Tharuni_Guntur_181519.json
+2025-06-02 18:36:29,962 - AutoUploadQueue - INFO - Loaded queued item: data\reports\2025-06-02\Tharuni_Guntur_T0056_AP39V6553_181519.pdf
+2025-06-02 18:36:29,962 - AutoUploadQueue - INFO - Loaded 2 items from queue
+2025-06-02 18:36:29,963 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 18:36:29,963 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 18:36:29,964 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 18:36:30,006 - AutoUploadQueue - INFO - Internet available, processing upload queue...
+2025-06-02 18:36:30,974 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0056_Tharuni_Guntur_181519.json
+2025-06-02 18:36:30,975 - AutoUploadQueue - INFO - Successfully uploaded: T0056_Tharuni_Guntur_181519.json
+2025-06-02 18:36:31,411 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0056_AP39V6553_181519.pdf
+2025-06-02 18:36:31,411 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0056_AP39V6553_181519.pdf
+2025-06-02 18:36:31,413 - AutoUploadQueue - INFO - Upload batch completed: 2 uploaded, 0 failed
+2025-06-02 18:36:31,413 - AutoUploadQueue - INFO - ✅ Upload batch: 2 files uploaded successfully
+2025-06-02 18:41:30,891 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 18:41:30,891 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 18:41:30,892 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 18:41:30,892 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 18:41:40,483 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 18:41:40,483 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 18:41:40,483 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 18:41:40,484 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 18:41:55,448 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 18:41:55,449 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 18:41:55,449 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 18:41:55,450 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 18:41:55,551 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 18:41:55,552 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 18:41:55,552 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 18:41:55,552 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 18:44:05,156 - AutoUploadQueue - INFO - Added to upload queue: json - T0057_Tharuni_Guntur_184405.json
+2025-06-02 18:44:05,158 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0057_TS06UV0606_184405.pdf
+2025-06-02 18:44:05,158 - AutoUploadQueue - INFO - Queued 2 files for ticket T0057
+2025-06-02 18:44:10,521 - AutoUploadQueue - INFO - Internet available, processing upload queue...
+2025-06-02 18:44:11,566 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0057_Tharuni_Guntur_184405.json
+2025-06-02 18:44:11,566 - AutoUploadQueue - INFO - Successfully uploaded: T0057_Tharuni_Guntur_184405.json
+2025-06-02 18:44:11,869 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0057_TS06UV0606_184405.pdf
+2025-06-02 18:44:11,869 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0057_TS06UV0606_184405.pdf
+2025-06-02 18:44:11,870 - AutoUploadQueue - INFO - Upload batch completed: 2 uploaded, 0 failed
+2025-06-02 18:44:11,871 - AutoUploadQueue - INFO - ✅ Upload batch: 2 files uploaded successfully
+2025-06-02 18:47:00,956 - AutoUploadQueue - INFO - Added to upload queue: json - T0058_Tharuni_Guntur_184700.json
+2025-06-02 18:47:00,957 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0058_TS07US0707_184700.pdf
+2025-06-02 18:47:00,958 - AutoUploadQueue - INFO - Queued 2 files for ticket T0058
+2025-06-02 18:47:41,928 - AutoUploadQueue - INFO - Internet available, processing upload queue...
+2025-06-02 18:47:42,344 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0058_Tharuni_Guntur_184700.json
+2025-06-02 18:47:42,345 - AutoUploadQueue - INFO - Successfully uploaded: T0058_Tharuni_Guntur_184700.json
+2025-06-02 18:47:42,650 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0058_TS07US0707_184700.pdf
+2025-06-02 18:47:42,651 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0058_TS07US0707_184700.pdf
+2025-06-02 18:47:42,652 - AutoUploadQueue - INFO - Upload batch completed: 2 uploaded, 0 failed
+2025-06-02 18:47:42,652 - AutoUploadQueue - INFO - ✅ Upload batch: 2 files uploaded successfully
+2025-06-02 18:53:09,795 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 18:53:09,796 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 18:53:09,796 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 18:53:09,796 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 18:53:27,235 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 18:53:27,236 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 18:53:27,237 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 18:53:27,237 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 18:53:27,432 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 18:53:27,433 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 18:53:27,433 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 18:53:27,434 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:10:19,867 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:10:19,868 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:10:19,868 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:10:19,868 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:21:26,229 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:21:26,230 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:21:26,230 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:21:26,230 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:21:59,665 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:21:59,666 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:21:59,666 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:21:59,667 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:22:26,742 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:22:26,743 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:22:26,743 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:22:26,744 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:22:59,417 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:22:59,417 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:22:59,417 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:22:59,417 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:23:11,823 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:23:11,824 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:23:11,824 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:23:11,825 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:23:11,944 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:23:11,944 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:23:11,945 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:23:11,945 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:24:56,545 - AutoUploadQueue - INFO - Added to upload queue: json - T0059_Tharuni_Guntur_192456.json
+2025-06-02 19:24:56,546 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0059_TS04UA4444_192456.pdf
+2025-06-02 19:24:56,547 - AutoUploadQueue - INFO - Queued 2 files for ticket T0059
+2025-06-02 19:26:15,479 - AutoUploadQueue - INFO - Added to upload queue: json - T0060_Tharuni_Guntur_192615.json
+2025-06-02 19:26:15,481 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0060_TS06UV0606_192615.pdf
+2025-06-02 19:26:15,481 - AutoUploadQueue - INFO - Queued 2 files for ticket T0060
+2025-06-02 19:27:05,970 - AutoUploadQueue - INFO - Loaded queued item: data\json_backups\2025-06-02\T0059_Tharuni_Guntur_192456.json
+2025-06-02 19:27:05,970 - AutoUploadQueue - INFO - Loaded queued item: data\reports\2025-06-02\Tharuni_Guntur_T0059_TS04UA4444_192456.pdf
+2025-06-02 19:27:05,971 - AutoUploadQueue - INFO - Loaded queued item: data\json_backups\2025-06-02\T0060_Tharuni_Guntur_192615.json
+2025-06-02 19:27:05,971 - AutoUploadQueue - INFO - Loaded queued item: data\reports\2025-06-02\Tharuni_Guntur_T0060_TS06UV0606_192615.pdf
+2025-06-02 19:27:05,972 - AutoUploadQueue - INFO - Loaded 4 items from queue
+2025-06-02 19:27:05,972 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:27:05,972 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:27:05,973 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:27:36,033 - AutoUploadQueue - INFO - Internet available, processing upload queue...
+2025-06-02 19:27:36,908 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0059_Tharuni_Guntur_192456.json
+2025-06-02 19:27:36,908 - AutoUploadQueue - INFO - Successfully uploaded: T0059_Tharuni_Guntur_192456.json
+2025-06-02 19:27:37,206 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0059_TS04UA4444_192456.pdf
+2025-06-02 19:27:37,208 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0059_TS04UA4444_192456.pdf
+2025-06-02 19:27:37,540 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0060_Tharuni_Guntur_192615.json
+2025-06-02 19:27:37,541 - AutoUploadQueue - INFO - Successfully uploaded: T0060_Tharuni_Guntur_192615.json
+2025-06-02 19:27:37,872 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0060_TS06UV0606_192615.pdf
+2025-06-02 19:27:37,872 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0060_TS06UV0606_192615.pdf
+2025-06-02 19:27:37,873 - AutoUploadQueue - INFO - Upload batch completed: 4 uploaded, 0 failed
+2025-06-02 19:27:37,874 - AutoUploadQueue - INFO - ✅ Upload batch: 4 files uploaded successfully
+2025-06-02 19:49:59,864 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:49:59,865 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:49:59,865 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:49:59,865 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:50:11,481 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:50:11,482 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:50:11,482 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:50:11,483 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:50:11,611 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:50:11,612 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:50:11,612 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:50:11,613 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:50:26,016 - AutoUploadQueue - INFO - Added to upload queue: json - T0061_Tharuni_Guntur_195025.json
+2025-06-02 19:50:26,019 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0061_AP39V6553_195025.pdf
+2025-06-02 19:50:26,020 - AutoUploadQueue - INFO - Queued 2 files for ticket T0061
+2025-06-02 19:50:29,912 - AutoUploadQueue - INFO - Internet available, processing upload queue...
+2025-06-02 19:50:30,987 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0061_Tharuni_Guntur_195025.json
+2025-06-02 19:50:30,988 - AutoUploadQueue - INFO - Successfully uploaded: T0061_Tharuni_Guntur_195025.json
+2025-06-02 19:50:31,267 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0061_AP39V6553_195025.pdf
+2025-06-02 19:50:31,268 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0061_AP39V6553_195025.pdf
+2025-06-02 19:50:31,272 - AutoUploadQueue - INFO - Upload batch completed: 2 uploaded, 0 failed
+2025-06-02 19:50:31,273 - AutoUploadQueue - INFO - ✅ Upload batch: 2 files uploaded successfully
+2025-06-02 19:55:29,938 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:55:29,939 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:55:29,939 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:55:29,940 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:55:41,255 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:55:41,256 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:55:41,256 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:55:41,257 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:55:41,366 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:55:41,367 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:55:41,367 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:55:41,368 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 19:55:53,192 - AutoUploadQueue - INFO - Added to upload queue: json - T0061_Tharuni_Guntur_195553.json
+2025-06-02 19:55:53,193 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0061_TS06UV0606_195553.pdf
+2025-06-02 19:55:53,194 - AutoUploadQueue - INFO - Queued 2 files for ticket T0061
+2025-06-02 19:55:59,972 - AutoUploadQueue - INFO - Internet available, processing upload queue...
+2025-06-02 19:56:01,636 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0061_Tharuni_Guntur_195553.json
+2025-06-02 19:56:01,637 - AutoUploadQueue - INFO - Successfully uploaded: T0061_Tharuni_Guntur_195553.json
+2025-06-02 19:56:01,935 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0061_TS06UV0606_195553.pdf
+2025-06-02 19:56:01,935 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0061_TS06UV0606_195553.pdf
+2025-06-02 19:56:01,936 - AutoUploadQueue - INFO - Upload batch completed: 2 uploaded, 0 failed
+2025-06-02 19:56:01,937 - AutoUploadQueue - INFO - ✅ Upload batch: 2 files uploaded successfully
+2025-06-02 19:56:18,602 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 19:56:18,603 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 19:56:18,603 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 19:56:18,604 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:01:51,825 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:01:51,826 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:01:51,826 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:01:51,827 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:02:04,580 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:02:04,581 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:02:04,581 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:02:04,582 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:02:04,686 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:02:04,686 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:02:04,686 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:02:04,687 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:02:17,872 - AutoUploadQueue - INFO - Added to upload queue: json - T0061_Tharuni_Guntur_200217.json
+2025-06-02 20:02:17,873 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0061_AP39V6553_200217.pdf
+2025-06-02 20:02:17,873 - AutoUploadQueue - INFO - Queued 2 files for ticket T0061
+2025-06-02 20:02:21,843 - AutoUploadQueue - INFO - Internet available, processing upload queue...
+2025-06-02 20:02:22,910 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0061_Tharuni_Guntur_200217.json
+2025-06-02 20:02:22,910 - AutoUploadQueue - INFO - Successfully uploaded: T0061_Tharuni_Guntur_200217.json
+2025-06-02 20:02:23,204 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0061_AP39V6553_200217.pdf
+2025-06-02 20:02:23,205 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0061_AP39V6553_200217.pdf
+2025-06-02 20:02:23,209 - AutoUploadQueue - INFO - Upload batch completed: 2 uploaded, 0 failed
+2025-06-02 20:02:23,210 - AutoUploadQueue - INFO - ✅ Upload batch: 2 files uploaded successfully
+2025-06-02 20:02:40,968 - AutoUploadQueue - INFO - Added to upload queue: json - T0061_Tharuni_Guntur_200240.json
+2025-06-02 20:02:40,969 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0061_TS05X0555_200240.pdf
+2025-06-02 20:02:40,969 - AutoUploadQueue - INFO - Queued 2 files for ticket T0061
+2025-06-02 20:02:48,927 - AutoUploadQueue - INFO - Loaded queued item: data\json_backups\2025-06-02\T0061_Tharuni_Guntur_200240.json
+2025-06-02 20:02:48,929 - AutoUploadQueue - INFO - Loaded queued item: data\reports\2025-06-02\Tharuni_Guntur_T0061_TS05X0555_200240.pdf
+2025-06-02 20:02:48,929 - AutoUploadQueue - INFO - Loaded 2 items from queue
+2025-06-02 20:02:48,930 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:02:48,930 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:02:48,931 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:02:48,955 - AutoUploadQueue - INFO - Internet available, processing upload queue...
+2025-06-02 20:02:49,883 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0061_Tharuni_Guntur_200240.json
+2025-06-02 20:02:49,883 - AutoUploadQueue - INFO - Successfully uploaded: T0061_Tharuni_Guntur_200240.json
+2025-06-02 20:02:50,204 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0061_TS05X0555_200240.pdf
+2025-06-02 20:02:50,204 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0061_TS05X0555_200240.pdf
+2025-06-02 20:02:50,206 - AutoUploadQueue - INFO - Upload batch completed: 2 uploaded, 0 failed
+2025-06-02 20:02:50,207 - AutoUploadQueue - INFO - ✅ Upload batch: 2 files uploaded successfully
+2025-06-02 20:05:24,512 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:05:24,513 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:05:24,513 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:05:24,513 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:05:36,599 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:05:36,600 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:05:36,600 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:05:36,600 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:05:36,695 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:05:36,696 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:05:36,696 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:05:36,696 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:06:05,422 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:06:05,423 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:06:05,423 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:06:05,424 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:13:21,571 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:13:21,572 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:13:21,572 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:13:21,572 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:13:33,927 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:13:33,928 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:13:33,928 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:13:33,928 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:13:34,036 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:13:34,037 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:13:34,037 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:13:34,037 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:14:17,606 - AutoUploadQueue - INFO - Added to upload queue: json - T0061_Tharuni_Guntur_201417.json
+2025-06-02 20:14:17,608 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0061_TS05X0555_201417.pdf
+2025-06-02 20:14:17,608 - AutoUploadQueue - INFO - Queued 2 files for ticket T0061
+2025-06-02 20:14:21,613 - AutoUploadQueue - INFO - Internet available, processing upload queue...
+2025-06-02 20:14:22,561 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0061_Tharuni_Guntur_201417.json
+2025-06-02 20:14:22,561 - AutoUploadQueue - INFO - Successfully uploaded: T0061_Tharuni_Guntur_201417.json
+2025-06-02 20:14:22,861 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0061_TS05X0555_201417.pdf
+2025-06-02 20:14:22,861 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0061_TS05X0555_201417.pdf
+2025-06-02 20:14:22,862 - AutoUploadQueue - INFO - Upload batch completed: 2 uploaded, 0 failed
+2025-06-02 20:14:22,863 - AutoUploadQueue - INFO - ✅ Upload batch: 2 files uploaded successfully
+2025-06-02 20:14:34,506 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:14:34,507 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:14:34,507 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:14:34,508 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:29:05,928 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:29:05,929 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:29:05,929 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:29:05,929 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:29:18,495 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:29:18,496 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:29:18,496 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:29:18,497 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:29:18,607 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:29:18,608 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:29:18,608 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:29:18,609 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 20:30:03,508 - AutoUploadQueue - INFO - Added to upload queue: json - T0061_Tharuni_Guntur_203003.json
+2025-06-02 20:30:03,509 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0061_TS04UA4444_203003.pdf
+2025-06-02 20:30:03,509 - AutoUploadQueue - INFO - Queued 2 files for ticket T0061
+2025-06-02 20:30:05,969 - AutoUploadQueue - INFO - Internet available, processing upload queue...
+2025-06-02 20:30:06,877 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0061_Tharuni_Guntur_203003.json
+2025-06-02 20:30:06,878 - AutoUploadQueue - INFO - Successfully uploaded: T0061_Tharuni_Guntur_203003.json
+2025-06-02 20:30:07,186 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0061_TS04UA4444_203003.pdf
+2025-06-02 20:30:07,187 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0061_TS04UA4444_203003.pdf
+2025-06-02 20:30:07,188 - AutoUploadQueue - INFO - Upload batch completed: 2 uploaded, 0 failed
+2025-06-02 20:30:07,188 - AutoUploadQueue - INFO - ✅ Upload batch: 2 files uploaded successfully
+2025-06-02 20:49:24,942 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 20:49:24,943 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 20:49:24,943 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 20:49:24,944 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:01:22,113 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:01:22,114 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:01:22,114 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:01:22,115 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:20:01,808 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:20:01,808 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:20:01,808 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:20:01,809 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:20:20,947 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:20:20,947 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:20:20,947 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:20:20,948 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:20:21,046 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:20:21,046 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:20:21,047 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:20:21,047 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:20:47,378 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:20:47,378 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:20:47,378 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:20:47,379 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:22:29,430 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:22:29,431 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:22:29,431 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:22:29,432 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:22:29,542 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:22:29,543 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:22:29,543 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:22:29,543 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:23:55,816 - AutoUploadQueue - INFO - Added to upload queue: json - T0061_Tharuni_Guntur_212355.json
+2025-06-02 21:23:55,819 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0061_TS04UA4444_212355.pdf
+2025-06-02 21:23:55,820 - AutoUploadQueue - INFO - Queued 2 files for ticket T0061
+2025-06-02 21:24:17,394 - AutoUploadQueue - INFO - Internet available, processing upload queue...
+2025-06-02 21:24:18,302 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0061_Tharuni_Guntur_212355.json
+2025-06-02 21:24:18,302 - AutoUploadQueue - INFO - Successfully uploaded: T0061_Tharuni_Guntur_212355.json
+2025-06-02 21:24:18,612 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0061_TS04UA4444_212355.pdf
+2025-06-02 21:24:18,613 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0061_TS04UA4444_212355.pdf
+2025-06-02 21:24:18,617 - AutoUploadQueue - INFO - Upload batch completed: 2 uploaded, 0 failed
+2025-06-02 21:24:18,618 - AutoUploadQueue - INFO - ✅ Upload batch: 2 files uploaded successfully
+2025-06-02 21:28:56,236 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:28:56,236 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:28:56,236 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:28:56,237 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:29:08,848 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:29:08,848 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:29:08,848 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:29:08,849 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:29:12,825 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:29:12,826 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:29:12,826 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:29:12,826 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:29:12,916 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:29:12,916 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:29:12,916 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:29:12,917 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:30:11,372 - AutoUploadQueue - INFO - Added to upload queue: json - T0061_Tharuni_Guntur_213011.json
+2025-06-02 21:30:11,373 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0061_TS07US0707_213011.pdf
+2025-06-02 21:30:11,374 - AutoUploadQueue - INFO - Queued 2 files for ticket T0061
+2025-06-02 21:30:38,877 - AutoUploadQueue - INFO - Internet available, processing upload queue...
+2025-06-02 21:30:39,772 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0061_Tharuni_Guntur_213011.json
+2025-06-02 21:30:39,772 - AutoUploadQueue - INFO - Successfully uploaded: T0061_Tharuni_Guntur_213011.json
+2025-06-02 21:30:40,089 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0061_TS07US0707_213011.pdf
+2025-06-02 21:30:40,091 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0061_TS07US0707_213011.pdf
+2025-06-02 21:30:40,094 - AutoUploadQueue - INFO - Upload batch completed: 2 uploaded, 0 failed
+2025-06-02 21:30:40,095 - AutoUploadQueue - INFO - ✅ Upload batch: 2 files uploaded successfully
+2025-06-02 21:35:01,894 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:35:01,895 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:35:01,895 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:35:01,896 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:35:21,034 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:35:21,035 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:35:21,035 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:35:21,035 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:35:21,158 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:35:21,159 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:35:21,159 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:35:21,159 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:35:57,916 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:35:57,917 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:35:57,917 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:35:57,917 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:36:21,096 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:36:21,097 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:36:21,097 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:36:21,098 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:36:21,236 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:36:21,237 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:36:21,238 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:36:21,238 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:37:12,735 - AutoUploadQueue - INFO - Added to upload queue: json - T0061_Tharuni_Guntur_213712.json
+2025-06-02 21:37:12,736 - AutoUploadQueue - INFO - Added to upload queue: pdf - Tharuni_Guntur_T0061_TS07US0707_213712.pdf
+2025-06-02 21:37:12,737 - AutoUploadQueue - INFO - Queued 2 files for ticket T0061
+2025-06-02 21:37:27,958 - AutoUploadQueue - INFO - Internet available, processing upload queue...
+2025-06-02 21:37:28,871 - AutoUploadQueue - INFO - ✅ Uploaded JSON: T0061_Tharuni_Guntur_213712.json
+2025-06-02 21:37:28,871 - AutoUploadQueue - INFO - Successfully uploaded: T0061_Tharuni_Guntur_213712.json
+2025-06-02 21:37:29,229 - AutoUploadQueue - INFO - ✅ Uploaded PDF: Tharuni_Guntur_T0061_TS07US0707_213712.pdf
+2025-06-02 21:37:29,229 - AutoUploadQueue - INFO - Successfully uploaded: Tharuni_Guntur_T0061_TS07US0707_213712.pdf
+2025-06-02 21:37:29,231 - AutoUploadQueue - INFO - Upload batch completed: 2 uploaded, 0 failed
+2025-06-02 21:37:29,231 - AutoUploadQueue - INFO - ✅ Upload batch: 2 files uploaded successfully
+2025-06-02 21:49:08,245 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:49:08,246 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:49:08,246 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:49:08,246 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:49:30,612 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:49:30,613 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:49:30,613 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:49:30,615 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:49:30,743 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:49:30,744 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:49:30,744 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:49:30,745 - AutoUploadQueue - INFO - AutoUploadQueue initialized
+2025-06-02 21:57:45,841 - AutoUploadQueue - INFO - Loaded 0 items from queue
+2025-06-02 21:57:45,841 - AutoUploadQueue - INFO - Upload worker started
+2025-06-02 21:57:45,842 - AutoUploadQueue - INFO - Background upload worker started
+2025-06-02 21:57:45,842 - AutoUploadQueue - INFO - AutoUploadQueue initialized

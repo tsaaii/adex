@@ -1,0 +1,153 @@
+2025-06-03 16:26:31,983 - TharuniApp - INFO - ============================================================
+2025-06-03 16:26:31,984 - TharuniApp - INFO - APPLICATION STARTUP
+2025-06-03 16:26:31,984 - TharuniApp - INFO - ============================================================
+2025-06-03 16:26:31,988 - TharuniApp - INFO - Configuration setup completed
+2025-06-03 16:26:31,989 - DataManager - INFO - DataManager initialized with OFFLINE-FIRST approach + JSON local storage
+2025-06-03 16:26:31,990 - DataManager - INFO - CSV structure is up to date
+2025-06-03 16:26:31,990 - DataManager - INFO - Daily PDF folder structure ready:
+2025-06-03 16:26:31,993 - DataManager - INFO -   Base reports folder: data\reports
+2025-06-03 16:26:31,993 - DataManager - INFO -   Today's folder: data\reports\2025-06-03
+2025-06-03 16:26:31,994 - DataManager - INFO - Data file: data\weighbridge_data.csv
+2025-06-03 16:26:31,994 - DataManager - INFO - Reports folder: data\reports
+2025-06-03 16:26:31,994 - DataManager - INFO - JSON backup folder: data\json_backups
+2025-06-03 16:26:31,994 - DataManager - INFO - PDF folder: data\reports\2025-06-03
+2025-06-03 16:26:31,995 - DataManager - INFO - Cloud storage will only be initialized when backup is requested
+2025-06-03 16:26:31,995 - TharuniApp - INFO - Data manager initialized
+2025-06-03 16:26:31,997 - TharuniApp - INFO - Settings storage initialized
+2025-06-03 16:26:32,000 - TharuniApp - INFO - UI styles initialized
+2025-06-03 16:26:32,000 - TharuniApp - INFO - Starting user authentication
+2025-06-03 16:26:35,738 - TharuniApp - INFO - Authentication successful: admin
+2025-06-03 16:26:35,738 - TharuniApp - INFO - User logged in: admin (Role: admin)
+2025-06-03 16:26:35,738 - TharuniApp - INFO - Setting up data context
+2025-06-03 16:26:35,739 - DataManager - INFO - CSV structure is up to date
+2025-06-03 16:26:35,739 - DataManager - INFO - Data context set to: Agency='Tharuni', Site='Guntur'
+2025-06-03 16:26:35,739 - DataManager - INFO - Data file: data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:35,740 - TharuniApp - INFO - Data context initialized: Agency='Tharuni', Site='Guntur'
+2025-06-03 16:26:35,740 - TharuniApp - INFO - Data will be saved to: data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:35,740 - TharuniApp - INFO - PDFs will be saved to: data\reports\2025-06-03
+2025-06-03 16:26:35,740 - TharuniApp - INFO - Creating application widgets
+2025-06-03 16:26:35,746 - TharuniApp - INFO - Creating main panel
+2025-06-03 16:26:35,756 - FormValidator - INFO - FormValidator initialized
+2025-06-03 16:26:35,763 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:36,386 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:36,387 - TharuniApp - INFO - Main form created
+2025-06-03 16:26:36,388 - DataManager - INFO - CSV structure is up to date
+2025-06-03 16:26:36,389 - DataManager - INFO - Data context set to: Agency='Tharuni', Site='Guntur'
+2025-06-03 16:26:36,389 - DataManager - INFO - Data file: data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:36,390 - DataManager - INFO - CSV structure is up to date
+2025-06-03 16:26:36,390 - DataManager - INFO - Data context set to: Agency='Tharuni', Site='Guntur'
+2025-06-03 16:26:36,390 - DataManager - INFO - Data file: data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:36,391 - DataManager - INFO - CSV structure is up to date
+2025-06-03 16:26:36,391 - DataManager - INFO - Data context set to: Agency='Tharuni', Site='Guntur'
+2025-06-03 16:26:36,391 - DataManager - INFO - Data file: data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:36,392 - PendingVehiclesPanel - INFO - PendingVehiclesPanel initialized
+2025-06-03 16:26:36,401 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 16:26:36,401 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:36,402 - PendingVehiclesPanel - INFO - Retrieved 24 total records
+2025-06-03 16:26:36,420 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 16:26:36,420 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 16:26:36,421 - TharuniApp - INFO - Pending vehicles panel created
+2025-06-03 16:26:36,647 - TharuniApp - INFO - Main panel creation completed
+2025-06-03 16:26:36,655 - TharuniApp - INFO - Summary panel created
+2025-06-03 16:26:36,942 - TharuniApp - INFO - ✅ Data manager reference set in settings panel
+2025-06-03 16:26:36,942 - TharuniApp - INFO - Widget creation completed successfully
+2025-06-03 16:26:36,944 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 16:26:36,945 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:36,945 - PendingVehiclesPanel - INFO - Retrieved 24 total records
+2025-06-03 16:26:36,976 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 16:26:36,977 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 16:26:36,978 - DataManager - INFO - Created new daily folder: data\reports\03-06
+2025-06-03 16:26:36,982 - TharuniApp - INFO - Application initialization completed successfully
+2025-06-03 16:26:37,942 - TharuniApp - INFO - Ensuring settings persistence...
+2025-06-03 16:26:37,952 - TharuniApp - INFO - Settings persistence check completed
+2025-06-03 16:26:38,931 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:38,950 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:38,951 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:39,581 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:39,583 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:41,240 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:41,240 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:42,777 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:42,778 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:45,638 - TharuniApp - INFO - ==================================================
+2025-06-03 16:26:45,639 - TharuniApp - INFO - SAVE RECORD OPERATION STARTED WITH SMART TICKET FLOW
+2025-06-03 16:26:45,639 - FormValidator - INFO - Starting comprehensive form validation
+2025-06-03 16:26:45,639 - FormValidator - INFO - Validating basic fields
+2025-06-03 16:26:45,640 - FormValidator - INFO - Field values: ticket='T0027', vehicle='AO07GT0123', agency='Tharuni'
+2025-06-03 16:26:45,641 - FormValidator - INFO - Basic validation passed
+2025-06-03 16:26:45,641 - FormValidator - INFO - Validating weighment data
+2025-06-03 16:26:45,642 - FormValidator - INFO - Weighment data: first_weight='25330.00', first_timestamp='03-06-2025 16:26:40', second_weight='10110.00', second_timestamp='03-06-2025 16:26:41'
+2025-06-03 16:26:45,642 - FormValidator - INFO - Weighment validation passed
+2025-06-03 16:26:45,642 - FormValidator - INFO - Validating images for second weighment
+2025-06-03 16:26:45,643 - FormValidator - INFO - Images validation for second: front=False, back=False
+2025-06-03 16:26:47,127 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:47,128 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:47,139 - FormValidator - INFO - User chose to continue without images
+2025-06-03 16:26:47,139 - FormValidator - INFO - Form validation passed successfully
+2025-06-03 16:26:47,141 - TharuniApp - INFO - Saving record for ticket: T0027
+2025-06-03 16:26:47,142 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:47,142 - DataManager - INFO - Filtered 24 records to 0 using filter: 't0027'
+2025-06-03 16:26:47,142 - TharuniApp - INFO - Adding new record: T0027
+2025-06-03 16:26:47,143 - TharuniApp - INFO - Calling data_manager.save_record for T0027
+2025-06-03 16:26:47,143 - DataManager - INFO - ==================================================
+2025-06-03 16:26:47,143 - DataManager - INFO - STARTING OFFLINE-FIRST RECORD SAVE
+2025-06-03 16:26:47,143 - DataManager - INFO - Input data keys: ['date', 'time', 'site_name', 'agency_name', 'material', 'ticket_no', 'vehicle_no', 'transfer_party_name', 'first_weight', 'first_timestamp', 'second_weight', 'second_timestamp', 'net_weight', 'material_type', 'first_front_image', 'first_back_image', 'second_front_image', 'second_back_image', 'site_incharge', 'user_name']
+2025-06-03 16:26:47,143 - DataManager - INFO - Net weight calculated: 25330.0 - 10110.0 = 15220.00
+2025-06-03 16:26:47,144 - DataManager - INFO - Using data file: data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:47,144 - DataManager - INFO - Successfully loaded 24 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:47,145 - DataManager - INFO - Filtered 24 records to 0 using filter: 't0027'
+2025-06-03 16:26:47,145 - DataManager - INFO - Adding new record: T0027
+2025-06-03 16:26:47,146 - DataManager - INFO - Adding new record to CSV
+2025-06-03 16:26:47,146 - DataManager - INFO - Record data: ['03-06-2025', '16:26:47', 'Guntur', 'Tharuni', 'Inert', 'T0027', 'AO07GT0123', 'Jindal', '25330.00', '03-06-2025 16:26:40', '10110.00', '03-06-2025 16:26:41', '15220.00', 'Inert', '', '', '', '', '', 'admin']
+2025-06-03 16:26:47,147 - DataManager - INFO - ✅ New record added to data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:47,148 - DataManager - INFO - ✅ Record T0027 saved to local CSV successfully
+2025-06-03 16:26:47,148 - DataManager - INFO - Weighment analysis:
+2025-06-03 16:26:47,148 - DataManager - INFO -   - Has first weighment: True
+2025-06-03 16:26:47,148 - DataManager - INFO -   - Has second weighment: True
+2025-06-03 16:26:47,149 - DataManager - INFO -   - Is first weighment save: False
+2025-06-03 16:26:47,149 - DataManager - INFO -   - Is complete record: True
+2025-06-03 16:26:47,149 - DataManager - INFO -   - Is update: False
+2025-06-03 16:26:47,149 - DataManager - INFO - Complete record detected - saving JSON backup locally...
+2025-06-03 16:26:47,150 - DataManager - INFO - Created new daily JSON folder: data\json_backups\2025-06-03
+2025-06-03 16:26:47,151 - DataManager - INFO - ✅ JSON backup saved: data\json_backups\2025-06-03\T0027_Tharuni_Guntur_162647.json
+2025-06-03 16:26:47,151 - DataManager - INFO - ✅ JSON backup saved locally for T0027
+2025-06-03 16:26:47,152 - DataManager - INFO - Complete record detected for ticket T0027 - generating PDF locally...
+2025-06-03 16:26:47,153 - DataManager - INFO - Today's reports folder ensured: data\reports\2025-06-03
+2025-06-03 16:26:47,153 - DataManager - INFO - Reports will be saved to: data\reports\2025-06-03
+2025-06-03 16:26:47,154 - DataManager - INFO - Today's reports folder ensured: data\reports\2025-06-03
+2025-06-03 16:26:47,156 - DataManager - INFO - SIMPLE TEST - Net display: '15220.00 kg'
+2025-06-03 16:26:47,157 - DataManager - INFO - Building PDF document: data\reports\2025-06-03\Tharuni_Guntur_T0027_AO07GT0123_162647.pdf
+2025-06-03 16:26:47,169 - DataManager - INFO - PDF created successfully: data\reports\2025-06-03\Tharuni_Guntur_T0027_AO07GT0123_162647.pdf (2964 bytes)
+2025-06-03 16:26:47,169 - DataManager - INFO - Auto-generated PDF: data\reports\2025-06-03\Tharuni_Guntur_T0027_AO07GT0123_162647.pdf
+2025-06-03 16:26:47,169 - DataManager - INFO - PDF saved to today's reports folder: data\reports\2025-06-03
+2025-06-03 16:26:47,170 - DataManager - INFO - ✅ PDF auto-generated locally: data\reports\2025-06-03\Tharuni_Guntur_T0027_AO07GT0123_162647.pdf
+2025-06-03 16:26:47,170 - DataManager - INFO - ✅ OFFLINE-FIRST SAVE COMPLETED - Local CSV, JSON backup, and PDF generated
+2025-06-03 16:26:47,170 - DataManager - INFO - 📂 PDF saved to today's reports folder: data\reports\2025-06-03
+2025-06-03 16:26:47,171 - DataManager - INFO - 💡 Cloud backup available via Settings > Cloud Storage > Backup
+2025-06-03 16:26:47,171 - DataManager - INFO - ==================================================
+2025-06-03 16:26:47,171 - TharuniApp - INFO - ✅ Record T0027 saved successfully
+2025-06-03 16:26:48,111 - DataManager - INFO - Cloud storage initialized on demand
+2025-06-03 16:26:48,415 - DataManager - INFO - Successfully loaded 25 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:48,416 - DataManager - INFO - Successfully loaded 25 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:48,422 - DataManager - INFO - Successfully loaded 25 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:48,422 - DataManager - INFO - Returning all 25 records (no filter)
+2025-06-03 16:26:48,423 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 16:26:48,424 - DataManager - INFO - Successfully loaded 25 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:26:48,424 - PendingVehiclesPanel - INFO - Retrieved 25 total records
+2025-06-03 16:26:48,448 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 16:26:48,449 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 16:26:48,450 - TharuniApp - INFO - SAVE RECORD OPERATION COMPLETED SUCCESSFULLY WITH SMART TICKET FLOW
+2025-06-03 16:26:48,450 - TharuniApp - INFO - ==================================================
+2025-06-03 16:26:48,474 - DataManager - INFO - Record T0027 successfully saved to cloud at Tharuni/Guntur/T0027/20250603_162648.json
+2025-06-03 16:26:48,475 - DataManager - INFO - No images found to upload for ticket T0027
+2025-06-03 16:27:36,987 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 16:27:36,989 - DataManager - INFO - Successfully loaded 25 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:27:36,991 - PendingVehiclesPanel - INFO - Retrieved 25 total records
+2025-06-03 16:27:37,017 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 16:27:37,017 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items
+2025-06-03 16:27:37,018 - DataManager - INFO - Created new daily folder: data\reports\03-06
+2025-06-03 16:28:37,029 - PendingVehiclesPanel - INFO - Refreshing pending vehicles list
+2025-06-03 16:28:37,032 - DataManager - INFO - Successfully loaded 25 records from data\Tharuni_Guntur_data.csv
+2025-06-03 16:28:37,033 - PendingVehiclesPanel - INFO - Retrieved 25 total records
+2025-06-03 16:28:37,057 - PendingVehiclesPanel - INFO - Found 0 pending records
+2025-06-03 16:28:37,058 - PendingVehiclesPanel - INFO - Successfully refreshed pending list with 0 items

@@ -1,0 +1,23 @@
+{
+    "agencies": {
+        "Saurashtra Enviro Projects Pvt. Ltd.": {
+            "name": "Saurashtra Enviro Projects Pvt. Ltd.",
+            "address": "Dumping yard, Bethamcherla\nAndhra Pradesh 518599",
+            "contact": "",
+            "email": ""
+        },
+        "Advitia Labs": {
+            "name": "Advitia Labs Private Limited",
+            "address": "Walnut, IJM Raintree Park, Namburu, Guntur\nAndhra Pradesh ",
+            "contact": "+91-6303640757",
+            "email": "support@advitiaum.com"
+        }
+    },
+    "sites": {
+        "Kurnool": {
+            "name": "Saurashtra Enviro Projects Pvt. Ltd.",
+            "address": "Kurnool Dumping yard, Gargeyapuram\nAndhra Pradesh 518452",
+            "contact": ""
+        }
+        }
+    }

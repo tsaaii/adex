@@ -1,0 +1,35 @@
+[
+  {
+    "id": "20250603_190441_064927_46537272",
+    "content_hash": "465372728dd695f902211fcca61d69fc",
+    "record": {
+      "date": "03-06-2025",
+      "time": "19:04:40",
+      "site_name": "Eluru",
+      "agency_name": "Coastal",
+      "material": "Inert",
+      "ticket_no": "T0033",
+      "vehicle_no": "AP02TV0202",
+      "transfer_party_name": "Coromandel",
+      "first_weight": "40740.00",
+      "first_timestamp": "03-06-2025 19:04:34",
+      "second_weight": "7320.00",
+      "second_timestamp": "03-06-2025 19:04:36",
+      "net_weight": "33420.00",
+      "material_type": "Inert",
+      "first_front_image": "",
+      "first_back_image": "",
+      "second_front_image": "",
+      "second_back_image": "",
+      "site_incharge": "Vishnu",
+      "user_name": "admin"
+    },
+    "images": [],
+    "pdf": "data\\reports\\2025-06-03\\Coastal_Eluru_T0033_AP02TV0202_190441.pdf",
+    "timestamp": "2025-06-03T19:04:41.064927",
+    "attempts": 0,
+    "last_attempt": null,
+    "created": "2025-06-03T19:04:41.064927",
+    "priority": 19.999704047222224
+  }
+]
