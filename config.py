@@ -20,10 +20,10 @@ DAYS_TO_KEEP_LOCAL_FILES = 30  # Number of days to keep local files before clean
 CLEANUP_INTERVAL_DAYS = 1  # Days between automatic cleanup checks
 HARDCODED_MODE = True  # Set to True to use hardcoded values
 HARDCODED_AGENCY = "Tharuni Associates"
-HARDCODED_SITE = "Kadapa1"
+HARDCODED_SITE = "Chilakaluripeta"
 HARDCODED_USER = "admin"
 HARDCODED_PASSWORD = "admin" 
-HARDCODED_SITEMANAGER = "Ravi" 
+HARDCODED_SITEMANAGER = "Srinivas" 
 WEIGHT_TOLERANCE = 1.0  # kg - adjust for your needs
 STABLE_READINGS_REQUIRED = 3  # readings - adjust for stability vs responsiveness
 MIN_WEIGHT_CHANGE = 50.0  # minimum kg change between weighments
@@ -31,9 +31,9 @@ WEIGHT_CAPTURE_TIMEOUT = 5.0  # seconds to wait for stable weight
 # Hardcoded Lists for Form Dropdowns
 HARDCODED_SITES = [HARDCODED_SITE]
 HARDCODED_AGENCIES = [HARDCODED_AGENCY]
-HARDCODED_TRANSFER_PARTIES = ["On-site","Dalmia","Jindal"]
-HARDCODED_INCHARGE = "Ravi"
-HARDCODED_MATERIALS = ["Legacy/MSW", "Inert", "Soil", "Construction and Demolition", "RDF(REFUSE DERIVED FUEL)"]
+HARDCODED_TRANSFER_PARTIES = ["On-site"]
+HARDCODED_INCHARGE = "Chilakaluripeta"
+HARDCODED_MATERIALS = ["Legacy/MSW", "Inert", "Soil", "Construction and Demolition", "RDF(REFUSE DERIVED FUEL)","Scrap"]
 
 # Authentication Settings
 REQUIRE_PASSWORD = True 

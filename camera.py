@@ -41,8 +41,8 @@ class OptimizedCameraView:
         self.http_url = None
         
         # Performance optimization settings
-        self.target_fps = 15  # Reduced for better performance
-        self.max_fps = 30     # Maximum allowed FPS
+        self.target_fps = 10  # Reduced for better performance
+        self.max_fps = 15     # Maximum allowed FPS
         self.min_fps = 5      # Minimum FPS under heavy load
         self.adaptive_quality = True
         self.frame_skip_threshold = 80  # Skip frames if CPU > 80%
@@ -242,7 +242,7 @@ class OptimizedCameraView:
             self.frame.pack(fill=tk.BOTH, expand=True, padx=3, pady=3)
             
             # Video display canvas - optimized size
-            self.canvas = tk.Canvas(self.frame, bg="black", width=320, height=240)
+            self.canvas = tk.Canvas(self.frame, bg="black", width=288, height=216)
             self.canvas.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
             
             # Bind mouse events for zoom and pan
@@ -531,8 +531,8 @@ class OptimizedCameraView:
                 self.cap = cv2.VideoCapture(self.rtsp_url, cv2.CAP_FFMPEG)
                 # Optimized RTSP settings
                 self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-                self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-                self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 352)
+                self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 288)
                 self.cap.set(cv2.CAP_PROP_FPS, self.target_fps)
                 
             elif self.camera_type == "HTTP" and self.http_url:
@@ -542,8 +542,8 @@ class OptimizedCameraView:
                 self.cap = cv2.VideoCapture(self.camera_index)
                 if self.cap and self.cap.isOpened():
                     # Optimized USB camera settings
-                    self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-                    self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                    self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 352)
+                    self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 288)
                     self.cap.set(cv2.CAP_PROP_FPS, self.target_fps)
                     self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
             
