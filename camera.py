@@ -513,9 +513,7 @@ class OptimizedCameraView:
     def _add_lightweight_watermark(self, frame):
         """Add lightweight watermark for performance"""
         try:
-            timestamp = datetime.datetime.now().strftime("%H:%M:%S")
-            cv2.putText(frame, f"{self.camera_name} {timestamp}", 
-                       (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+            pass
         except Exception as e:
             pass  # Don't log watermark errors to avoid spam
     
@@ -1007,7 +1005,7 @@ def add_watermark(image, text, ticket_id=None):
     height, width = result.shape[:2]
     
     font = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale = 0.7
+    font_scale = 0.5
     color = (255, 255, 255)
     thickness = 2
     line_spacing = 8

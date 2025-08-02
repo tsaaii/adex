@@ -7,6 +7,8 @@ from tkinter import ttk, filedialog, messagebox
 import json
 import config
 import tkcalendar
+import numpy as np  # Add this line to your imports
+
 
 # Try to import optional dependencies
 try:
@@ -1493,7 +1495,7 @@ class ReportGenerator:
     def create_pdf_report(self, records_data, save_path):
         """Create PDF report with 4-image grid for complete records (used only for single records)"""
         doc = SimpleDocTemplate(save_path, pagesize=A4,
-                                rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+                                rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
         
         styles = getSampleStyleSheet()
         elements = []
@@ -1696,7 +1698,7 @@ class ReportGenerator:
             second_front_img_path = os.path.join(config.IMAGES_FOLDER, record.get('second_front_image', ''))
             second_back_img_path = os.path.join(config.IMAGES_FOLDER, record.get('second_back_image', ''))
 
-            # Create 2x2 image grid with headers
+            # Create 2x2 image grid with headers (unchanged)
             img_data = [
                 ["1ST WEIGHMENT - FRONT", "1ST WEIGHMENT - BACK"],
                 [None, None],  # Will be filled with first weighment images
@@ -1704,117 +1706,95 @@ class ReportGenerator:
                 [None, None]   # Will be filled with second weighment images
             ]
 
-            # Process first weighment front image
-            first_front_img = None
-            if os.path.exists(first_front_img_path):
-                try:
-                    temp_img = self.prepare_image_for_pdf(first_front_img_path, f"Ticket: {ticket_no} - 1st Front")
-                    if temp_img:
-                        first_front_img = RLImage(temp_img, width=3.5*inch, height=2.0*inch)
-                        os.remove(temp_img)
-                except Exception as e:
-                    print(f"Error processing first front image: {e}")
-            
-            if first_front_img is None:
-                first_front_img = "1st Front\nImage not available"
+            # Calculate image dimensions to maintain aspect ratio
+            IMG_WIDTH = 6.0*inch
+            IMG_HEIGHT = 4.5*inch
 
-            # Process first weighment back image
-            first_back_img = None
-            if os.path.exists(first_back_img_path):
-                try:
-                    temp_img = self.prepare_image_for_pdf(first_back_img_path, f"Ticket: {ticket_no} - 1st Back")
-                    if temp_img:
-                        first_back_img = RLImage(temp_img, width=3.5*inch, height=2.0*inch)
-                        os.remove(temp_img)
-                except Exception as e:
-                    print(f"Error processing first back image: {e}")
-            
-            if first_back_img is None:
-                first_back_img = "1st Back\nImage not available"
-
-            # Process second weighment front image
-            second_front_img = None
-            if os.path.exists(second_front_img_path):
-                try:
-                    temp_img = self.prepare_image_for_pdf(second_front_img_path, f"Ticket: {ticket_no} - 2nd Front")
-                    if temp_img:
-                        second_front_img = RLImage(temp_img, width=3.5*inch, height=2.0*inch)
-                        os.remove(temp_img)
-                except Exception as e:
-                    print(f"Error processing second front image: {e}")
-            
-            if second_front_img is None:
-                second_front_img = "2nd Front\nImage not available"
-
-            # Process second weighment back image
-            second_back_img = None
-            if os.path.exists(second_back_img_path):
-                try:
-                    temp_img = self.prepare_image_for_pdf(second_back_img_path, f"Ticket: {ticket_no} - 2nd Back")
-                    if temp_img:
-                        second_back_img = RLImage(temp_img, width=3.5*inch, height=2.0*inch)
-                        os.remove(temp_img)
-                except Exception as e:
-                    print(f"Error processing second back image: {e}")
-            
-            if second_back_img is None:
-                second_back_img = "2nd Back\nImage not available"
+            # Process images with the new high-quality method
+            first_front_img = self.process_image_for_grid(first_front_img_path, f"Ticket: {ticket_no} - 1st Front", IMG_WIDTH, IMG_HEIGHT)
+            first_back_img = self.process_image_for_grid(first_back_img_path, f"Ticket: {ticket_no} - 1st Back", IMG_WIDTH, IMG_HEIGHT)
+            second_front_img = self.process_image_for_grid(second_front_img_path, f"Ticket: {ticket_no} - 2nd Front", IMG_WIDTH, IMG_HEIGHT)
+            second_back_img = self.process_image_for_grid(second_back_img_path, f"Ticket: {ticket_no} - 2nd Back", IMG_WIDTH, IMG_HEIGHT)
 
             # Fill the image grid
-            img_data[1] = [first_front_img, first_back_img]
-            img_data[3] = [second_front_img, second_back_img]
+            img_data[1] = [first_front_img or "1st Front\nImage not available", 
+                        first_back_img or "1st Back\nImage not available"]
+            img_data[3] = [second_front_img or "2nd Front\nImage not available", 
+                        second_back_img or "2nd Back\nImage not available"]
 
-            # Create images table with 2x2 grid
-            img_table = Table(img_data, colWidths=[3.5*inch, 3.5*inch], 
-                             rowHeights=[0.3*inch, 2*inch, 0.3*inch, 2*inch])
+            # Create images table with the larger dimensions
+            img_table = Table(img_data, 
+                            colWidths=[IMG_WIDTH, IMG_WIDTH],
+                            rowHeights=[0.4*inch, IMG_HEIGHT, 0.4*inch, IMG_HEIGHT])
             img_table.setStyle(TableStyle([
-                ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-                ('FONTNAME', (0,0), (-1,-1), 'Helvetica-Bold'),
-                ('FONTSIZE', (0,0), (1,0), 10),  # Header row 1
-                ('FONTSIZE', (0,2), (1,2), 10),  # Header row 2
-                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-                ('LEFTPADDING', (0,0), (-1,-1), 6),
-                ('RIGHTPADDING', (0,0), (-1,-1), 6),
-                ('TOPPADDING', (0,0), (-1,-1), 6),
-                ('BOTTOMPADDING', (0,0), (-1,-1), 6),
-                # Header background
-                ('BACKGROUND', (0,0), (1,0), colors.lightgrey),
-                ('BACKGROUND', (0,2), (1,2), colors.lightgrey),
-            ]))
+                            ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+                            ('FONTNAME', (0,0), (-1,-1), 'Helvetica-Bold'),
+                            ('FONTSIZE', (0,0), (1,0), 12),  # Increased header font size
+                            ('FONTSIZE', (0,2), (1,2), 12),  # Increased header font size
+                            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                            ('LEFTPADDING', (0,0), (-1,-1), 6),    # Increased padding
+                            ('RIGHTPADDING', (0,0), (-1,-1), 6),   # Increased padding
+                            ('TOPPADDING', (0,0), (-1,-1), 6),     # Increased padding
+                            ('BOTTOMPADDING', (0,0), (-1,-1), 6),  # Increased padding
+                            # Header background
+                            ('BACKGROUND', (0,0), (1,0), colors.lightgrey),
+                            ('BACKGROUND', (0,2), (1,2), colors.lightgrey),
+                        ]))
             elements.append(img_table)
-            
-            # Add Agency signature line at bottom right
+                        
+                        # Add Agency signature line at bottom right
             elements.append(Spacer(1, 0.3*inch))
-            
+                        
             signature_table = Table([["", "Operator's Signature"]], colWidths=[5*inch, 2.5*inch])
             signature_table.setStyle(TableStyle([
-                ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
-                ('FONTSIZE', (0,0), (-1,-1), 11),
-                ('ALIGN', (1,0), (1,0), 'RIGHT'),
-                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-                ('LEFTPADDING', (0,0), (-1,-1), 0),
-                ('RIGHTPADDING', (0,0), (-1,-1), 0),
-                ('TOPPADDING', (0,0), (-1,-1), 0),
-                ('BOTTOMPADDING', (0,0), (-1,-1), 0),
-            ]))
+                            ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+                            ('FONTSIZE', (0,0), (-1,-1), 11),
+                            ('ALIGN', (1,0), (1,0), 'RIGHT'),
+                            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                            ('LEFTPADDING', (0,0), (-1,-1), 0),
+                            ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                            ('TOPPADDING', (0,0), (-1,-1), 0),
+                            ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+                        ]))
             elements.append(signature_table)
 
-        # Build the PDF
-        doc.build(elements)
+                    # Build the PDF
+            doc.build(elements)
+
+    def process_image_for_grid(self, image_path, watermark_text, width, height):
+        """Process image for grid display with high quality"""
+        if not image_path or not os.path.exists(image_path):
+            return None
+            
+        try:
+            # Use our high-quality preparation method
+            temp_path = self.prepare_image_for_pdf(image_path, watermark_text)
+            if temp_path:
+                img = RLImage(temp_path, width=width, height=height)
+                os.remove(temp_path)
+                return img
+        except Exception as e:
+            print(f"Error processing image for grid: {e}")
+            return None
+        return None
+
 
     def prepare_image_for_pdf(self, image_path, watermark_text):
-        """Prepare image for PDF by resizing and adding watermark"""
+        """Prepare image for PDF with high quality and watermark"""
         try:
             # Read image
             img = cv2.imread(image_path)
             if img is None:
                 return None
             
-            # Resize image for PDF (maintain aspect ratio)
+            # Get original dimensions
             height, width = img.shape[:2]
-            max_width = 400
-            max_height = 300
+            
+            # Calculate new dimensions while maintaining aspect ratio
+            # We'll use larger dimensions for better quality
+            max_width = 1200  # Increased from 400
+            max_height = 900  # Increased from 300
             
             # Calculate scaling factor
             scale_w = max_width / width
@@ -1824,21 +1804,26 @@ class ReportGenerator:
             new_width = int(width * scale)
             new_height = int(height * scale)
             
-            img_resized = cv2.resize(img, (new_width, new_height))
+            # Use high-quality interpolation
+            img_resized = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_LANCZOS4)
             
             # Add watermark
             from camera import add_watermark  # Import the watermark function
             watermarked_img = add_watermark(img_resized, watermark_text)
             
-            # Save temporary file
+            # Save temporary file with high quality
             temp_filename = f"temp_pdf_image_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.jpg"
             temp_path = os.path.join(config.IMAGES_FOLDER, temp_filename)
             
-            cv2.imwrite(temp_path, watermarked_img)
+            # Save with high quality (100% JPEG quality)
+            cv2.imwrite(temp_path, watermarked_img, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+            
             return temp_path
             
         except Exception as e:
             print(f"Error preparing image for PDF: {e}")
+            import traceback
+            print(traceback.format_exc())
             return None
     
     def show_address_config(self):

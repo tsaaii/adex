@@ -741,6 +741,9 @@ class SettingsPanel:
         self.stop_bits_var = tk.DoubleVar(value=1.0)
         self.wb_status_var = tk.StringVar(value="Status: Disconnected")
         self.current_weight_var = tk.StringVar(value="0 kg")
+        # ADD THIS LINE - Test mode variable initialization
+        self.test_mode_var = tk.BooleanVar(value=False)
+        self.test_mode_status_var = tk.StringVar(value="Status: Real Weighbridge Mode")
         
         # Camera settings
         self.front_cam_index_var = tk.IntVar(value=0)
