@@ -231,6 +231,8 @@ def reset_ticket_counter(start_number=None):
         print(f"Error resetting ticket counter: {e}")
         return False
 
+
+
 def reserve_next_ticket_number():
     """Reserve (peek at) the next ticket number WITHOUT incrementing the counter
     

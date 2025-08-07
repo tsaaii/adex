@@ -248,96 +248,6 @@ class DataManager:
                 pass
             return {'success': False, 'error': str(e)}
 
-    def should_archive_csv(self):
-        """Check if CSV should be archived (every 5 days) - ENHANCED with better error handling"""
-        try:
-            archive_tracking_file = os.path.join(config.DATA_FOLDER, 'last_archive.json')
-            current_file = self.get_current_data_file()
-            
-            # Check if CSV file exists
-            if not os.path.exists(current_file):
-                self.logger.info("No CSV file to archive")
-                return False
-            
-            # Validate CSV file can be read
-            try:
-                with open(current_file, 'r', newline='', encoding='utf-8') as f:
-                    reader = csv.reader(f)
-                    header = next(reader, None)
-                    if not header:
-                        self.logger.warning("CSV file has no header - cannot archive")
-                        return False
-            except Exception as csv_read_error:
-                self.logger.error(f"Cannot read CSV file for archiving: {csv_read_error}")
-                return False
-                
-            # Count total records in CSV (excluding header)
-            total_records = 0
-            complete_records = 0
-            
-            try:
-                with open(current_file, 'r', newline='', encoding='utf-8') as f:
-                    reader = csv.reader(f)
-                    header = next(reader, None)
-                    
-                    for row in reader:
-                        if len(row) >= 13:  # Valid record
-                            total_records += 1
-                            
-                            # Check if complete (both weights)
-                            first_weight = row[8].strip() if len(row) > 8 else ''
-                            second_weight = row[10].strip() if len(row) > 10 else ''
-                            
-                            if (first_weight and first_weight not in ['0', '0.0', ''] and 
-                                second_weight and second_weight not in ['0', '0.0', '']):
-                                complete_records += 1
-                                
-            except Exception as count_error:
-                self.logger.error(f"Error counting records: {count_error}")
-                return False
-            
-            self.logger.info(f"CSV analysis: {total_records} total records, {complete_records} complete records")
-            
-            if complete_records == 0:
-                self.logger.info("CSV file has no complete records to archive")
-                return False
-            
-            # Check last archive date
-            if os.path.exists(archive_tracking_file):
-                try:
-                    with open(archive_tracking_file, 'r') as f:
-                        data = json.load(f)
-                        last_archive = datetime.datetime.fromisoformat(data['last_archive_date'])
-                        days_since = (datetime.datetime.now() - last_archive).days
-                        
-                        self.logger.info(f"Last archive: {days_since} days ago ({last_archive.strftime('%Y-%m-%d')})")
-                        self.logger.info(f"Current complete records in CSV: {complete_records}")
-                        
-                        should_archive = days_since >= 5
-                        if should_archive:
-                            self.logger.info(f"✅ Archive DUE: {days_since} days >= 5 days")
-                        else:
-                            self.logger.info(f"⏳ Archive not due: {days_since} days < 5 days")
-                        return should_archive
-                        
-                except Exception as tracking_error:
-                    self.logger.error(f"Error reading archive tracking: {tracking_error}")
-                    # If tracking file is corrupted, archive if we have complete records
-                    self.logger.info("Archive tracking corrupted - will archive due to complete records")
-                    return complete_records > 0
-            else:
-                # No tracking file exists - this is the first run
-                self.logger.info(f"No archive tracking file found. CSV has {complete_records} complete records.")
-                if complete_records > 0:
-                    self.logger.info("✅ First-time archive due - CSV has complete records")
-                    return True
-                else:
-                    self.logger.info("❌ No complete records to archive yet")
-                    return False
-                    
-        except Exception as e:
-            self.logger.error(f"Error checking archive status: {e}")
-            return False
 
     def get_all_records(self):
         """FIXED: Get all records with better error handling for archive compatibility"""
@@ -577,98 +487,7 @@ class DataManager:
             return False
     
 
-    def archive_complete_records(self):
-        """Archive complete records, keep incomplete ones - IMPROVED"""
-        try:
-            current_file = self.get_current_data_file()
-            if not os.path.exists(current_file):
-                return False, "No CSV file to archive"
-            
-            self.logger.info("🔍 Starting archive process...")
-            
-            # Read all records and categorize them
-            complete_records = []
-            incomplete_records = []
-            
-            with open(current_file, 'r', newline='', encoding='utf-8') as f:
-                reader = csv.reader(f)
-                header = next(reader, None)
-                
-                for row_num, row in enumerate(reader, 1):
-                    if len(row) < 13:
-                        self.logger.warning(f"Row {row_num}: Insufficient data, skipping")
-                        continue
-                        
-                    # Check if record is complete (has both weights)
-                    first_weight = row[8].strip() if len(row) > 8 else ''
-                    second_weight = row[10].strip() if len(row) > 10 else ''
-                    ticket_no = row[5] if len(row) > 5 else 'Unknown'
-                    
-                    has_first = bool(first_weight and first_weight not in ['0', '0.0', ''])
-                    has_second = bool(second_weight and second_weight not in ['0', '0.0', ''])
-                    
-                    if has_first and has_second:
-                        complete_records.append(row)
-                        self.logger.info(f"Complete record: Ticket {ticket_no} (1st: {first_weight}, 2nd: {second_weight})")
-                    else:
-                        incomplete_records.append(row)
-                        self.logger.info(f"Incomplete record: Ticket {ticket_no} (1st: {first_weight}, 2nd: {second_weight})")
-            
-            self.logger.info(f"📊 Archive analysis:")
-            self.logger.info(f"   Complete records: {len(complete_records)}")
-            self.logger.info(f"   Incomplete records: {len(incomplete_records)}")
-            
-            if not complete_records:
-                return False, f"No complete records to archive. {len(incomplete_records)} incomplete records kept."
-            
-            # Create archive file
-            archives_folder = os.path.join(config.DATA_FOLDER, 'archives')
-            os.makedirs(archives_folder, exist_ok=True)
-            
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            archive_filename = f"archive_{timestamp}_{len(complete_records)}records.csv"
-            archive_path = os.path.join(archives_folder, archive_filename)
-            
-            # Write archive with complete records
-            with open(archive_path, 'w', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                writer.writerow(config.CSV_HEADER)
-                for record in complete_records:
-                    writer.writerow(record)
-            
-            self.logger.info(f"📦 Created archive: {archive_filename}")
-            
-            # Create fresh CSV with incomplete records
-            with open(current_file, 'w', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                writer.writerow(config.CSV_HEADER)
-                for record in incomplete_records:
-                    writer.writerow(record)
-            
-            self.logger.info(f"🆕 Fresh CSV created with {len(incomplete_records)} incomplete records")
-            
-            # Update tracking file
-            tracking_file = os.path.join(config.DATA_FOLDER, 'last_archive.json')
-            tracking_data = {
-                'last_archive_date': datetime.datetime.now().isoformat(),
-                'archive_filename': archive_filename,
-                'complete_records': len(complete_records),
-                'incomplete_records': len(incomplete_records),
-                'archive_path': archive_path
-            }
-            with open(tracking_file, 'w') as f:
-                json.dump(tracking_data, f, indent=2)
-            
-            self.logger.info(f"✅ Archive completed successfully!")
-            self.logger.info(f"   📁 Archive file: {archive_filename}")
-            self.logger.info(f"   ✅ Complete records archived: {len(complete_records)}")
-            self.logger.info(f"   ⏳ Incomplete records kept: {len(incomplete_records)}")
-            
-            return True, f"Archive created: {len(complete_records)} complete records archived, {len(incomplete_records)} incomplete records kept in fresh CSV."
-            
-        except Exception as e:
-            self.logger.error(f"❌ Archive error: {e}")
-            return False, f"Archive failed: {e}"
+
 
     def check_and_archive(self):
         """Check if archive is due and perform it - IMPROVED"""
@@ -771,6 +590,225 @@ class DataManager:
             fallback_folder = config.DATA_FOLDER
             os.makedirs(fallback_folder, exist_ok=True)
             return fallback_folder
+
+
+    def should_archive_csv(self):
+        """Check if CSV should be archived (every 5 days) - FIXED VERSION"""
+        try:
+            archive_tracking_file = os.path.join(config.DATA_FOLDER, 'last_archive.json')
+            current_file = self.get_current_data_file()
+            
+            # Check if CSV file exists
+            if not os.path.exists(current_file):
+                self.logger.info("No CSV file to archive")
+                return False
+            
+            # Validate CSV file can be read
+            try:
+                with open(current_file, 'r', newline='', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    header = next(reader, None)
+                    if not header:
+                        self.logger.warning("CSV file has no header - cannot archive")
+                        return False
+            except Exception as csv_read_error:
+                self.logger.error(f"Cannot read CSV file for archiving: {csv_read_error}")
+                return False
+                
+            # Count archivable records (complete AND from 2+ days ago)
+            archivable_records = 0
+            cutoff_date = datetime.datetime.now() - datetime.timedelta(days=2)
+            cutoff_date_str = cutoff_date.strftime('%Y-%m-%d')
+            
+            try:
+                with open(current_file, 'r', newline='', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    header = next(reader, None)
+                    
+                    for row in reader:
+                        if len(row) >= 13:  # Valid record
+                            # Check if complete (both weights)
+                            first_weight = row[8].strip() if len(row) > 8 else ''
+                            second_weight = row[10].strip() if len(row) > 10 else ''
+                            
+                            # Check if record is from 2+ days ago
+                            record_date = row[0].strip() if len(row) > 0 else ''
+                            
+                            if (first_weight and first_weight not in ['0', '0.0', ''] and 
+                                second_weight and second_weight not in ['0', '0.0', ''] and
+                                record_date and record_date < cutoff_date_str):
+                                archivable_records += 1
+                                
+            except Exception as count_error:
+                self.logger.error(f"Error counting archivable records: {count_error}")
+                return False
+            
+            self.logger.info(f"CSV analysis: {archivable_records} records are complete and 2+ days old (before {cutoff_date_str})")
+            
+            if archivable_records == 0:
+                self.logger.info("CSV file has no records ready for archiving (complete + 2+ days old)")
+                return False
+            
+            # Check last archive date
+            if os.path.exists(archive_tracking_file):
+                try:
+                    with open(archive_tracking_file, 'r') as f:
+                        data = json.load(f)
+                        last_archive = datetime.datetime.fromisoformat(data['last_archive_date'])
+                        days_since = (datetime.datetime.now() - last_archive).days
+                        
+                        self.logger.info(f"Last archive: {days_since} days ago ({last_archive.strftime('%Y-%m-%d')})")
+                        self.logger.info(f"Records ready for archive: {archivable_records}")
+                        
+                        should_archive = days_since >= 5
+                        if should_archive:
+                            self.logger.info(f"✅ Archive DUE: {days_since} days >= 5 days")
+                        else:
+                            self.logger.info(f"⏳ Archive not due: {days_since} days < 5 days")
+                        return should_archive
+                        
+                except Exception as tracking_error:
+                    self.logger.error(f"Error reading archive tracking: {tracking_error}")
+                    # If tracking file is corrupted, archive if we have archivable records
+                    self.logger.info("Archive tracking corrupted - will archive due to archivable records")
+                    return archivable_records > 0
+            else:
+                # FIXED: No tracking file exists - this is the first run
+                # Don't archive on first run, just create the tracking file
+                self.logger.info(f"First run detected. CSV has {archivable_records} archivable records.")
+                self.logger.info("❌ Skipping archive on first run to prevent immediate archiving")
+                
+                # Create tracking file with current date so archive will be due in 5 days
+                tracking_data = {
+                    'last_archive_date': datetime.datetime.now().isoformat(),
+                    'archive_filename': 'first_run_no_archive',
+                    'complete_records': 0,
+                    'incomplete_records': 0,
+                    'archivable_records': archivable_records,
+                    'note': 'First run - no archive performed, next archive due in 5 days'
+                }
+                with open(archive_tracking_file, 'w') as f:
+                    json.dump(tracking_data, f, indent=2)
+                
+                self.logger.info("✅ Archive tracking file created - next archive will be due in 5 days")
+                return False
+                    
+        except Exception as e:
+            self.logger.error(f"Error checking archive status: {e}")
+            return False
+
+
+    def archive_complete_records(self):
+        """Archive complete records from 2+ days ago, keep recent and incomplete ones - FIXED VERSION"""
+        try:
+            current_file = self.get_current_data_file()
+            if not os.path.exists(current_file):
+                return False, "No CSV file to archive"
+            
+            self.logger.info("🔍 Starting archive process...")
+            
+            # Calculate cutoff date (2 days ago)
+            cutoff_date = datetime.datetime.now() - datetime.timedelta(days=2)
+            cutoff_date_str = cutoff_date.strftime('%Y-%m-%d')
+            
+            self.logger.info(f"📅 Archive cutoff date: {cutoff_date_str} (records before this date will be archived)")
+            
+            # Read all records and categorize them
+            archive_records = []        # Complete records from 2+ days ago
+            keep_records = []          # Recent records (< 2 days) OR incomplete records
+            
+            with open(current_file, 'r', newline='', encoding='utf-8') as f:
+                reader = csv.reader(f)
+                header = next(reader, None)
+                
+                for row_num, row in enumerate(reader, 1):
+                    if len(row) < 13:
+                        self.logger.warning(f"Row {row_num}: Insufficient data, skipping")
+                        continue
+                        
+                    # Get record details
+                    record_date = row[0].strip() if len(row) > 0 else ''
+                    first_weight = row[8].strip() if len(row) > 8 else ''
+                    second_weight = row[10].strip() if len(row) > 10 else ''
+                    ticket_no = row[5] if len(row) > 5 else 'Unknown'
+                    
+                    # Check if record is complete (has both weights)
+                    has_first = bool(first_weight and first_weight not in ['0', '0.0', ''])
+                    has_second = bool(second_weight and second_weight not in ['0', '0.0', ''])
+                    is_complete = has_first and has_second
+                    
+                    # Check if record is old enough (2+ days ago)
+                    is_old_enough = record_date and record_date < cutoff_date_str
+                    
+                    if is_complete and is_old_enough:
+                        # Archive: Complete AND old enough
+                        archive_records.append(row)
+                        self.logger.info(f"ARCHIVE: Ticket {ticket_no} - Date: {record_date} (Complete & Old)")
+                    else:
+                        # Keep: Either incomplete OR recent
+                        keep_records.append(row)
+                        if not is_complete:
+                            self.logger.info(f"KEEP: Ticket {ticket_no} - Date: {record_date} (Incomplete)")
+                        elif not is_old_enough:
+                            self.logger.info(f"KEEP: Ticket {ticket_no} - Date: {record_date} (Recent)")
+            
+            self.logger.info(f"📊 Archive analysis:")
+            self.logger.info(f"   Records to archive (complete + 2+ days old): {len(archive_records)}")
+            self.logger.info(f"   Records to keep (recent or incomplete): {len(keep_records)}")
+            
+            if not archive_records:
+                return False, f"No records ready for archiving. {len(keep_records)} records kept (recent or incomplete)."
+            
+            # Create archive file
+            archives_folder = os.path.join(config.DATA_FOLDER, 'archives')
+            os.makedirs(archives_folder, exist_ok=True)
+            
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            archive_filename = f"archive_{timestamp}_{len(archive_records)}records_before_{cutoff_date_str.replace('-', '')}.csv"
+            archive_path = os.path.join(archives_folder, archive_filename)
+            
+            # Write archive with records from 2+ days ago
+            with open(archive_path, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(config.CSV_HEADER)
+                for record in archive_records:
+                    writer.writerow(record)
+            
+            self.logger.info(f"📦 Created archive: {archive_filename}")
+            
+            # Create fresh CSV with recent and incomplete records
+            with open(current_file, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(config.CSV_HEADER)
+                for record in keep_records:
+                    writer.writerow(record)
+            
+            self.logger.info(f"🆕 Fresh CSV created with {len(keep_records)} records (recent + incomplete)")
+            
+            # Update tracking file
+            tracking_file = os.path.join(config.DATA_FOLDER, 'last_archive.json')
+            tracking_data = {
+                'last_archive_date': datetime.datetime.now().isoformat(),
+                'archive_filename': archive_filename,
+                'archived_records': len(archive_records),
+                'kept_records': len(keep_records),
+                'archive_path': archive_path,
+                'cutoff_date': cutoff_date_str,
+                'note': f'Archived complete records from before {cutoff_date_str}'
+            }
+            with open(tracking_file, 'w') as f:
+                json.dump(tracking_data, f, indent=2)
+            
+            self.logger.info(f"✅ Archive completed successfully!")
+            self.logger.info(f"   📁 Archive file: {archive_filename}")
+            self.logger.info(f"   ✅ Records archived: {len(archive_records)} (complete + 2+ days old)")
+            self.logger.info(f"   ⏳ Records kept: {len(keep_records)} (recent or incomplete)")
+            
+            return True, f"Archive created: {len(archive_records)} records archived (before {cutoff_date_str}), {len(keep_records)} records kept."
+            
+        except Exception as e:
+            self.logger.error(f"❌ Archive error: {e}")
+            return False, f"Archive failed: {e}"
 
     # Continue with rest of the methods...
     def calculate_and_set_net_weight(self, data):
