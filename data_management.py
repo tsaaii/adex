@@ -11,7 +11,7 @@ import config
 import shutil
 from cloud_storage import CloudStorageService
 import config
-
+import datetime
 # Import PDF generation capabilities
 try:
     from reportlab.lib.pagesizes import letter, A4
@@ -1125,14 +1125,7 @@ class DataManager:
 
 
     def auto_generate_pdf_for_complete_record(self, record_data):
-        """Automatically generate PDF for a complete record - Save to today's reports folder
-        
-        Args:
-            record_data: Complete record data dictionary
-            
-        Returns:
-            tuple: (success, pdf_path)
-        """
+        """Auto-generate PDF for complete record - MODIFIED to use ticket number only"""
         # Check if ReportLab is available
         try:
             global REPORTLAB_AVAILABLE
@@ -1152,18 +1145,19 @@ class DataManager:
             # Get today's reports folder
             todays_reports_folder = self.get_todays_reports_folder()
             
-            # Generate PDF filename
+            # MODIFIED: Generate PDF filename using ONLY ticket number
             ticket_no = record_data.get('ticket_no', 'Unknown').replace('/', '_')
-            vehicle_no = record_data.get('vehicle_no', 'Unknown').replace('/', '_').replace(' ', '_')
-            site_name = record_data.get('site_name', 'Unknown').replace(' ', '_').replace('/', '_')
-            agency_name = record_data.get('agency_name', 'Unknown').replace(' ', '_').replace('/', '_')
-            timestamp = datetime.datetime.now().strftime("%H%M%S")
             
-            # PDF filename format: AgencyName_SiteName_TicketNo_VehicleNo_HHMMSS.pdf
-            pdf_filename = f"{agency_name}_{site_name}_{ticket_no}_{vehicle_no}_{timestamp}.pdf"
+            # PDF filename format: TicketNo.pdf (e.g., T0005.pdf)
+            pdf_filename = f"{ticket_no}.pdf"
             
             # Full path to save PDF in today's reports folder
             pdf_path = os.path.join(todays_reports_folder, pdf_filename)
+            
+            # Log the change
+            self.logger.info(f"Generating PDF with ticket-only filename: {pdf_filename}")
+            if os.path.exists(pdf_path):
+                self.logger.info(f"Existing PDF will be overwritten: {pdf_path}")
             
             # Generate the PDF
             success = self.create_pdf_report([record_data], pdf_path)

@@ -1031,7 +1031,7 @@ class TharuniApp:
                             relative_folder = os.path.relpath(todays_reports_folder, os.getcwd()) if todays_reports_folder else "reports"
                             messagebox.showinfo("Complete Record Saved + PDF Generated", 
                                             f"✅ Complete weighment saved for ticket {ticket_no}!\n"
-                                            f"✅ PDF generated: {os.path.basename(pdf_path)}\n"
+                                            f"📄 PDF generated: {ticket_no}.pdf\n"
                                             f"🎫 New ticket number: {new_ticket}\n\n"
                                             f"PDF Location: {relative_folder}")
                         else:
@@ -1062,10 +1062,10 @@ class TharuniApp:
                     try:
                         if pdf_generated and pdf_path:
                             relative_folder = os.path.relpath(todays_reports_folder, os.getcwd()) if todays_reports_folder else "reports"
-                            messagebox.showinfo("Second Weighment Completed + PDF Generated", 
-                                            f"✅ Second weighment completed for ticket {ticket_no}!\n"
-                                            f"✅ PDF generated: {os.path.basename(pdf_path)}\n"
-                                            f"🎫 Ready for next vehicle: {new_ticket}\n\n"
+                            messagebox.showinfo("Complete Record Saved + PDF Generated", 
+                                            f"✅ Complete weighment saved for ticket {ticket_no}!\n"
+                                            f"📄 PDF generated: {ticket_no}.pdf\n"
+                                            f"🎫 New ticket number: {new_ticket}\n\n"
                                             f"PDF Location: {relative_folder}")
                         else:
                             messagebox.showinfo("Second Weighment Completed", 

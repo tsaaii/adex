@@ -802,53 +802,6 @@ class ReportGenerator:
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export to Excel:\n{str(e)}")
     
-    def export_selected_to_pdf(self):
-        """FIXED: Always export to PDF summary format regardless of filters applied"""
-        if not REPORTLAB_AVAILABLE:
-            messagebox.showerror("PDF Export Error", 
-                            "ReportLab library is not installed.\n"
-                            "Please install it using: pip install reportlab")
-            return
-        
-        selected_data = self.get_selected_record_data()
-        
-        if not selected_data:
-            messagebox.showwarning("No Selection", "Please select at least one record to export.")
-            return
-        
-        try:
-            # ALWAYS use summary format for advanced reports (FIXED LOGIC)
-            if len(selected_data) == 1:
-                # Single record - use individual format
-                filename = self.generate_filename(selected_data, "pdf")
-                save_path = os.path.join(self.reports_folder, filename)
-                
-                self.create_pdf_report(selected_data, save_path)
-                messagebox.showinfo("Export Successful", 
-                                f"Individual PDF report saved successfully!\n\n"
-                                f"File: {filename}\n"
-                                f"Location: {self.reports_folder}")
-            else:
-                # Multiple records - ALWAYS use summary format
-                filename = self.generate_filtered_filename(selected_data, "pdf")
-                save_path = os.path.join(self.reports_folder, filename)
-                
-                print(f"📄 EXPORT DEBUG: Creating summary PDF for {len(selected_data)} records with applied filters")
-                self.create_summary_pdf_report(selected_data, save_path)
-                
-                messagebox.showinfo("Export Successful", 
-                                f"Summary PDF Report saved successfully!\n\n"
-                                f"File: {filename}\n"
-                                f"Records: {len(selected_data)}\n"
-                                f"Location: {self.reports_folder}")
-            
-            # FIXED: Only close window if it exists
-            if hasattr(self, 'report_window') and self.report_window:
-                self.report_window.destroy()
-            
-        except Exception as e:
-            messagebox.showerror("Export Error", f"Failed to export to PDF:\n{str(e)}")
-
 
 
     def generate_filtered_filename(self, selected_data, extension="pdf"):
@@ -1378,13 +1331,14 @@ class ReportGenerator:
             return {'Unknown Material': records_data}  # Fallback
 
     def export_selected_to_pdf(self):
-        """ENHANCED: Export to PDF with material type grouping"""
+        """Export selected records to PDF - FIXED method name and ticket number only filename"""
         if not REPORTLAB_AVAILABLE:
             messagebox.showerror("PDF Export Error", 
                             "ReportLab library is not installed.\n"
                             "Please install it using: pip install reportlab")
             return
         
+        # FIXED: Use the correct method name
         selected_data = self.get_selected_record_data()
         
         if not selected_data:
@@ -1393,27 +1347,94 @@ class ReportGenerator:
         
         try:
             if len(selected_data) == 1:
-                # Single record - use individual format
-                filename = self.generate_filename(selected_data, "pdf")
-                save_path = os.path.join(self.reports_folder, filename)
+                # Single record - use ticket number only filename (same as auto-generation)
+                record = selected_data[0]
+                ticket_no = record.get('ticket_no', 'Unknown')
                 
-                self.create_pdf_report(selected_data, save_path)
-                messagebox.showinfo("Export Successful", 
-                                f"Individual PDF report saved successfully!\n\n"
-                                f"File: {filename}\n"
-                                f"Location: {self.reports_folder}")
+                print(f"📄 SINGLE TICKET PDF: Processing ticket {ticket_no} using ticket-only filename")
+                
+                # Check if record is complete (both weighments)
+                if not self.data_manager.is_record_complete(record):
+                    messagebox.showwarning("Incomplete Record", 
+                                        f"Selected ticket {ticket_no} is incomplete.\n"
+                                        f"Both weighments are required for PDF generation.\n\n"
+                                        f"First Weight: {record.get('first_weight', 'Missing')}\n"
+                                        f"Second Weight: {record.get('second_weight', 'Missing')}")
+                    return
+                
+                # MODIFIED: Use ONLY ticket number for filename (same as auto-generation)
+                ticket_no_clean = ticket_no.replace('/', '_')
+                
+                # PDF filename format: TicketNo.pdf (e.g., T0005.pdf)
+                pdf_filename = f"{ticket_no_clean}.pdf"
+                
+                # Use the SAME folder as auto-generation
+                todays_reports_folder = self.data_manager.get_todays_reports_folder()
+                
+                # Full path to save PDF in today's reports folder
+                save_path = os.path.join(todays_reports_folder, pdf_filename)
+                
+                # Check if PDF already exists
+                pdf_exists = os.path.exists(save_path)
+                if pdf_exists:
+                    print(f"📄 OVERWRITE: Existing PDF will be overwritten: {pdf_filename}")
+                
+                print(f"📄 SINGLE TICKET PDF: Generating {pdf_filename} at {save_path}")
+                
+                # Use the SAME PDF creation method as auto-generation
+                success = self.data_manager.create_pdf_report([record], save_path)
+                
+                if success:
+                    # Verify the file was created
+                    if os.path.exists(save_path) and os.path.getsize(save_path) > 0:
+                        relative_folder = os.path.relpath(todays_reports_folder, os.getcwd())
+                        
+                        # Show appropriate message based on whether we overwrote
+                        if pdf_exists:
+                            messagebox.showinfo("PDF Overwritten Successfully", 
+                                            f"✅ PDF updated successfully!\n\n"
+                                            f"📄 File: {pdf_filename}\n"
+                                            f"📂 Location: {relative_folder}\n"
+                                            f"🎫 Ticket: {ticket_no}\n"
+                                            f"🚛 Vehicle: {record.get('vehicle_no', 'Unknown')}\n\n"
+                                            f"♻️ Previous PDF has been overwritten\n"
+                                            f"Same format as auto-generated trip reports")
+                        else:
+                            messagebox.showinfo("PDF Generated Successfully", 
+                                            f"✅ PDF created successfully!\n\n"
+                                            f"📄 File: {pdf_filename}\n"
+                                            f"📂 Location: {relative_folder}\n"
+                                            f"🎫 Ticket: {ticket_no}\n"
+                                            f"🚛 Vehicle: {record.get('vehicle_no', 'Unknown')}\n\n"
+                                            f"Same format as auto-generated trip reports")
+                        
+                        print(f"📄 SUCCESS: PDF created with ticket-only filename")
+                        print(f"   ✅ Ticket: {ticket_no}")
+                        print(f"   ✅ File: {pdf_filename}")
+                        print(f"   ✅ Location: {save_path}")
+                        print(f"   ✅ Size: {os.path.getsize(save_path)} bytes")
+                        print(f"   ✅ Overwrote existing: {pdf_exists}")
+                    else:
+                        messagebox.showerror("PDF Generation Failed", 
+                                        f"PDF file was not created properly for ticket {ticket_no}.\n"
+                                        f"Expected location: {save_path}")
+                else:
+                    messagebox.showerror("PDF Generation Failed", 
+                                    f"Failed to generate PDF for ticket {ticket_no}.\n"
+                                    f"This may be due to missing images or data.\n"
+                                    f"Please check the logs for details.")
+                    
             else:
-                # Multiple records - ENHANCED with material grouping
+                # Multiple records - use summary format (unchanged)
                 filename = self.generate_filtered_filename(selected_data, "pdf")
                 save_path = os.path.join(self.reports_folder, filename)
                 
-                print(f"📄 EXPORT DEBUG: Creating MATERIAL-GROUPED summary PDF for {len(selected_data)} records")
+                print(f"📄 MULTI-TICKET PDF: Creating summary PDF for {len(selected_data)} records")
                 
                 # Count material types for user info
                 materials = set()
                 for record in selected_data:
                     material = (
-                        record.get('material', '') or 
                         record.get('material', '') or 
                         'Unknown'
                     ).strip() or 'Unknown'
@@ -1421,13 +1442,13 @@ class ReportGenerator:
                 
                 self.create_summary_pdf_report(selected_data, save_path)
                 
-                messagebox.showinfo("Export Successful", 
-                                f"ENHANCED Summary PDF Report saved successfully!\n\n"
-                                f"File: {filename}\n"
-                                f"Records: {len(selected_data)}\n"
-                                f"Material Types: {len(materials)} ({', '.join(sorted(materials))})\n"
-                                f"Features: Material grouping, weight breakdown, separate tables\n"
-                                f"Location: {self.reports_folder}")
+                messagebox.showinfo("Summary Report Generated", 
+                                f"✅ Summary PDF Report saved successfully!\n\n"
+                                f"📄 File: {filename}\n"
+                                f"📊 Records: {len(selected_data)}\n"
+                                f"📋 Material Types: {len(materials)} ({', '.join(sorted(materials))})\n"
+                                f"📂 Location: {self.reports_folder}\n\n"
+                                f"Features: Material grouping, weight breakdown, separate tables")
             
             # Close window if it exists
             if hasattr(self, 'report_window') and self.report_window:
@@ -1436,9 +1457,7 @@ class ReportGenerator:
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export to PDF:\n{str(e)}")
             import traceback
-            print(f"PDF export error: {traceback.format_exc()}")
-
-
+            print(f"❌ PDF export error: {traceback.format_exc()}")
         
     def get_date_range_info(self, records_data):
         """Get human-readable date range from records"""
