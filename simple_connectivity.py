@@ -85,10 +85,10 @@ class SimpleQueue:
             if os.path.exists(self.queue_file):
                 with open(self.queue_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                    print(f"📂 Loaded {len(data)} items from queue file")
+                    print(f"Loaded {len(data)} items from queue file")
                     return data
             else:
-                print("📂 No existing queue file found, starting with empty queue")
+                print("No existing queue file found, starting with empty queue")
                 return []
         except Exception as e:
             print(f"❌ Error loading queue file: {e}")

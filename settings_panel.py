@@ -1045,7 +1045,7 @@ class SettingsPanel:
         help_frame = ttk.LabelFrame(scrollable_frame, text="Navigation Help", padding=10)
         help_frame.pack(fill=tk.X, padx=5, pady=(10, 20))
         
-        help_text = ("💡 Scroll Tips:\n"
+        help_text = (" Scroll Tips:\n"
                     "• Use mouse wheel to scroll up/down\n"
                     "• Use scrollbar on the right\n"
                     "• All settings are preserved when scrolling\n"
@@ -1253,7 +1253,7 @@ class SettingsPanel:
             self.backup_status_label.pack(side=tk.LEFT, padx=(5, 0))
             
             # Row 4: Information text
-            info_text = ("💡 JSONs are created locally for complete records (both weighments).\n"
+            info_text = (" JSONs are created locally for complete records (both weighments).\n"
                         "📤 Use 'Bulk Upload JSONs' for fast upload of all local JSONs.\n"
                         "📦 Use 'Full Backup' for comprehensive upload including reports.")
             info_label = ttk.Label(cloud_frame, text=info_text, 
@@ -1321,7 +1321,7 @@ class SettingsPanel:
                                         f"✅ Successfully uploaded: {uploaded}/{total} files\n"
                                         f"📁 Local JSON backups processed\n"
                                         f"🌐 All complete records now in cloud\n\n"
-                                        f"💡 Images and metadata included with each JSON")
+                                        f" Images and metadata included with each JSON")
                     else:
                         self.backup_status_var.set("ℹ️ No new JSON backups to upload")
                         messagebox.showinfo("Bulk Upload", "No new JSON backups found to upload.")
@@ -1494,7 +1494,7 @@ class SettingsPanel:
     ⏰ UPLOAD INFORMATION:
     Last Upload: {summary.get('last_upload', 'Never')}
 
-    💡 FEATURES:
+     FEATURES:
     ✓ Offline-first operation (no delays during saves)
     ✓ Local JSON backups for complete records
     ✓ Bulk JSON upload for efficient cloud sync
@@ -1869,7 +1869,7 @@ class SettingsPanel:
     ⏰ BACKUP TIME:
     {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-    📂 CLOUD STRUCTURE:
+    CLOUD STRUCTURE:
     Records: Agency/Site/Ticket/timestamp.json
     Images: Agency/Site/Ticket/images/
     Reports: daily_reports/YYYY-MM-DD/

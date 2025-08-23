@@ -262,7 +262,7 @@ class MainForm:
 
         # Note about ticket increment behavior
         weight_note = ttk.Label(state_frame, 
-                              text="💡 Ticket number increments only after BOTH weighments are completed", 
+                              text=" Ticket number increments only after BOTH weighments are completed", 
                               font=("Segoe UI", 8, "italic"), 
                               foreground="green")
         weight_note.pack(side=tk.RIGHT)
@@ -1109,7 +1109,7 @@ class MainForm:
         instruction_frame = ttk.Frame(status_frame)
         instruction_frame.pack(fill=tk.X, padx=5, pady=2)
         
-        instruction_text = ("💡 Images are optional - records can be saved with or without images")
+        instruction_text = (" Images are optional - records can be saved with or without images")
         instruction_label = ttk.Label(instruction_frame, text=instruction_text, 
                                      font=("Segoe UI", 8, "italic"), 
                                      foreground="green")

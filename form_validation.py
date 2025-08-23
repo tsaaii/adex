@@ -245,7 +245,7 @@ class FormValidator:
                                    f"🕐 First Time: {first_timestamp}\n\n"
                                    f"❌ You CANNOT create a new record for this vehicle.\n"
                                    f"✅ You MUST complete the SECOND weighment first.\n\n"
-                                   f"💡 Click on Pending Vehicles panel → Select ticket {pending_ticket} → Complete second weighment")
+                                   f" Click on Pending Vehicles panel → Select ticket {pending_ticket} → Complete second weighment")
                         
                         self.logger.error(f"BLOCKED: Vehicle {vehicle_no} already in pending list with ticket {pending_ticket}")
                         

@@ -2,7 +2,7 @@
 # pyinstaller ^
 #   --onedir ^
 #   --windowed ^
-#   --name="SAC_monitor_Chilakaluripeta" ^
+#   --name="SAC_monitor_Tadepalligudem" ^
 #   --icon=right.ico ^
 #   --add-data "data;data" ^
 #   --add-data "assets/logo.png;assets" ^
@@ -1009,7 +1009,7 @@ class TharuniApp:
                                         f"✅ First weighment saved for ticket {ticket_no}!\n"
                                         f"🚛 Vehicle added to pending queue\n"
                                         f"🎫 New ticket number: {new_ticket}\n\n"
-                                        f"💡 Vehicle can return later for second weighment")
+                                        f" Vehicle can return later for second weighment")
                     except Exception as msg_error:
                         self.logger.warning(f"Could not show messagebox: {msg_error}")
                         
@@ -1033,7 +1033,7 @@ class TharuniApp:
                                             f"✅ Complete weighment saved for ticket {ticket_no}!\n"
                                             f"✅ PDF generated: {os.path.basename(pdf_path)}\n"
                                             f"🎫 New ticket number: {new_ticket}\n\n"
-                                            f"📂 PDF Location: {relative_folder}")
+                                            f"PDF Location: {relative_folder}")
                         else:
                             messagebox.showinfo("Complete Record Saved", 
                                             f"✅ Complete weighment saved for ticket {ticket_no}!\n"
@@ -1066,7 +1066,7 @@ class TharuniApp:
                                             f"✅ Second weighment completed for ticket {ticket_no}!\n"
                                             f"✅ PDF generated: {os.path.basename(pdf_path)}\n"
                                             f"🎫 Ready for next vehicle: {new_ticket}\n\n"
-                                            f"📂 PDF Location: {relative_folder}")
+                                            f"PDF Location: {relative_folder}")
                         else:
                             messagebox.showinfo("Second Weighment Completed", 
                                             f"✅ Second weighment completed for ticket {ticket_no}!\n"
