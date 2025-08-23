@@ -1765,7 +1765,7 @@ class ReportGenerator:
                         # Add Agency signature line at bottom right
             elements.append(Spacer(1, 0.3*inch))
                         
-            signature_table = Table([["", "Operator's Signature"]], colWidths=[5*inch, 2.5*inch])
+            signature_table = Table([["", " "]], colWidths=[5*inch, 2.5*inch])
             signature_table.setStyle(TableStyle([
                             ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
                             ('FONTSIZE', (0,0), (-1,-1), 11),
