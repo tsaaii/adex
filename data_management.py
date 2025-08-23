@@ -61,7 +61,9 @@ class DataManager:
         self.pdf_reports_folder = config.REPORTS_FOLDER
         self.json_backup_folder = config.JSON_BACKUPS_FOLDER
         self.today_reports_folder = config.DATA_FOLDER
-        
+        self.archive_tracking_file = os.path.join(config.DATA_FOLDER, 'archive_tracking.json')
+        self.current_archive_part = 1
+        self.load_archive_tracking()        
         # CRITICAL FIX: Initialize these attributes with safe defaults FIRST
         self.today_json_folder = None
         self.today_pdf_folder = None
@@ -100,8 +102,239 @@ class DataManager:
         self.logger.info(f"Today's PDF folder: {self.today_pdf_folder}")
         self.logger.info("Cloud storage will only be initialized when backup is requested")
 
+    def load_archive_tracking(self):
+        """Load or create archive tracking file"""
+        try:
+            if os.path.exists(self.archive_tracking_file):
+                with open(self.archive_tracking_file, 'r') as f:
+                    tracking = json.load(f)
+                    self.current_archive_part = tracking.get('current_part', 1)
+                    self.logger.info(f"Loaded archive tracking - current part: {self.current_archive_part}")
+            else:
+                # Create new tracking file
+                self.save_archive_tracking()
+                self.logger.info("Created new archive tracking file")
+        except Exception as e:
+            self.logger.error(f"Error loading archive tracking: {e}")
+            self.current_archive_part = 1
+
+    def save_archive_tracking(self):
+        """Save archive tracking data"""
+        try:
+            tracking = {
+                'current_part': self.current_archive_part,
+                'last_archive_date': datetime.datetime.now().isoformat(),
+                'created_by': 'Better Archive System'
+            }
+            with open(self.archive_tracking_file, 'w') as f:
+                json.dump(tracking, f, indent=4)
+        except Exception as e:
+            self.logger.error(f"Error saving archive tracking: {e}")
+
+    def should_archive_csv_new(self):
+        """Check if archive is due (every 5 days) - NEW SYSTEM"""
+        try:
+            if not os.path.exists(self.archive_tracking_file):
+                return False  # First run, don't archive yet
+            
+            with open(self.archive_tracking_file, 'r') as f:
+                tracking = json.load(f)
+            
+            last_archive_str = tracking.get('last_archive_date')
+            if not last_archive_str:
+                return True  # No previous archive, create first one
+            
+            last_archive = datetime.datetime.fromisoformat(last_archive_str)
+            days_since = (datetime.datetime.now() - last_archive).days
+            
+            should_archive = days_since >= config.ARCHIVE_INTERVAL_DAYS
+            
+            self.logger.info(f"Archive check: {days_since} days since last archive")
+            if should_archive:
+                self.logger.info(f"✅ Archive DUE: {days_since} >= {config.ARCHIVE_INTERVAL_DAYS} days")
+            else:
+                self.logger.info(f"⏳ Archive not due: {days_since} < {config.ARCHIVE_INTERVAL_DAYS} days")
+            
+            return should_archive
+        
+        except Exception as e:
+            self.logger.error(f"Error checking archive status: {e}")
+            return False
+
+    def get_complete_days_to_archive(self):
+        """Get complete days that should be archived (older than retention period)"""
+        try:
+            current_file = self.get_current_data_file()
+            if not os.path.exists(current_file):
+                return []
+            
+            # Calculate retention cutoff (keep today + last N days)
+            retention_cutoff = datetime.datetime.now() - datetime.timedelta(days=config.MAIN_CSV_RETENTION_DAYS)
+            retention_cutoff_str = retention_cutoff.strftime('%Y-%m-%d')
+            
+            self.logger.info(f"Retention cutoff: {retention_cutoff_str} (records before this will be archived)")
+            
+            # Analyze records by date
+            days_analysis = {}
+            
+            with open(current_file, 'r', newline='', encoding='utf-8') as f:
+                reader = csv.reader(f)
+                header = next(reader, None)
+                
+                for row in reader:
+                    if len(row) < 13:
+                        continue
+                    
+                    record_date = row[0].strip() if len(row) > 0 else ''
+                    if not record_date or record_date >= retention_cutoff_str:
+                        continue  # Skip recent records
+                    
+                    # Check if record is complete
+                    first_weight = row[8].strip() if len(row) > 8 else ''
+                    second_weight = row[10].strip() if len(row) > 10 else ''
+                    is_complete = (first_weight and first_weight not in ['0', '0.0', ''] and 
+                                 second_weight and second_weight not in ['0', '0.0', ''])
+                    
+                    if record_date not in days_analysis:
+                        days_analysis[record_date] = {'complete': 0, 'incomplete': 0, 'total': 0}
+                    
+                    days_analysis[record_date]['total'] += 1
+                    if is_complete:
+                        days_analysis[record_date]['complete'] += 1
+                    else:
+                        days_analysis[record_date]['incomplete'] += 1
+            
+            # Find days where ALL records are complete
+            complete_days = []
+            for date, stats in days_analysis.items():
+                if stats['incomplete'] == 0 and stats['complete'] > 0:
+                    # All records for this day are complete
+                    complete_days.append(date)
+                    self.logger.info(f"Complete day found: {date} ({stats['complete']} records)")
+                elif stats['incomplete'] > 0:
+                    self.logger.info(f"Incomplete day: {date} ({stats['complete']} complete, {stats['incomplete']} incomplete)")
+            
+            complete_days.sort()
+            return complete_days
+        
+        except Exception as e:
+            self.logger.error(f"Error analyzing complete days: {e}")
+            return []
+
+    def create_archive_part(self, complete_days):
+        """Create new archive part with complete days"""
+        try:
+            if not complete_days:
+                return False, "No complete days to archive"
+            
+            current_file = self.get_current_data_file()
+            
+            # Create archive part filename
+            start_date = complete_days[0].replace('-', '')
+            end_date = complete_days[-1].replace('-', '')
+            part_filename = f"part_{self.current_archive_part:03d}_{start_date}_to_{end_date}.csv"
+            archive_path = os.path.join(config.ARCHIVE_FOLDER, part_filename)
+            
+            # Read all records and separate archive vs keep
+            archive_records = []
+            keep_records = []
+            
+            with open(current_file, 'r', newline='', encoding='utf-8') as f:
+                reader = csv.reader(f)
+                header = next(reader, None)
+                
+                for row in reader:
+                    if len(row) < 13:
+                        continue
+                    
+                    record_date = row[0].strip() if len(row) > 0 else ''
+                    
+                    if record_date in complete_days:
+                        # This record is from a complete day - archive it
+                        archive_records.append(row)
+                    else:
+                        # Keep in main CSV (recent or from incomplete days)
+                        keep_records.append(row)
+            
+            # Create archive part file
+            with open(archive_path, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(config.CSV_HEADER)
+                for record in archive_records:
+                    writer.writerow(record)
+            
+            # Update main CSV with remaining records
+            with open(current_file, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(config.CSV_HEADER)
+                for record in keep_records:
+                    writer.writerow(record)
+            
+            # Update tracking
+            self.current_archive_part += 1
+            self.save_archive_tracking()
+            
+            self.logger.info(f"✅ Created archive part: {part_filename}")
+            self.logger.info(f"   Days archived: {', '.join(complete_days)}")
+            self.logger.info(f"   Records archived: {len(archive_records)}")
+            self.logger.info(f"   Records kept in main CSV: {len(keep_records)}")
+            
+            return True, f"Archive part {part_filename} created with {len(archive_records)} records from {len(complete_days)} complete days"
+        
+        except Exception as e:
+            self.logger.error(f"Error creating archive part: {e}")
+            return False, f"Archive failed: {e}"
+
+    def archive_complete_days_new(self):
+        """NEW ARCHIVE SYSTEM: Archive complete days to parts"""
+        try:
+            self.logger.info("🔍 Starting new archive system...")
+            
+            # Get complete days to archive
+            complete_days = self.get_complete_days_to_archive()
+            
+            if not complete_days:
+                self.logger.info("No complete days ready for archiving")
+                return False, "No complete days to archive"
+            
+            # Create archive part
+            success, message = self.create_archive_part(complete_days)
+            
+            if success:
+                self.logger.info(f"📦 Archive completed: {message}")
+                
+                # Show notification if GUI available
+                try:
+                    from tkinter import messagebox
+                    messagebox.showinfo("Archive Created", f"New archive part created:\n{message}")
+                except:
+                    pass
+            
+            return success, message
+        
+        except Exception as e:
+            self.logger.error(f"Error in new archive system: {e}")
+            return False, f"Archive error: {e}"
+
+    def check_and_archive_new(self):
+        """Check and perform new archive system"""
+        try:
+            self.logger.info("🔍 Checking new archive system...")
+            
+            if self.should_archive_csv_new():
+                self.logger.info("📦 Archive is due - starting new archive process...")
+                return self.archive_complete_days_new()
+            else:
+                self.logger.info("⏳ Archive not due yet")
+                return False, "Archive not due yet"
+        
+        except Exception as e:
+            self.logger.error(f"Error in new archive check: {e}")
+            return False, f"Error: {e}"
+
+
     def save_record(self, data):
-        """FIXED: Save record with deterministic archive checking"""
+        """UPDATED: Save record with better archive system"""
         try:
             self.logger.info("="*50)
             self.logger.info("STARTING OFFLINE-FIRST RECORD SAVE")
@@ -147,12 +380,12 @@ class DataManager:
                     csv_success = self.add_new_record(data)
                 
                 if csv_success:
-                    self.logger.info(f" Record {ticket_no} saved to local CSV successfully")
+                    self.logger.info(f"✅ Record {ticket_no} saved to local CSV successfully")
                 else:
-                    self.logger.error(f" Failed to save record {ticket_no} to local CSV")
+                    self.logger.error(f"❌ Failed to save record {ticket_no} to local CSV")
                     return {'success': False, 'error': 'Failed to save to CSV'}
             except Exception as csv_error:
-                self.logger.error(f" Critical error saving to CSV: {csv_error}")
+                self.logger.error(f"❌ Critical error saving to CSV: {csv_error}")
                 return {'success': False, 'error': f'CSV error: {str(csv_error)}'}
             
             # Check if this is a complete record (both weighments)
@@ -182,7 +415,7 @@ class DataManager:
                 try:
                     json_saved = self.save_json_backup_locally(data)
                     if json_saved:
-                        self.logger.info(f" JSON backup saved locally for {ticket_no}")
+                        self.logger.info(f"✅ JSON backup saved locally for {ticket_no}")
                     else:
                         self.logger.warning(f"⚠️ Failed to save JSON backup for {ticket_no}")
                 except Exception as json_error:
@@ -202,30 +435,30 @@ class DataManager:
                     
                     pdf_generated, pdf_path = self.auto_generate_pdf_for_complete_record(data)
                     if pdf_generated:
-                        self.logger.info(f" PDF auto-generated locally: {pdf_path}")
+                        self.logger.info(f"✅ PDF auto-generated locally: {pdf_path}")
                     else:
                         self.logger.warning("⚠️ PDF generation failed, but record and JSON were saved locally")
                 except Exception as pdf_error:
                     self.logger.error(f"⚠️ PDF generation error (non-critical): {pdf_error}")
             
             # IMPORTANT: NO CLOUD STORAGE ATTEMPTS HERE
-            self.logger.info(" OFFLINE-FIRST SAVE COMPLETED - Local CSV, JSON backup, and PDF generated")
+            self.logger.info("✅ OFFLINE-FIRST SAVE COMPLETED - Local CSV, JSON backup, and PDF generated")
             if todays_reports_folder:
-                self.logger.info(f"PDF saved to today's reports folder: {todays_reports_folder}")
-            self.logger.info(" Cloud backup available via Settings > Cloud Storage > Backup")
+                self.logger.info(f"📂 PDF saved to today's reports folder: {todays_reports_folder}")
+            self.logger.info("💡 Cloud backup available via Settings > Cloud Storage > Backup")
             self.logger.info("="*50)
 
-            # FIXED: Check archive on EVERY complete record save (not random)
+            # NEW: Better archive system - Check on EVERY complete record save
             if is_complete_record:
                 try:
-                    self.logger.info(" Checking archive after complete record save...")
-                    archive_success, archive_message = self.check_and_archive()
+                    self.logger.info("🔍 Checking better archive system after complete record save...")
+                    archive_success, archive_message = self.check_and_archive_new()  # NEW METHOD
                     if archive_success:
-                        self.logger.info(f" Archive completed: {archive_message}")
+                        self.logger.info(f"📦 Better archive completed: {archive_message}")
                     else:
-                        self.logger.info(f" Archive check: {archive_message}")
+                        self.logger.info(f"📦 Better archive check: {archive_message}")
                 except Exception as archive_error:
-                    self.logger.error(f"Archive check error (non-critical): {archive_error}")
+                    self.logger.error(f"Better archive check error (non-critical): {archive_error}")
             
             # Return success and weighment info for the app to handle ticket flow
             return {
@@ -248,6 +481,53 @@ class DataManager:
                 pass
             return {'success': False, 'error': str(e)}
 
+
+    def get_archive_summary(self):
+        """Get summary of archive system"""
+        try:
+            summary = {
+                'archive_folder': config.ARCHIVE_FOLDER,
+                'current_part': self.current_archive_part,
+                'parts': [],
+                'main_csv_records': 0,
+                'total_archived_records': 0
+            }
+            
+            # Count main CSV records
+            current_file = self.get_current_data_file()
+            if os.path.exists(current_file):
+                with open(current_file, 'r', newline='', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    next(reader, None)  # Skip header
+                    summary['main_csv_records'] = sum(1 for _ in reader)
+            
+            # Scan archive parts
+            if os.path.exists(config.ARCHIVE_FOLDER):
+                for filename in sorted(os.listdir(config.ARCHIVE_FOLDER)):
+                    if filename.startswith('part_') and filename.endswith('.csv'):
+                        part_path = os.path.join(config.ARCHIVE_FOLDER, filename)
+                        part_records = 0
+                        
+                        try:
+                            with open(part_path, 'r', newline='', encoding='utf-8') as f:
+                                reader = csv.reader(f)
+                                next(reader, None)  # Skip header
+                                part_records = sum(1 for _ in reader)
+                        except:
+                            pass
+                        
+                        summary['parts'].append({
+                            'filename': filename,
+                            'records': part_records,
+                            'size': os.path.getsize(part_path) if os.path.exists(part_path) else 0
+                        })
+                        summary['total_archived_records'] += part_records
+            
+            return summary
+        
+        except Exception as e:
+            self.logger.error(f"Error getting archive summary: {e}")
+            return {'error': str(e)}
 
     def get_all_records(self):
         """FIXED: Get all records with better error handling for archive compatibility"""
