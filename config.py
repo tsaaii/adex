@@ -3,6 +3,9 @@
 import os
 from pathlib import Path
 import datetime
+import json
+
+
 
 # OFFLINE-FIRST CONFIGURATION
 # Cloud Storage settings - ONLY used when explicitly requested via backup
@@ -34,12 +37,76 @@ WEIGHT_TOLERANCE = 1.0  # kg - adjust for your needs
 STABLE_READINGS_REQUIRED = 3  # readings - adjust for stability vs responsiveness
 MIN_WEIGHT_CHANGE = 50.0  # minimum kg change between weighments
 WEIGHT_CAPTURE_TIMEOUT = 5.0  # seconds to wait for stable weight
-# Hardcoded Lists for Form Dropdowns
-HARDCODED_SITES = [HARDCODED_SITE]
 HARDCODED_AGENCIES = [HARDCODED_AGENCY]
 HARDCODED_TRANSFER_PARTIES = ["On-site"]
 HARDCODED_INCHARGE = "Adarsh"
 HARDCODED_MATERIALS = ["Legacy/MSW", "Inert", "Soil", "Construction and Demolition", "RDF(REFUSE DERIVED FUEL)","Scrap"]
+HARDCODED_SITES = [HARDCODED_SITE]
+# Hardcoded Lists for Form Dropdowns
+# Global constants
+DATA_FOLDER = 'data'
+def load_transfer_parties():
+    """Load transfer parties from JSON file, with fallback to default"""
+    transfer_parties_file = os.path.join(DATA_FOLDER, 'Transfer_parties.json')
+    
+    # Default fallback
+    default_parties = ["On-site"]
+    
+    try:
+        # Create the file if it doesn't exist
+        if not os.path.exists(transfer_parties_file):
+            # Ensure data folder exists
+            os.makedirs(DATA_FOLDER, exist_ok=True)
+            
+            # Create the JSON file with default values
+            default_data = {
+                "transfer_parties": default_parties,
+                "version": "1.0",
+                "created": datetime.datetime.now().isoformat(),
+                "protected": True
+            }
+            
+            with open(transfer_parties_file, 'w') as f:
+                json.dump(default_data, f, indent=4)
+            
+            return default_parties
+        
+        # Read existing file
+        with open(transfer_parties_file, 'r') as f:
+            data = json.load(f)
+            
+        # Validate structure and return transfer_parties
+        if isinstance(data, dict) and 'transfer_parties' in data:
+            parties = data['transfer_parties']
+            if isinstance(parties, list) and len(parties) > 0:
+                return parties
+                
+        # If validation fails, recreate with defaults
+        raise ValueError("Invalid transfer parties data structure")
+        
+    except Exception as e:
+        print(f"Error loading transfer parties: {e}")
+        print("Using default transfer parties and recreating file")
+        
+        try:
+            # Recreate file with defaults
+            default_data = {
+                "transfer_parties": default_parties,
+                "version": "1.0",
+                "created": datetime.datetime.now().isoformat(),
+                "protected": True,
+                "error_recovery": True
+            }
+            
+            with open(transfer_parties_file, 'w') as f:
+                json.dump(default_data, f, indent=4)
+                
+        except Exception as create_error:
+            print(f"Error creating transfer parties file: {create_error}")
+            
+        return default_parties
+    
+HARDCODED_TRANSFER_PARTIES = load_transfer_parties()
 
 # Authentication Settings
 REQUIRE_PASSWORD = True 
@@ -49,8 +116,7 @@ GLOBAL_WEIGHBRIDGE_MANAGER = None
 GLOBAL_WEIGHBRIDGE_WEIGHT_VAR = None
 GLOBAL_WEIGHBRIDGE_STATUS_VAR = None
 
-# Global constants
-DATA_FOLDER = 'data'
+
 
 # FIXED: Unified folder structure - no more confusion
 REPORTS_FOLDER = os.path.join(DATA_FOLDER, 'reports')  # Only one reports folder
