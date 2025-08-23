@@ -2,7 +2,7 @@
 # pyinstaller ^
 #   --onedir ^
 #   --windowed ^
-#   --name="SAC_monitor_Tadepalligudem" ^
+#   --name="SAC_monitor_Uppalbalu" ^
 #   --icon=right.ico ^
 #   --add-data "data;data" ^
 #   --add-data "assets/logo.png;assets" ^

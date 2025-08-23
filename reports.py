@@ -723,7 +723,9 @@ class ReportGenerator:
         self.records_count_var.set(f"Records: {total_records} | Selected: {selected_count}")
     
     def get_selected_record_data(self):
-        """Get the full data for selected records"""
+        """
+        Get the full data for selected records - ENHANCED with ticket number sorting
+        """
         if not self.selected_records:
             return []
         
@@ -732,8 +734,44 @@ class ReportGenerator:
             if record.get('ticket_no', '') in self.selected_records:
                 selected_data.append(record)
         
+        # ENHANCEMENT: Sort by ticket number before returning
+        selected_data = self.sort_records_by_ticket_number(selected_data)
+        
         return selected_data
     
+    def sort_records_by_ticket_number(self, records_data):
+        """
+        Sort records by ticket number in increasing order.
+        Handles various ticket number formats (e.g., T0001, T0002, etc.)
+        """
+        def extract_ticket_number(ticket_str):
+            """Extract numeric part from ticket number for proper sorting"""
+            if not ticket_str:
+                return 0
+            
+            import re
+            # Find all numbers in the ticket string
+            numbers = re.findall(r'\d+', str(ticket_str))
+            if numbers:
+                return int(numbers[-1])  # Take the last number found
+            return 0
+        
+        try:
+            # Sort records by ticket number (numeric part)
+            sorted_records = sorted(records_data, key=lambda record: extract_ticket_number(record.get('ticket_no', '')))
+            
+            print(f"📊 SORTING: Sorted {len(records_data)} records by ticket number")
+            if sorted_records:
+                first_ticket = sorted_records[0].get('ticket_no', 'Unknown')
+                last_ticket = sorted_records[-1].get('ticket_no', 'Unknown')
+                print(f"📊 RANGE: From {first_ticket} to {last_ticket}")
+            
+            return sorted_records
+            
+        except Exception as e:
+            print(f"❌ Error sorting records by ticket number: {e}")
+            return records_data  # Return unsorted if error occurs
+
     def export_selected_to_excel(self):
         """Export selected records to Excel with summary format"""
         selected_data = self.get_selected_record_data()
