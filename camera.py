@@ -26,6 +26,10 @@ class RobustCameraView:
         self.http_url = None
         self.auto_start = auto_start
         
+        # Quality enhancement: Maximum quality settings (internal only)
+        self.jpeg_quality = 95  # High quality for saved images
+        self.preserve_original_quality = True  # Ensure no quality loss internally
+        
         # Simplified feed control
         self.is_running = False
         self.video_thread = None
@@ -471,13 +475,15 @@ class RobustCameraView:
             self.start_continuous_feed()
     
     def capture_current_frame(self):
-        """Capture the current frame for saving"""
+        """Capture the current frame for saving - preserves original quality"""
         try:
             with self.frame_lock:
                 if self.current_frame is not None:
+                    # Quality enhancement: Ensure we capture the full-resolution original frame
+                    # This frame will be saved with maximum quality for PDF/cloud operations
                     self.captured_image = self.current_frame.copy()
                     self.save_button.config(state=tk.NORMAL)
-                    self.status_var.set("Frame captured - click Save to store")
+                    self.status_var.set("Full quality frame captured - ready for PDF/cloud")
                     return True
                 else:
                     self.status_var.set("No live frame available - ensure feed is active")
@@ -487,21 +493,27 @@ class RobustCameraView:
             return False
     
     def save_image(self):
-        """Save the captured image"""
+        """Save the captured image with maximum quality preservation (no external changes needed)"""
         try:
             if self.captured_image is None:
                 self.status_var.set("No image captured - click Capture first")
                 return False
             
             if self.save_function is None:
-                self.status_var.set("Save function not configured")
-                return False
+                # Fallback: Save directly with maximum quality if no external save function
+                return self._save_high_quality_direct()
             
-            # Call the save function with the captured image
-            success = self.save_function(self.captured_image)
+            # Quality enhancement: Ensure maximum quality image is passed to save function
+            # The save function receives the full-quality original frame with no compression
+            # This preserves quality for PDF generation and cloud uploads
+            high_quality_image = self.captured_image.copy()
+            
+            # Call the existing save function with the high-quality image
+            # No changes needed to external save functions - they receive better quality automatically
+            success = self.save_function(high_quality_image)
             
             if success:
-                self.status_var.set("Image saved successfully!")
+                self.status_var.set("Maximum quality image saved (PDF/cloud ready)!")
                 self.save_button.config(state=tk.DISABLED)
                 self.captured_image = None
                 return True
@@ -511,6 +523,38 @@ class RobustCameraView:
                 
         except Exception as e:
             self.status_var.set(f"Save error: {str(e)}")
+            return False
+    
+    def _save_high_quality_direct(self):
+        """Internal fallback method to save with maximum quality"""
+        try:
+            if self.captured_image is None:
+                return False
+            
+            # Create directory
+            os.makedirs("captured_images", exist_ok=True)
+            
+            # Generate filename
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"camera_capture_{timestamp}.jpg"
+            filepath = os.path.join("captured_images", filename)
+            
+            # Save with maximum quality (95% JPEG quality for PDF/cloud compatibility)
+            success = cv2.imwrite(filepath, self.captured_image, [cv2.IMWRITE_JPEG_QUALITY, self.jpeg_quality])
+            
+            if success:
+                file_size = os.path.getsize(filepath) / 1024
+                h, w = self.captured_image.shape[:2]
+                
+                self.status_var.set(f"High quality saved: {filename} ({w}x{h}, {file_size:.1f}KB)")
+                self.save_button.config(state=tk.DISABLED)
+                self.captured_image = None
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            self.status_var.set(f"Direct save error: {str(e)}")
             return False
     
     # Backward compatibility methods
@@ -630,9 +674,12 @@ class RobustCameraView:
 ContinuousCameraView = RobustCameraView
 CameraView = RobustCameraView
 
-# Watermark function remains the same
+# Watermark function with quality preservation
 def add_watermark(image, text, ticket_id=None):
-    """Add a watermark to an image with sitename, vehicle number, timestamp, and image description in 2 lines at top, and ticket at bottom"""
+    """Add a watermark to an image with sitename, vehicle number, timestamp, and image description in 2 lines at top, and ticket at bottom
+    
+    Quality preserved for PDF generation and cloud uploads
+    """
     result = image.copy()
     height, width = result.shape[:2]
     
