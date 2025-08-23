@@ -105,6 +105,74 @@ class ImageHandler:
             messagebox.showerror("System Error", f"Cannot verify vehicle status: {str(e)}")
             return False  # STRICT BLOCK on errors
 
+
+    def create_captured_images_folders(self):
+        """Create the main captured images folder with subfolders ff, fb, sf, sb"""
+        try:
+            # Create main captured images folder
+            captured_images_folder = os.path.join(config.DATA_FOLDER, "captured_images")
+            os.makedirs(captured_images_folder, exist_ok=True)
+            
+            # Create today's subfolder
+            today_str = datetime.datetime.now().strftime("%Y-%m-%d")
+            today_folder = os.path.join(captured_images_folder, today_str)
+            os.makedirs(today_folder, exist_ok=True)
+            
+            # Create the 4 subfolders
+            subfolders = ["ff", "fb", "sf", "sb"]  # first front, first back, second front, second back
+            for subfolder in subfolders:
+                subfolder_path = os.path.join(today_folder, subfolder)
+                os.makedirs(subfolder_path, exist_ok=True)
+            
+            print(f"✅ Created captured images folder structure for {today_str}")
+            return today_folder
+            
+        except Exception as e:
+            print(f"Error creating captured images folders: {e}")
+            return None
+
+    def save_unwatermarked_image(self, image, weighment, camera_type, site_name, vehicle_no, timestamp):
+        """Save unwatermarked image to appropriate subfolder"""
+        try:
+            # Create folder structure
+            today_folder = self.create_captured_images_folders()
+            if not today_folder:
+                return None
+            
+            # Determine subfolder based on weighment and camera type
+            if weighment == "first" and camera_type == "front":
+                subfolder = "ff"
+            elif weighment == "first" and camera_type == "back":
+                subfolder = "fb"
+            elif weighment == "second" and camera_type == "front":
+                subfolder = "sf"
+            elif weighment == "second" and camera_type == "back":
+                subfolder = "sb"
+            else:
+                print(f"Invalid weighment/camera_type combination: {weighment}/{camera_type}")
+                return None
+            
+            # Create filename for unwatermarked image
+            unwatermarked_filename = f"{site_name}_{vehicle_no}_{timestamp}_{weighment}_{camera_type}_unwatermarked.jpg"
+            
+            # Full path for unwatermarked image
+            subfolder_path = os.path.join(today_folder, subfolder)
+            unwatermarked_filepath = os.path.join(subfolder_path, unwatermarked_filename)
+            
+            # Save unwatermarked image
+            success = cv2.imwrite(unwatermarked_filepath, image)
+            
+            if success and os.path.exists(unwatermarked_filepath):
+                print(f"✅ Unwatermarked image saved to {subfolder}: {unwatermarked_filename}")
+                return unwatermarked_filepath
+            else:
+                print(f"❌ Failed to save unwatermarked image to {subfolder}")
+                return None
+                
+        except Exception as e:
+            print(f"Error saving unwatermarked image: {e}")
+            return None
+
     def load_images_from_record(self, record):
         """Load images from a record into the form"""
         print(f"Loading images from record for ticket: {record.get('ticket_no', 'unknown')}")
@@ -190,7 +258,7 @@ class ImageHandler:
             print(f"Error updating image status: {e}")
     
     def save_front_image(self, captured_image=None):
-        """FIXED: Save front view camera image with corrected pending vehicle check"""
+        """MODIFIED: Save front view camera image with unwatermarked copy saved first"""
         print("=== CORRECTED FRONT IMAGE SAVE ===")
         print(f"Captured image provided: {captured_image is not None}")
         
@@ -235,6 +303,14 @@ class ImageHandler:
             ticket_id = self.main_form.rst_var.get().strip()
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             
+            # === NEW: SAVE UNWATERMARKED IMAGE FIRST ===
+            unwatermarked_path = self.save_unwatermarked_image(
+                image, image_weighment, "front", site_name, vehicle_no, timestamp
+            )
+            if unwatermarked_path:
+                print(f"✅ Unwatermarked front image saved: {unwatermarked_path}")
+            
+            # === EXISTING CODE CONTINUES AS NORMAL ===
             # New naming format: {site}_{vehicle}_{timestamp}_{weighment}_front.jpg
             filename = f"{site_name}_{vehicle_no}_{timestamp}_{weighment_label}_front.jpg"
             print(f"Generated filename: {filename}")
@@ -286,7 +362,6 @@ class ImageHandler:
             
             # Show success message
             messagebox.showinfo("Success", f"{weighment_label} weighment front image saved successfully!")
-            
             return True
             
         except Exception as e:
@@ -296,9 +371,12 @@ class ImageHandler:
             traceback.print_exc()
             messagebox.showerror("Error", error_msg)
             return False
-    
+
+
+# REPLACE your existing save_back_image method with this one:
+
     def save_back_image(self, captured_image=None):
-        """FIXED: Save back view camera image with corrected pending vehicle check"""
+        """MODIFIED: Save back view camera image with unwatermarked copy saved first"""
         print("=== CORRECTED BACK IMAGE SAVE ===")
         print(f"Captured image provided: {captured_image is not None}")
         
@@ -343,6 +421,14 @@ class ImageHandler:
             ticket_id = self.main_form.rst_var.get().strip()
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             
+            # === NEW: SAVE UNWATERMARKED IMAGE FIRST ===
+            unwatermarked_path = self.save_unwatermarked_image(
+                image, image_weighment, "back", site_name, vehicle_no, timestamp
+            )
+            if unwatermarked_path:
+                print(f"✅ Unwatermarked back image saved: {unwatermarked_path}")
+            
+            # === EXISTING CODE CONTINUES AS NORMAL ===
             # New naming format: {site}_{vehicle}_{timestamp}_{weighment}_back.jpg
             filename = f"{site_name}_{vehicle_no}_{timestamp}_{weighment_label}_back.jpg"
             print(f"Generated filename: {filename}")
@@ -394,7 +480,6 @@ class ImageHandler:
             
             # Show success message
             messagebox.showinfo("Success", f"{weighment_label} weighment back image saved successfully!")
-            
             return True
             
         except Exception as e:
@@ -404,7 +489,10 @@ class ImageHandler:
             traceback.print_exc()
             messagebox.showerror("Error", error_msg)
             return False
-    
+
+
+# ALSO UPDATE your specific weighment methods - Replace save_first_front_image:
+
     def save_first_front_image(self, captured_image):
         """Save image specifically for first weighment front - used by continuous camera system"""
         print("=== SAVE FIRST FRONT IMAGE (SPECIFIC) ===")
@@ -425,6 +513,14 @@ class ImageHandler:
             ticket_id = self.main_form.rst_var.get().strip()
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             
+            # === NEW: SAVE UNWATERMARKED IMAGE FIRST ===
+            unwatermarked_path = self.save_unwatermarked_image(
+                captured_image, "first", "front", site_name, vehicle_no, timestamp
+            )
+            if unwatermarked_path:
+                print(f"✅ Unwatermarked first front image saved: {unwatermarked_path}")
+            
+            # === EXISTING CODE CONTINUES ===
             filename = f"{site_name}_{vehicle_no}_{timestamp}_1st_front.jpg"
             watermark_text = f"{site_name} - {vehicle_no} - {timestamp} - 1ST FRONT"
             
@@ -448,7 +544,10 @@ class ImageHandler:
         except Exception as e:
             print(f"Error saving first front image: {e}")
             return False
-    
+
+
+    # REPLACE save_first_back_image:
+
     def save_first_back_image(self, captured_image):
         """Save image specifically for first weighment back - used by continuous camera system"""
         print("=== SAVE FIRST BACK IMAGE (SPECIFIC) ===")
@@ -469,6 +568,14 @@ class ImageHandler:
             ticket_id = self.main_form.rst_var.get().strip()
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             
+            # === NEW: SAVE UNWATERMARKED IMAGE FIRST ===
+            unwatermarked_path = self.save_unwatermarked_image(
+                captured_image, "first", "back", site_name, vehicle_no, timestamp
+            )
+            if unwatermarked_path:
+                print(f"✅ Unwatermarked first back image saved: {unwatermarked_path}")
+            
+            # === EXISTING CODE CONTINUES ===
             filename = f"{site_name}_{vehicle_no}_{timestamp}_1st_back.jpg"
             watermark_text = f"{site_name} - {vehicle_no} - {timestamp} - 1ST BACK"
             
@@ -580,7 +687,114 @@ class ImageHandler:
         except Exception as e:
             print(f"Error saving second back image: {e}")
             return False
-    
+
+    def save_second_front_image(self, captured_image):
+        """Save image specifically for second weighment front - used by continuous camera system"""
+        print("=== SAVE SECOND FRONT IMAGE (SPECIFIC) ===")
+        
+        # Validate vehicle number first
+        if not self.main_form.form_validator.validate_vehicle_number():
+            print("Vehicle number validation failed")
+            return False
+        
+        if captured_image is None:
+            print("ERROR: No captured image provided")
+            return False
+        
+        try:
+            # Generate filename
+            site_name = self.main_form.site_var.get().replace(" ", "_")
+            vehicle_no = self.main_form.vehicle_var.get().replace(" ", "_")
+            ticket_id = self.main_form.rst_var.get().strip()
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # === NEW: SAVE UNWATERMARKED IMAGE FIRST ===
+            unwatermarked_path = self.save_unwatermarked_image(
+                captured_image, "second", "front", site_name, vehicle_no, timestamp
+            )
+            if unwatermarked_path:
+                print(f"✅ Unwatermarked second front image saved: {unwatermarked_path}")
+            
+            # === EXISTING CODE CONTINUES ===
+            filename = f"{site_name}_{vehicle_no}_{timestamp}_2nd_front.jpg"
+            watermark_text = f"{site_name} - {vehicle_no} - {timestamp} - 2ND FRONT"
+            
+            # Add watermark
+            watermarked_image = add_watermark(captured_image, watermark_text, ticket_id)
+            
+            # Save image
+            os.makedirs(config.IMAGES_FOLDER, exist_ok=True)
+            filepath = os.path.join(config.IMAGES_FOLDER, filename)
+            
+            success = cv2.imwrite(filepath, watermarked_image)
+            if success and os.path.exists(filepath):
+                self.main_form.second_front_image_path = filepath
+                self.update_image_status()
+                print(f"✅ Second front image saved: {filename}")
+                return True
+            else:
+                print("ERROR: Failed to save second front image")
+                return False
+                
+        except Exception as e:
+            print(f"Error saving second front image: {e}")
+            return False
+
+
+    # REPLACE save_second_back_image:
+
+    def save_second_back_image(self, captured_image):
+        """Save image specifically for second weighment back - used by continuous camera system"""
+        print("=== SAVE SECOND BACK IMAGE (SPECIFIC) ===")
+        
+        # Validate vehicle number first
+        if not self.main_form.form_validator.validate_vehicle_number():
+            print("Vehicle number validation failed")
+            return False
+        
+        if captured_image is None:
+            print("ERROR: No captured image provided")
+            return False
+        
+        try:
+            # Generate filename
+            site_name = self.main_form.site_var.get().replace(" ", "_")
+            vehicle_no = self.main_form.vehicle_var.get().replace(" ", "_")
+            ticket_id = self.main_form.rst_var.get().strip()
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # === NEW: SAVE UNWATERMARKED IMAGE FIRST ===
+            unwatermarked_path = self.save_unwatermarked_image(
+                captured_image, "second", "back", site_name, vehicle_no, timestamp
+            )
+            if unwatermarked_path:
+                print(f"✅ Unwatermarked second back image saved: {unwatermarked_path}")
+            
+            # === EXISTING CODE CONTINUES ===
+            filename = f"{site_name}_{vehicle_no}_{timestamp}_2nd_back.jpg"
+            watermark_text = f"{site_name} - {vehicle_no} - {timestamp} - 2ND BACK"
+            
+            # Add watermark
+            watermarked_image = add_watermark(captured_image, watermark_text, ticket_id)
+            
+            # Save image
+            os.makedirs(config.IMAGES_FOLDER, exist_ok=True)
+            filepath = os.path.join(config.IMAGES_FOLDER, filename)
+            
+            success = cv2.imwrite(filepath, watermarked_image)
+            if success and os.path.exists(filepath):
+                self.main_form.second_back_image_path = filepath
+                self.update_image_status()
+                print(f"✅ Second back image saved: {filename}")
+                return True
+            else:
+                print("ERROR: Failed to save second back image")
+                return False
+                
+        except Exception as e:
+            print(f"Error saving second back image: {e}")
+            return False
+
     def get_all_image_filenames(self):
         """Get all image filenames for database storage
         
