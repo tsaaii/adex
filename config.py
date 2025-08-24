@@ -29,17 +29,17 @@ ARCHIVE_FOLDER = None  # Will be set in setup()
 
 HARDCODED_MODE = True  # Set to True to use hardcoded values
 HARDCODED_AGENCY = "Tharuni Associates"
-HARDCODED_SITE = "Tadepalligudem"
+HARDCODED_SITE = "Kadiri"
 HARDCODED_USER = "admin"
 HARDCODED_PASSWORD = "admin" 
-HARDCODED_SITEMANAGER = "Adarsh" 
+HARDCODED_SITEMANAGER = "Pavan Kalyan" 
 WEIGHT_TOLERANCE = 1.0  # kg - adjust for your needs
 STABLE_READINGS_REQUIRED = 3  # readings - adjust for stability vs responsiveness
 MIN_WEIGHT_CHANGE = 50.0  # minimum kg change between weighments
 WEIGHT_CAPTURE_TIMEOUT = 5.0  # seconds to wait for stable weight
 HARDCODED_AGENCIES = [HARDCODED_AGENCY]
 HARDCODED_TRANSFER_PARTIES = ["On-site"]
-HARDCODED_INCHARGE = "Adarsh"
+HARDCODED_INCHARGE = "Pavan Kalyan"
 HARDCODED_MATERIALS = ["Legacy/MSW", "Inert", "Soil", "Construction and Demolition", "RDF(REFUSE DERIVED FUEL)","Scrap"]
 HARDCODED_SITES = [HARDCODED_SITE]
 # Hardcoded Lists for Form Dropdowns

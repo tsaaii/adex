@@ -308,10 +308,10 @@ class SettingsStorage:
             return False
 
     def get_weighbridge_settings(self):
-        """Get weighbridge settings from file including test mode
+        """Get weighbridge settings from file
         
         Returns:
-            dict: Weighbridge settings with test_mode flag
+            dict: Weighbridge settings with test_mode flag and regex_pattern
         """
         try:
             print(f"Reading weighbridge settings from: {self.settings_file}")
@@ -322,17 +322,23 @@ class SettingsStorage:
                 # Add test_mode if it doesn't exist
                 if "test_mode" not in wb_settings:
                     wb_settings["test_mode"] = False
+                
+                # IMPORTANT: Add regex_pattern if it doesn't exist
+                if "regex_pattern" not in wb_settings:
+                    wb_settings["regex_pattern"] = r"(\d+\.?\d*)"  # Default regex pattern
                     
                 print(f"Loaded weighbridge settings: {wb_settings}")
                 return wb_settings
         except Exception as e:
             print(f"Error reading weighbridge settings: {e}")
+            # UPDATED: Include regex_pattern in default values
             return {
                 "com_port": "",
                 "baud_rate": 9600,
                 "data_bits": 8,
                 "parity": "None",
                 "stop_bits": 1.0,
+                "regex_pattern": r"(\d+\.?\d*)",  # DEFAULT regex pattern
                 "test_mode": False  # Default to real weighbridge mode
             }
         
